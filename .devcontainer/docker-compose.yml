@@ -5,10 +5,12 @@ services:
       dockerfile: ./Dockerfile
     image: app-dev
     restart: unless-stopped
+    user: node
     depends_on:
       - db
     volumes:
       - ../:/workspaces/work-logbook
+      - node_modules:/workspaces/work-logbook/node_modules
     ports:
       - "3000:3000"
     tty: true
@@ -27,5 +29,6 @@ services:
       - pgdata:/var/lib/postgresql/data
 volumes:
   pgdata:
+  node_modules:
 
  

@@ -25,3 +25,6 @@ vite.config.ts.timestamp-*
 
 *storybook.log
 storybook-static
+.devcontainer/.p10k.zsh
+.devcontainer/.zsh_history
+.pnpm-store/

@@ -1,0 +1,31 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: app-dev
+    restart: unless-stopped
+    depends_on:
+      - db
+    volumes:
+      - ../:/workspaces/work-logbook
+    ports:
+      - "3000:3000"
+    tty: true
+    stdin_open: true
+    command: sleep infinity
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment: 
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: local
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:
+
+ 

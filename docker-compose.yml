@@ -1,0 +1,34 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    image: app-dev
+    restart: unless-stopped
+    depends_on:
+      - db
+    volumes:
+      - .:/workspace:cached
+    ports:
+      - "3000:3000"
+    environment:
+      LOCAL_USER_ID: ${LOCAL_USER_ID:-1000}
+      LOCAL_GID: ${LOCAL_GID:-1000}
+      TZ: UTC
+    user: "${LOCAL_USER_ID:-1000}:${LOCAL_GID:-1000}"
+    tty: true
+    stdin_open: true
+    command: sleep infinity
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment: 
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: local
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:

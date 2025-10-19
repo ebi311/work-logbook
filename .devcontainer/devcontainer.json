@@ -41,5 +41,17 @@
 	// "customizations": {},
 
 	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
-	"remoteUser": "node"
+	"remoteUser": "node",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"esbenp.prettier-vscode",
+				"1YiB.svelte-bundle",
+				"kisstkondoros.vscode-codemetrics",
+				"dbaeumer.vscode-eslint",
+				"eamodio.gitlens",
+				"ms-edgedevtools.vscode-edge-devtools"
+			]
+		}
+	}
 }

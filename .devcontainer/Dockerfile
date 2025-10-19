@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 			zsh git curl wget ca-certificates fontconfig unzip locales sudo \
 	&& rm -rf /var/lib/apt/lists/*
 
+RUN npm install -g @github/copilot
+
 # Allow passwordless sudo for the 'node' user by installing sudo (above) and
 # creating a sudoers.d entry. We create the file as root then switch to node user
 # later in the Dockerfile; using a heredoc with tee to write file as root.

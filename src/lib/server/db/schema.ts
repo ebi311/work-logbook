@@ -1,6 +1,26 @@
-import { pgTable, serial, integer } from 'drizzle-orm/pg-core';
+import { pgTable, serial, integer, uuid, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 export const user = pgTable('user', {
 	id: serial('id').primaryKey(),
 	age: integer('age')
 });
+
+// F-001: 作業記録テーブル
+export const workLogs = pgTable('work_logs', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	userId: uuid('user_id').notNull(),
+	startedAt: timestamp('started_at', { withTimezone: true, mode: 'string' }).notNull(),
+	endedAt: timestamp('ended_at', { withTimezone: true, mode: 'string' }),
+	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+}, (table) => ({
+	// 部分ユニークインデックス: 1ユーザーにつき1つだけ進行中の作業を許可
+	activeWorkLogUniqueIndex: uniqueIndex('work_logs_user_id_active_unique')
+		.on(table.userId)
+		.where(sql`${table.endedAt} IS NULL`),
+}));
+
+// 型エクスポート
+export type WorkLog = typeof workLogs.$inferSelect;
+export type NewWorkLog = typeof workLogs.$inferInsert;

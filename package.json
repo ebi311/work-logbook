@@ -65,6 +65,7 @@
   },
   "dependencies": {
     "daisyui": "^5.3.7",
-    "postgres": "^3.4.7"
+    "postgres": "^3.4.7",
+    "zod": "^4.1.12"
   }
 }

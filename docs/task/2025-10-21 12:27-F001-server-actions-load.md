@@ -72,20 +72,20 @@
 ## 実装ステップ
 
 ### Step 1: 型定義
-- [ ] `ActiveWorkLog`型を定義
-- [ ] `LoadData`型を定義
+- [x] `ActiveWorkLog`型を定義
+- [x] `LoadData`型を定義
 
 ### Step 2: load関数の実装
-- [ ] 認証チェックを実装
-- [ ] `getActiveWorkLog()`を呼び出し
-- [ ] WorkLogインスタンスをプレーンオブジェクトに変換
-- [ ] サーバー時刻を取得（UTC、ISO 8601形式）
-- [ ] レスポンスオブジェクトを構築
+- [x] 認証チェックを実装
+- [x] `getActiveWorkLog()`を呼び出し
+- [x] WorkLogインスタンスをプレーンオブジェクトに変換
+- [x] サーバー時刻を取得（UTC、ISO 8601形式）
+- [x] レスポンスオブジェクトを構築
 
 ### Step 3: エラーハンドリング
-- [ ] try-catchでDB接続エラーをハンドリング
-- [ ] エラーログの出力（console.error）
-- [ ] 500エラーを返却
+- [x] try-catchでDB接続エラーをハンドリング
+- [x] エラーログの出力（console.error）
+- [x] 500エラーを返却
 
 ## テストケース
 
@@ -93,33 +93,33 @@
 ファイル: `src/routes/+page.server.spec.ts`
 
 #### TC1: 正常系 - 進行中の作業がある場合
-- [ ] モック: `locals.user`が存在
-- [ ] モック: `getActiveWorkLog()`が進行中の作業を返す
-- [ ] 検証: `active`オブジェクトが返却される
-- [ ] 検証: `serverNow`がISO 8601形式
+- [x] モック: `locals.user`が存在
+- [x] モック: `getActiveWorkLog()`が進行中の作業を返す
+- [x] 検証: `active`オブジェクトが返却される
+- [x] 検証: `serverNow`がISO 8601形式
 
 #### TC2: 正常系 - 進行中の作業がない場合
-- [ ] モック: `locals.user`が存在
-- [ ] モック: `getActiveWorkLog()`がnullを返す
-- [ ] 検証: `active`が含まれない
-- [ ] 検証: `serverNow`が返却される
+- [x] モック: `locals.user`が存在
+- [x] モック: `getActiveWorkLog()`がnullを返す
+- [x] 検証: `active`が含まれない
+- [x] 検証: `serverNow`が返却される
 
 #### TC3: 異常系 - 未認証
-- [ ] モック: `locals.user`がundefined
-- [ ] 検証: 401エラーがスローされる
+- [x] モック: `locals.user`がundefined
+- [x] 検証: 401エラーがスローされる
 
 #### TC4: 異常系 - DB接続エラー
-- [ ] モック: `getActiveWorkLog()`がエラーをスロー
-- [ ] 検証: 500エラーがスローされる
-- [ ] 検証: エラーログが出力される
+- [x] モック: `getActiveWorkLog()`がエラーをスロー
+- [x] 検証: 500エラーがスローされる
+- [x] 検証: エラーログが出力される
 
 ## 合格基準
 
-- [ ] すべてのテストケースがパス
-- [ ] TypeScriptの型エラーがない
-- [ ] ESLintエラーがない
-- [ ] 認証済みユーザーでページが正常にロードされる
-- [ ] 進行中の作業がある場合、UIに状態が反映される
+- [x] すべてのテストケースがパス
+- [x] TypeScriptの型エラーがない
+- [x] ESLintエラーがない
+- [x] 認証済みユーザーでページが正常にロードされる
+- [x] 進行中の作業がある場合、UIに状態が反映される
 
 ## 依存関係
 

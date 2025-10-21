@@ -97,21 +97,21 @@
 ## 実装ステップ
 
 ### Step 1: 型定義
-- [ ] `StartActionSuccess`型を定義
-- [ ] `StartActionFailure`型を定義
+- [x] `StartActionSuccess`型を定義
+- [x] `StartActionFailure`型を定義
 
 ### Step 2: start actionの実装
-- [ ] 認証チェックを実装
-- [ ] サーバー現在時刻を取得
-- [ ] `getActiveWorkLog()`を呼び出し
-- [ ] 既存の進行中作業がある場合のエラーハンドリング（409）
-- [ ] `createWorkLog()`を呼び出し
-- [ ] レスポンスオブジェクトを構築
+- [x] 認証チェックを実装
+- [x] サーバー現在時刻を取得
+- [x] `getActiveWorkLog()`を呼び出し
+- [x] 既存の進行中作業がある場合のエラーハンドリング（409）
+- [x] `createWorkLog()`を呼び出し
+- [x] レスポンスオブジェクトを構築
 
 ### Step 3: エラーハンドリング
-- [ ] try-catchでDB接続エラーをハンドリング
-- [ ] エラーログの出力（console.error）
-- [ ] 500エラーを返却
+- [x] try-catchでDB接続エラーをハンドリング
+- [x] エラーログの出力（console.error）
+- [x] 500エラーを返却
 
 ## テストケース
 
@@ -119,38 +119,38 @@
 ファイル: `src/routes/+page.server.spec.ts`
 
 #### TC1: 正常系 - 作業開始成功
-- [ ] モック: `locals.user`が存在
-- [ ] モック: `getActiveWorkLog()`がnullを返す
-- [ ] モック: `createWorkLog()`が新規作業を返す
-- [ ] 検証: `ok: true`が返却される
-- [ ] 検証: `workLog`オブジェクトが含まれる
-- [ ] 検証: `serverNow`がISO 8601形式
+- [x] モック: `locals.user`が存在
+- [x] モック: `getActiveWorkLog()`がnullを返す
+- [x] モック: `createWorkLog()`が新規作業を返す
+- [x] 検証: `ok: true`が返却される
+- [x] 検証: `workLog`オブジェクトが含まれる
+- [x] 検証: `serverNow`がISO 8601形式
 
 #### TC2: 異常系 - 既に進行中の作業がある
-- [ ] モック: `locals.user`が存在
-- [ ] モック: `getActiveWorkLog()`が進行中の作業を返す
-- [ ] 検証: 409エラーが返却される
-- [ ] 検証: `reason: 'ACTIVE_EXISTS'`
-- [ ] 検証: `active`オブジェクトが含まれる
+- [x] モック: `locals.user`が存在
+- [x] モック: `getActiveWorkLog()`が進行中の作業を返す
+- [x] 検証: 409エラーが返却される
+- [x] 検証: `reason: 'ACTIVE_EXISTS'`
+- [x] 検証: `active`オブジェクトが含まれる
 
 #### TC3: 異常系 - 未認証
-- [ ] モック: `locals.user`がundefined
-- [ ] 検証: 401エラーがスローされる
+- [x] モック: `locals.user`がundefined
+- [x] 検証: 401エラーがスローされる
 
 #### TC4: 異常系 - DB接続エラー
-- [ ] モック: `createWorkLog()`がエラーをスロー
-- [ ] 検証: 500エラーがスローされる
-- [ ] 検証: エラーログが出力される
+- [x] モック: `createWorkLog()`がエラーをスロー
+- [x] 検証: 500エラーがスローされる
+- [x] 検証: エラーログが出力される
 
 #### TC5: 異常系 - UNIQUE制約違反
-- [ ] モック: `createWorkLog()`がUNIQUE制約違反をスロー
-- [ ] 検証: 409エラーまたは適切なエラーハンドリング
+- [x] モック: `createWorkLog()`がUNIQUE制約違反をスロー
+- [x] 検証: 409エラーまたは適切なエラーハンドリング
 
 ## 合格基準
 
-- [ ] すべてのテストケースがパス
-- [ ] TypeScriptの型エラーがない
-- [ ] ESLintエラーがない
+- [x] すべてのテストケースがパス
+- [x] TypeScriptの型エラーがない
+- [x] ESLintエラーがない
 - [ ] UIから作業開始ボタンをクリックして正常に動作
 - [ ] 二重開始が防止される（409エラー）
 - [ ] サーバー時刻がUTCで保存される

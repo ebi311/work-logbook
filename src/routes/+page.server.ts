@@ -1,6 +1,6 @@
 import { error, fail } from '@sveltejs/kit';
 import type { ServerLoad, Actions } from '@sveltejs/kit';
-import { getActiveWorkLog, createWorkLog } from '$lib/server/db/workLogs';
+import { getActiveWorkLog, createWorkLog, stopWorkLog } from '$lib/server/db/workLogs';
 
 /**
  * F-001: 初期状態取得
@@ -78,6 +78,26 @@ type StartActionFailure = {
 	serverNow: string;
 };
 
+/**
+ * F-001: 作業終了
+ */
+
+type StopActionSuccess = {
+	ok: true;
+	workLog: {
+		id: string;
+		startedAt: string;
+		endedAt: string;
+	};
+	serverNow: string;
+	durationSec: number;
+};
+
+type StopActionFailure = {
+	reason: 'NO_ACTIVE';
+	serverNow: string;
+};
+
 export const actions: Actions = {
 	start: async ({ locals }) => {
 		// 認証チェック
@@ -119,6 +139,63 @@ export const actions: Actions = {
 			} satisfies StartActionSuccess;
 		} catch (err) {
 			console.error('Failed to start work log:', err);
+			throw error(500, 'Internal Server Error');
+		}
+	},
+
+	stop: async ({ locals }) => {
+		// 認証チェック
+		if (!locals.user) {
+			throw error(401, 'Unauthorized');
+		}
+
+		const userId = locals.user.id;
+		const serverNow = new Date();
+
+		try {
+			// 進行中の作業を取得
+			const activeWorkLog = await getActiveWorkLog(userId);
+
+			if (!activeWorkLog) {
+				// 進行中の作業がない
+				return fail(404, {
+					reason: 'NO_ACTIVE',
+					serverNow: serverNow.toISOString()
+				} satisfies StopActionFailure);
+			}
+
+			// 作業を終了
+			const stoppedWorkLog = await stopWorkLog(activeWorkLog.id, serverNow);
+
+			if (!stoppedWorkLog) {
+				// 更新失敗（既に終了済み）
+				return fail(404, {
+					reason: 'NO_ACTIVE',
+					serverNow: serverNow.toISOString()
+				} satisfies StopActionFailure);
+			}
+
+			// 作業時間を計算
+			const durationSec = stoppedWorkLog.getDuration();
+
+			// endedAtが設定されているはずだが、型安全のためチェック
+			if (durationSec === null) {
+				console.error('stoppedWorkLog.getDuration() returned null');
+				throw error(500, 'Internal Server Error');
+			}
+
+			return {
+				ok: true,
+				workLog: {
+					id: stoppedWorkLog.id,
+					startedAt: stoppedWorkLog.startedAt.toISOString(),
+					endedAt: stoppedWorkLog.endedAt!.toISOString()
+				},
+				serverNow: serverNow.toISOString(),
+				durationSec
+			} satisfies StopActionSuccess;
+		} catch (err) {
+			console.error('Failed to stop work log:', err);
 			throw error(500, 'Internal Server Error');
 		}
 	}

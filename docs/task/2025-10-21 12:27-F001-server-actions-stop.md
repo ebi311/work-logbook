@@ -94,23 +94,23 @@
 ## 実装ステップ
 
 ### Step 1: 型定義
-- [ ] `StopActionSuccess`型を定義
-- [ ] `StopActionFailure`型を定義
+- [x] `StopActionSuccess`型を定義
+- [x] `StopActionFailure`型を定義
 
 ### Step 2: stop actionの実装
-- [ ] 認証チェックを実装
-- [ ] サーバー現在時刻を取得
-- [ ] `getActiveWorkLog()`を呼び出し
-- [ ] 進行中の作業がない場合のエラーハンドリング（404）
-- [ ] `stopWorkLog()`を呼び出し
-- [ ] 更新失敗時のエラーハンドリング（404）
-- [ ] 作業時間の計算（`getDuration()`）
-- [ ] レスポンスオブジェクトを構築
+- [x] 認証チェックを実装
+- [x] サーバー現在時刻を取得
+- [x] `getActiveWorkLog()`を呼び出し
+- [x] 進行中の作業がない場合のエラーハンドリング（404）
+- [x] `stopWorkLog()`を呼び出し
+- [x] 更新失敗時のエラーハンドリング（404）
+- [x] 作業時間の計算（`getDuration()`）
+- [x] レスポンスオブジェクトを構築
 
 ### Step 3: エラーハンドリング
-- [ ] try-catchでDB接続エラーをハンドリング
-- [ ] エラーログの出力（console.error）
-- [ ] 500エラーを返却
+- [x] try-catchでDB接続エラーをハンドリング
+- [x] エラーログの出力（console.error）
+- [x] 500エラーを返却
 
 ## テストケース
 
@@ -118,44 +118,44 @@
 ファイル: `src/routes/+page.server.spec.ts`
 
 #### TC1: 正常系 - 作業終了成功
-- [ ] モック: `locals.user`が存在
-- [ ] モック: `getActiveWorkLog()`が進行中の作業を返す
-- [ ] モック: `stopWorkLog()`が終了した作業を返す
-- [ ] 検証: `ok: true`が返却される
-- [ ] 検証: `workLog.endedAt`が設定されている
-- [ ] 検証: `durationSec`が計算されている
-- [ ] 検証: `serverNow`がISO 8601形式
+- [x] モック: `locals.user`が存在
+- [x] モック: `getActiveWorkLog()`が進行中の作業を返す
+- [x] モック: `stopWorkLog()`が終了した作業を返す
+- [x] 検証: `ok: true`が返却される
+- [x] 検証: `workLog.endedAt`が設定されている
+- [x] 検証: `durationSec`が計算されている
+- [x] 検証: `serverNow`がISO 8601形式
 
 #### TC2: 異常系 - 進行中の作業がない
-- [ ] モック: `locals.user`が存在
-- [ ] モック: `getActiveWorkLog()`がnullを返す
-- [ ] 検証: 404エラーが返却される
-- [ ] 検証: `reason: 'NO_ACTIVE'`
-- [ ] 検証: `serverNow`が返却される
+- [x] モック: `locals.user`が存在
+- [x] モック: `getActiveWorkLog()`がnullを返す
+- [x] 検証: 404エラーが返却される
+- [x] 検証: `reason: 'NO_ACTIVE'`
+- [x] 検証: `serverNow`が返却される
 
 #### TC3: 異常系 - 未認証
-- [ ] モック: `locals.user`がundefined
-- [ ] 検証: 401エラーがスローされる
+- [x] モック: `locals.user`がundefined
+- [x] 検証: 401エラーがスローされる
 
 #### TC4: 異常系 - DB接続エラー
-- [ ] モック: `stopWorkLog()`がエラーをスロー
-- [ ] 検証: 500エラーがスローされる
-- [ ] 検証: エラーログが出力される
+- [x] モック: `stopWorkLog()`がエラーをスロー
+- [x] 検証: 500エラーがスローされる
+- [x] 検証: エラーログが出力される
 
 #### TC5: 異常系 - 更新失敗（既に終了済み）
-- [ ] モック: `getActiveWorkLog()`が作業を返す
-- [ ] モック: `stopWorkLog()`がnullを返す
-- [ ] 検証: 404エラーが返却される
+- [x] モック: `getActiveWorkLog()`が作業を返す
+- [x] モック: `stopWorkLog()`がnullを返す
+- [x] 検証: 404エラーが返却される
 
 #### TC6: 正常系 - 作業時間の計算
-- [ ] 開始から1時間後に終了
-- [ ] 検証: `durationSec`が3600秒
+- [x] 開始から1時間後に終了
+- [x] 検証: `durationSec`が3600秒
 
 ## 合格基準
 
-- [ ] すべてのテストケースがパス
-- [ ] TypeScriptの型エラーがない
-- [ ] ESLintエラーがない
+- [x] すべてのテストケースがパス
+- [x] TypeScriptの型エラーがない
+- [x] ESLintエラーがない
 - [ ] UIから作業終了ボタンをクリックして正常に動作
 - [ ] 進行中の作業がない場合、404エラーが返却される
 - [ ] 作業時間が正確に計算される

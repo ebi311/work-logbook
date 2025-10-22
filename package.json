@@ -65,6 +65,7 @@
   },
   "dependencies": {
     "daisyui": "^5.3.7",
+    "dayjs": "^1.11.18",
     "postgres": "^3.4.7",
     "zod": "^4.1.12"
   }

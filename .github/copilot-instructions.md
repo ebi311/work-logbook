@@ -19,6 +19,12 @@
 - 最小限のテスト項目と実装コードを提供し、動作確認を行いながら進める。
 - 関数は、Arrow Function を原則として使用する。(クラスのメソッド等は除く)
 
+## infrastructure
+
+- クラウドサービスとして、Heroku を使用する。
+- DBは、Heroku Postgres を使用する。
+- セッション情報の保存には、Heroku Key-Value Store を使用する。
+
 ## unit tests
 
 - テストフレームワークは Vitest を使用する。

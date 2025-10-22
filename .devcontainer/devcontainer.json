@@ -51,7 +51,8 @@
 				"dbaeumer.vscode-eslint",
 				"eamodio.gitlens",
 				"ms-edgedevtools.vscode-edge-devtools",
-				"cweijan.vscode-database-client2"
+				"cweijan.vscode-database-client2",
+				"bradlc.vscode-tailwindcss"
 			]
 		}
 	}

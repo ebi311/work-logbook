@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatDuration, calculateElapsedSeconds } from '$lib/utils/duration';
+	import classNames from 'classnames';
 
 	type ActiveWorkLog = {
 		id: string;
@@ -15,7 +16,7 @@
 
 	// 現在の経過時間（秒）
 	let elapsedSeconds = $state(0);
-	
+
 	// タイマーID
 	let intervalId: ReturnType<typeof setInterval> | null = null;
 
@@ -46,22 +47,22 @@
 		// activeとserverNowの変更を監視するための参照
 		const currentActive = active;
 		const currentServerNow = serverNow;
-		
+
 		updateElapsedTime();
-		
+
 		// 既存のタイマーをクリア
 		if (intervalId !== null) {
 			clearInterval(intervalId);
 			intervalId = null;
 		}
-		
+
 		// activeの状態に応じてタイマーを開始
 		if (currentActive) {
 			intervalId = setInterval(() => {
 				updateElapsedTime();
 			}, 1000);
 		}
-		
+
 		// クリーンアップ関数
 		return () => {
 			if (intervalId !== null) {
@@ -70,16 +71,19 @@
 			}
 		};
 	});
+
+	const symbolClassname = $derived(() => {
+		let classes = classNames('mr-2', 'text-2xl', {
+			'text-red-500': active,
+			'text-gray-500': !active
+		});
+		return classes;
+	});
 </script>
 
-<div class="work-log-status">
-	<span>{statusText}</span>
+<div class="my-4">
+	<span class={symbolClassname()}>
+		{active ? '●' : '■'}
+	</span>
+	<span class="text-2xl font-bold">{statusText}</span>
 </div>
-
-<style>
-	.work-log-status {
-		padding: 1rem;
-		font-size: 1.25rem;
-		font-weight: 600;
-	}
-</style>

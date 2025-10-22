@@ -24,41 +24,29 @@
 	});
 </script>
 
-<div class="container">
+<div class="mx-auto prose h-full w-xl bg-base-300 py-16">
 	<h1>作業記録</h1>
-
-	<div class="work-log-panel">
-		<WorkLogStatus active={currentActive} serverNow={currentServerNow} />
-
-		<form
-			method="POST"
-			use:enhance={() => {
-				isSubmitting = true;
-				return async ({ result, update }) => {
-					isSubmitting = false;
-					await update();
-				};
-			}}
-		>
-			<WorkLogToggleButton isActive={!!currentActive} {isSubmitting} />
-		</form>
+	<div class="card bg-base-100">
+		<div class="card-body">
+			<WorkLogStatus active={currentActive} serverNow={currentServerNow} />
+			<form
+				method="POST"
+				class="card-actions"
+				use:enhance={() => {
+					isSubmitting = true;
+					return async ({ result, update }) => {
+						isSubmitting = false;
+						await update();
+					};
+				}}
+			>
+				<WorkLogToggleButton isActive={!!currentActive} {isSubmitting} />
+			</form>
+		</div>
 	</div>
 </div>
 
 <style>
-	.container {
-		max-width: 800px;
-		margin: 0 auto;
-		padding: 2rem;
-	}
-
-	h1 {
-		font-size: 2rem;
-		font-weight: 700;
-		margin-bottom: 2rem;
-		color: #1f2937;
-	}
-
 	.work-log-panel {
 		display: flex;
 		flex-direction: column;

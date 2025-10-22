@@ -35,13 +35,16 @@
    - `updated_at`: TIMESTAMPTZ (DEFAULT NOW())
 
 **マイグレーション**:
+
 - `work_logs` テーブルの `user_id` を `users.id` への外部キー制約に変更
 
 **セッション管理**:
+
 - セッション情報は **Heroku Key-Value Store** に保存する
 - PostgreSQLには保存しない
 
 **合格基準**:
+
 - スキーマファイルが正しく定義されている
 - マイグレーションが正常に実行できる
 - 既存の `work_logs` データとの整合性が保たれる
@@ -53,6 +56,7 @@
 **目的**: GitHub OAuth認証に必要な設定を環境変数で管理する
 
 **環境変数**:
+
 ```env
 GITHUB_CLIENT_ID=your_client_id
 GITHUB_CLIENT_SECRET=your_client_secret
@@ -62,11 +66,13 @@ ALLOWED_GITHUB_IDS=12345678,87654321  # ホワイトリスト (GitHub ID)
 ```
 
 **実装内容**:
+
 - `.env.example` ファイルの作成
 - 環境変数の型定義 (`$env/static/private` の利用)
 - 設定の読み込みとバリデーション
 
 **合格基準**:
+
 - 環境変数が正しく読み込まれる
 - 環境変数が未設定の場合、適切なエラーメッセージが表示される
 
@@ -77,16 +83,19 @@ ALLOWED_GITHUB_IDS=12345678,87654321  # ホワイトリスト (GitHub ID)
 **目的**: Heroku Key-Value Store をプロジェクトに統合する
 
 **Heroku Key-Value Store について**:
+
 - Herokuが提供するRedis互換のKey-Valueストア
 - セッションデータの保存に最適
 - TTL（Time To Live）による自動削除をサポート
 
 **環境変数**:
+
 ```env
 HEROKU_REDIS_URL=redis://...  # Heroku が自動でセット
 ```
 
 **依存関係の追加**:
+
 ```json
 {
   "dependencies": {
@@ -96,6 +105,7 @@ HEROKU_REDIS_URL=redis://...  # Heroku が自動でセット
 ```
 
 **合格基準**:
+
 - Heroku Key-Value Store アドオンがプロビジョニングされている
 - 環境変数 `HEROKU_REDIS_URL` が設定されている
 - Redis クライアントライブラリがインストールされている
@@ -109,6 +119,7 @@ HEROKU_REDIS_URL=redis://...  # Heroku が自動でセット
 **実装ファイル**: `src/lib/server/auth/session.ts`
 
 **Redis接続の設定**:
+
 ```typescript
 import { createClient } from 'redis';
 import { HEROKU_REDIS_URL } from '$env/static/private';
@@ -144,6 +155,7 @@ export const refreshSession = async (sessionId: string): Promise<void>
 ```
 
 **データ構造**:
+
 ```
 Key: session:{uuid}
 Value: {"userId":"xxx","createdAt":"2025-10-22T12:00:00Z"}
@@ -151,6 +163,7 @@ TTL: 2592000秒 (30日)
 ```
 
 **合格基準**:
+
 - Redis接続が正常に確立される
 - 各関数のユニットテストが通る（モックRedis使用）
 - セッションのTTLが正しく機能する
@@ -163,16 +176,19 @@ TTL: 2592000秒 (30日)
 **目的**: GitHub OAuthによるログイン/ログアウト機能を実装する
 
 **実装ファイル**:
+
 - `src/routes/auth/login/+server.ts` - ログインエンドポイント
 - `src/routes/auth/callback/+server.ts` - OAuthコールバック
 - `src/routes/auth/logout/+server.ts` - ログアウトエンドポイント
 
 **ログインフロー** (`/auth/login`):
+
 1. GitHub OAuth認証URLを生成
 2. `state` パラメータを生成してセッションに保存 (CSRF対策)
 3. GitHubの認証ページにリダイレクト
 
 **コールバックフロー** (`/auth/callback`):
+
 1. `code` と `state` パラメータを検証
 2. GitHub APIでアクセストークンを取得
 3. GitHub APIでユーザー情報を取得 (ID, username, email, avatar_url)
@@ -183,12 +199,14 @@ TTL: 2592000秒 (30日)
 8. トップページ (`/`) にリダイレクト
 
 **ログアウトフロー** (`/auth/logout`):
+
 1. セッションIDをクッキーから取得
 2. セッションを Heroku Key-Value Store から削除
 3. クッキーをクリア
 4. ログインページにリダイレクト
 
 **合格基準**:
+
 - 認証フロー全体が正常に動作する
 - CSRF対策が実装されている
 - ホワイトリストに無いユーザーはログインできない
@@ -203,13 +221,14 @@ TTL: 2592000秒 (30日)
 **実装ファイル**: `src/hooks.server.ts`
 
 **実装内容**:
+
 ```typescript
 export const handle: Handle = async ({ event, resolve }) => {
 	const { locals, cookies } = event;
-	
+
 	// セッションIDをクッキーから取得
 	const sessionId = cookies.get('session_id');
-	
+
 	if (sessionId) {
 		// セッション検証
 		const user = await validateSession(sessionId);
@@ -220,13 +239,14 @@ export const handle: Handle = async ({ event, resolve }) => {
 			cookies.delete('session_id', { path: '/' });
 		}
 	}
-	
+
 	const response = await resolve(event);
 	return response;
 };
 ```
 
 **合格基準**:
+
 - 有効なセッションの場合、`locals.user` が正しくセットされる
 - 無効なセッションの場合、クッキーがクリアされる
 - 既存の `+page.server.ts` の認証チェックが正常に機能する
@@ -238,15 +258,18 @@ export const handle: Handle = async ({ event, resolve }) => {
 **目的**: 未認証ユーザー向けのログインページを作成する
 
 **実装ファイル**:
+
 - `src/routes/login/+page.svelte` - ログインページ
 - `src/routes/login/+page.server.ts` - サーバーロード関数
 
 **UI要件**:
+
 - アプリのタイトルと説明
 - "GitHubでログイン" ボタン
 - シンプルで使いやすいデザイン
 
 **実装内容**:
+
 ```typescript
 // +page.server.ts
 export const load = async ({ locals }) => {
@@ -259,6 +282,7 @@ export const load = async ({ locals }) => {
 ```
 
 **合格基準**:
+
 - ログイン済みユーザーはトップページにリダイレクトされる
 - "GitHubでログイン" ボタンが正しく動作する
 
@@ -271,11 +295,13 @@ export const load = async ({ locals }) => {
 **実装ファイル**: `src/routes/auth/error/+page.svelte`
 
 **UI要件**:
+
 - エラーメッセージ: "アクセスが許可されていません"
 - 説明: "このアプリケーションは登録済みユーザーのみ利用できます"
 - "戻る" ボタン
 
 **合格基準**:
+
 - エラーページが適切に表示される
 - わかりやすいメッセージが表示される
 
@@ -288,17 +314,19 @@ export const load = async ({ locals }) => {
 **実装ファイル**: `src/routes/+page.server.ts` (既存)
 
 **実装内容**:
+
 ```typescript
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
 		throw redirect(303, '/login');
 	}
-	
+
 	// 既存のロジック...
 };
 ```
 
 **合格基準**:
+
 - 未認証ユーザーは自動的にログインページにリダイレクトされる
 - 認証済みユーザーは通常通りアプリを利用できる
 
@@ -309,16 +337,19 @@ export const load: PageServerLoad = async ({ locals }) => {
 **目的**: 認証機能の各モジュールに対するテストを作成する
 
 **テストファイル**:
+
 - `src/lib/server/auth/session.spec.ts` - セッション管理のテスト
 - `src/routes/auth/callback/+server.spec.ts` - コールバックのテスト
 
 **テスト項目**:
+
 - セッションの作成・検証・削除
 - GitHub OAuth コールバック処理
 - ホワイトリストチェック
 - エラーハンドリング
 
 **合格基準**:
+
 - すべてのテストが通る
 - カバレッジが80%以上
 
@@ -331,12 +362,14 @@ export const load: PageServerLoad = async ({ locals }) => {
 **テストファイル**: `e2e/auth.test.ts`
 
 **テストシナリオ**:
+
 1. 未認証ユーザーがトップページにアクセス → ログインページにリダイレクト
 2. ログインボタンをクリック → GitHub認証ページにリダイレクト (モック)
 3. 認証成功 → トップページに戻る
 4. ログアウト → ログインページにリダイレクト
 
 **合格基準**:
+
 - E2Eテストが正常に実行される
 - 認証フロー全体が正しく動作する
 
@@ -349,9 +382,11 @@ export const load: PageServerLoad = async ({ locals }) => {
 **GitHub OAuth**: 外部ライブラリを使わずに直接実装
 
 **セッション管理**: Heroku Key-Value Store (Redis)
+
 - `redis`: Node.js用Redisクライアント (v4.6.0以上)
 
 将来的に複雑になる場合は、以下のライブラリの導入を検討:
+
 - `arctic`: シンプルなOAuth 2.0クライアント
 - `connect-redis`: Express/Connect用のRedisセッションストア
 

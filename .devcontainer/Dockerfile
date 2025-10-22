@@ -24,6 +24,10 @@ RUN usermod -s /bin/zsh node
 RUN mkdir -p /workspaces/work-logbook/node_modules && \
 		chown -R node:node /workspaces
 
+# Allow passwordless sudo for the 'node' user
+RUN printf '%s\n' "node ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-node-nopasswd \
+	&& chmod 0440 /etc/sudoers.d/99-node-nopasswd
+
 # Switch to node user for subsequent operations
 USER node
 

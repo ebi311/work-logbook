@@ -102,22 +102,22 @@
 
 		// 成功時
 		if ('ok' in form && form.ok) {
-			if ('workLog' in form) {
-				if (form.workLog.endedAt === null) {
-					handleStartSuccess(form);
-				} else {
-					handleStopSuccess(form);
-				}
+			if (!('workLog' in form)) return;
+
+			if (form.workLog.endedAt === null) {
+				handleStartSuccess(form);
+			} else {
+				handleStopSuccess(form);
 			}
 			return;
 		}
 
 		// エラー時
-		if ('reason' in form && typeof form.reason === 'string') {
-			const handler = errorHandlers[form.reason];
-			if (handler) {
-				handler(form);
-			}
+		if (!('reason' in form) || typeof form.reason !== 'string') return;
+
+		const handler = errorHandlers[form.reason];
+		if (handler) {
+			handler(form);
 		}
 	});
 </script>

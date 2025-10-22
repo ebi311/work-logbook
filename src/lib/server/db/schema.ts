@@ -26,12 +26,12 @@ export const workLogs = pgTable(
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow()
 	},
-	(table) => ({
+	(table) => [
 		// 部分ユニークインデックス: 1ユーザーにつき1つだけ進行中の作業を許可
-		activeWorkLogUniqueIndex: uniqueIndex('work_logs_user_id_active_unique')
+		uniqueIndex('work_logs_user_id_active_unique')
 			.on(table.userId)
 			.where(sql`${table.endedAt} IS NULL`)
-	})
+	]
 );
 
 // 型エクスポート

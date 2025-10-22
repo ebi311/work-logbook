@@ -35,11 +35,10 @@ describe('MessageAlert', () => {
 				}
 			});
 
-			// チェックマークのSVGパスが存在することを確認
-			const svg = container.querySelector('svg');
-			expect(svg).toBeInTheDocument();
-			const path = svg?.querySelector('path[d*="M9 12l2 2 4-4"]');
-			expect(path).toBeInTheDocument();
+			// Material Symbolsのcheck_circleアイコンが表示されることを確認
+			const icon = container.querySelector('.material-symbols-rounded');
+			expect(icon).toBeInTheDocument();
+			expect(icon?.textContent).toBe('check_circle');
 		});
 	});
 
@@ -75,11 +74,10 @@ describe('MessageAlert', () => {
 				}
 			});
 
-			// Xマークのサークル付きSVGパスが存在することを確認
-			const svg = container.querySelector('svg');
-			expect(svg).toBeInTheDocument();
-			const path = svg?.querySelector('path[d*="M10 14l2-2"]');
-			expect(path).toBeInTheDocument();
+			// Material Symbolsのerrorアイコンが表示されることを確認
+			const icon = container.querySelector('.material-symbols-rounded');
+			expect(icon).toBeInTheDocument();
+			expect(icon?.textContent).toBe('error');
 		});
 	});
 

@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@material-symbols/font-400':
+        specifier: ^0.38.0
+        version: 0.38.0
       classnames:
         specifier: ^2.5.1
         version: 2.5.1
@@ -598,6 +601,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@material-symbols/font-400@0.38.0':
+    resolution: {integrity: sha512-4zUDxkNW41PtPETjGXHXQbFYe04Irbr7eoDCudS4tQ9EKcIbQvoT05eyWRXixws251cwmPi+28X2OCHm4fCriw==}
 
   '@mdx-js/react@3.1.1':
     resolution: {integrity: sha512-f++rKLQgUVYDAtECQ6fn/is15GkEH9+nZPM3MS0RcxVqoTfawHvDlSCH7JbMhAM6uJ32v3eXLvLmLvjGu7PTQw==}
@@ -2956,6 +2962,8 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@material-symbols/font-400@0.38.0': {}
 
   '@mdx-js/react@3.1.1(@types/react@19.2.2)(react@19.2.0)':
     dependencies:

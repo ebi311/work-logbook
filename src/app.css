@@ -1,3 +1,6 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 @plugin 'daisyui';
+/* Material Symbols */
+@import '@material-symbols/font-400/outlined.css';
+@import '@material-symbols/font-400/rounded.css';

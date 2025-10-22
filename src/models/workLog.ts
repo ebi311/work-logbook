@@ -181,15 +181,15 @@ export type ErrorResponse = {
 };
 
 /**
- * WorkLogデータをバリデーション（後方互換性のため残存）
+ * WorkLogのバリデーション関数（後方互換性のため残存）
  * @deprecated WorkLog.from() を使用してください
  * @param data - バリデーション対象のデータ
  * @returns バリデーション済みのWorkLogインスタンス
  * @throws ZodError - バリデーション失敗時
  */
-export function validateWorkLog(data: unknown): WorkLog {
+export const validateWorkLog = (data: unknown): WorkLog => {
 	return WorkLog.from(data);
-}
+};
 
 /**
  * WorkLogの型ガード関数（後方互換性のため残存）
@@ -197,6 +197,6 @@ export function validateWorkLog(data: unknown): WorkLog {
  * @param data - チェック対象のデータ
  * @returns データがWorkLog型の場合true
  */
-export function isWorkLog(data: unknown): boolean {
+export const isWorkLog = (data: unknown): boolean => {
 	return WorkLog.isValid(data);
-}
+};

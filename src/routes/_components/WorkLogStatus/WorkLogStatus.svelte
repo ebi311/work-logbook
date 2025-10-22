@@ -20,7 +20,7 @@
 	let intervalId: ReturnType<typeof setInterval> | null = null;
 
 	// 経過時間を計算する関数
-	function updateElapsedTime() {
+	const updateElapsedTime = () => {
 		if (!active) {
 			elapsedSeconds = 0;
 			return;
@@ -30,7 +30,7 @@
 		const serverElapsed = calculateElapsedSeconds(active.startedAt, serverNow);
 		const localElapsed = Math.floor((Date.now() - new Date(serverNow).getTime()) / 1000);
 		elapsedSeconds = serverElapsed + localElapsed;
-	}
+	};
 
 	// 表示用のテキスト
 	let statusText = $derived.by(() => {

@@ -9,16 +9,16 @@ import { WorkLog } from '../../../models/workLog';
  * @returns ドメインモデルの WorkLog インスタンス
  * @throws ZodError - バリデーション失敗時
  */
-export function toWorkLog(dbWorkLog: DbWorkLog): WorkLog {
+export const toWorkLog = (dbWorkLog: DbWorkLog): WorkLog => {
 	return WorkLog.from(dbWorkLog);
-}
+};
 
 /**
  * 進行中の作業を取得
  * @param userId - ユーザーID
  * @returns 進行中の作業、または null
  */
-export async function getActiveWorkLog(userId: string): Promise<WorkLog | null> {
+export const getActiveWorkLog = async (userId: string): Promise<WorkLog | null> => {
 	const dbWorkLog = await db.query.workLogs.findFirst({
 		where: (workLogs, { eq, and, isNull }) =>
 			and(eq(workLogs.userId, userId), isNull(workLogs.endedAt))
@@ -29,7 +29,7 @@ export async function getActiveWorkLog(userId: string): Promise<WorkLog | null> 
 	}
 
 	return toWorkLog(dbWorkLog);
-}
+};
 
 /**
  * 作業を開始
@@ -38,7 +38,7 @@ export async function getActiveWorkLog(userId: string): Promise<WorkLog | null> 
  * @returns 作成された作業記録
  * @throws Error - 進行中の作業が既に存在する場合（部分ユニーク制約違反）
  */
-export async function createWorkLog(userId: string, startedAt: Date): Promise<WorkLog> {
+export const createWorkLog = async (userId: string, startedAt: Date): Promise<WorkLog> => {
 	const [dbWorkLog] = await db
 		.insert(workLogs)
 		.values({
@@ -49,7 +49,7 @@ export async function createWorkLog(userId: string, startedAt: Date): Promise<Wo
 		.returning();
 
 	return toWorkLog(dbWorkLog);
-}
+};
 
 /**
  * 作業を終了
@@ -57,7 +57,7 @@ export async function createWorkLog(userId: string, startedAt: Date): Promise<Wo
  * @param endedAt - 作業終了日時
  * @returns 更新された作業記録、またはnull（レコードが見つからない場合）
  */
-export async function stopWorkLog(workLogId: string, endedAt: Date): Promise<WorkLog | null> {
+export const stopWorkLog = async (workLogId: string, endedAt: Date): Promise<WorkLog | null> => {
 	const [dbWorkLog] = await db
 		.update(workLogs)
 		.set({ endedAt })
@@ -69,4 +69,4 @@ export async function stopWorkLog(workLogId: string, endedAt: Date): Promise<Wor
 	}
 
 	return toWorkLog(dbWorkLog);
-}
+};

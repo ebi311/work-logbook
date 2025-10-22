@@ -15,7 +15,7 @@ dayjs.extend(duration);
  * formatDuration(3661) // "01:01:01"
  * formatDuration(86400) // "24:00:00"
  */
-export function formatDuration(seconds: number): string {
+export const formatDuration = (seconds: number): string => {
 	// 負数は0として扱う
 	if (seconds < 0) {
 		seconds = 0;
@@ -34,7 +34,7 @@ export function formatDuration(seconds: number): string {
 	const hh = String(hours).padStart(2, '0');
 
 	return `${hh}:${formatted}`;
-}
+};
 
 /**
  * 開始時刻とサーバー時刻から経過秒数を計算する
@@ -47,7 +47,7 @@ export function formatDuration(seconds: number): string {
  * calculateElapsedSeconds('2025-10-22T10:00:00.000Z', '2025-10-22T10:01:00.000Z') // 60
  * calculateElapsedSeconds('2025-10-22T10:00:00.000Z', '2025-10-22T10:00:00.000Z') // 0
  */
-export function calculateElapsedSeconds(startedAt: string, now: string): number {
+export const calculateElapsedSeconds = (startedAt: string, now: string): number => {
 	const startTime = dayjs(startedAt);
 	const currentTime = dayjs(now);
 
@@ -56,4 +56,4 @@ export function calculateElapsedSeconds(startedAt: string, now: string): number 
 
 	// 負の場合は0を返す
 	return Math.max(0, diffSec);
-}
+};

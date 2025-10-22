@@ -15,6 +15,12 @@
 - 各ステップのコードは、TDDの原則に従い、テストコードを最初に提供し、その後に実装コードを提供する。
 - 最小限のテスト項目と実装コードを提供し、動作確認を行いながら進める。
 
+## unit tests
+
+- テストフレームワークは Vitest を使用する。
+- `pnpm test:unit` コマンドで実行する。
+- component のテストは、 Testing Library for Svelte を使用する。
+
 ## documents
 - docs/reports/{yyyy-mm-dd HH:MM}-{簡単な内容(英語)}.md : 調査レポート
 - docs/features/{yyyy-mm-dd HH:MM}-{簡単な内容(英語)}.md : 機能仕様書

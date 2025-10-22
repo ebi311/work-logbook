@@ -7,11 +7,11 @@
 	};
 
 	type Props = {
-		active?: ActiveWorkLog | null;
+		active?: ActiveWorkLog;
 		serverNow: string;
 	};
 
-	let { active = null, serverNow }: Props = $props();
+	let { active, serverNow }: Props = $props();
 
 	// 現在の経過時間（秒）
 	let elapsedSeconds = $state(0);

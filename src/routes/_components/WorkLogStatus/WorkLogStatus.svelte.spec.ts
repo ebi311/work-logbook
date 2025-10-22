@@ -13,18 +13,6 @@ describe('WorkLogStatus', () => {
 	});
 
 	describe('停止中の表示', () => {
-		it('activeがnullの場合「停止中」を表示する', () => {
-			render(WorkLogStatus, {
-				props: {
-					active: null,
-					serverNow: '2025-10-22T10:00:00.000Z'
-				}
-			});
-
-			const element = screen.getByText('停止中');
-			expect(element).toBeInTheDocument();
-		});
-
 		it('activeがundefinedの場合「停止中」を表示する', () => {
 			render(WorkLogStatus, {
 				props: {

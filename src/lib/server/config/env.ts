@@ -3,6 +3,15 @@
  * NF-001: GitHub OAuth認証
  */
 
+import {
+	GITHUB_CLIENT_ID,
+	GITHUB_CLIENT_SECRET,
+	GITHUB_CALLBACK_URL,
+	SESSION_SECRET,
+	ALLOWED_GITHUB_IDS,
+	HEROKU_REDIS_URL
+} from '$env/static/private';
+
 // 環境変数の型定義
 export interface EnvConfig {
 	github: {
@@ -25,50 +34,45 @@ export interface EnvConfig {
  */
 export const getEnvConfig = (): EnvConfig => {
 	// GitHub OAuth設定
-	const githubClientId = process.env.GITHUB_CLIENT_ID;
-	if (!githubClientId) {
+	if (!GITHUB_CLIENT_ID) {
 		throw new Error('GITHUB_CLIENT_ID is not set');
 	}
 
-	const githubClientSecret = process.env.GITHUB_CLIENT_SECRET;
-	if (!githubClientSecret) {
+	if (!GITHUB_CLIENT_SECRET) {
 		throw new Error('GITHUB_CLIENT_SECRET is not set');
 	}
 
-	const githubCallbackUrl =
-		process.env.GITHUB_CALLBACK_URL || 'http://localhost:5173/auth/callback';
+	const githubCallbackUrl = GITHUB_CALLBACK_URL || 'http://localhost:5173/auth/callback';
 
 	// セッション設定
-	const sessionSecret = process.env.SESSION_SECRET;
-	if (!sessionSecret) {
+	if (!SESSION_SECRET) {
 		throw new Error('SESSION_SECRET is not set');
 	}
 
 	// 許可されたGitHub IDのリスト
-	const allowedGithubIdsStr = process.env.ALLOWED_GITHUB_IDS || '';
+	const allowedGithubIdsStr = ALLOWED_GITHUB_IDS || '';
 	const allowedGithubIds = allowedGithubIdsStr
 		.split(',')
 		.map((id) => id.trim())
 		.filter((id) => id.length > 0);
 
 	// Redis URL
-	const redisUrl = process.env.HEROKU_REDIS_URL;
-	if (!redisUrl) {
+	if (!HEROKU_REDIS_URL) {
 		throw new Error('HEROKU_REDIS_URL is not set');
 	}
 
 	return {
 		github: {
-			clientId: githubClientId,
-			clientSecret: githubClientSecret,
+			clientId: GITHUB_CLIENT_ID,
+			clientSecret: GITHUB_CLIENT_SECRET,
 			callbackUrl: githubCallbackUrl
 		},
 		session: {
-			secret: sessionSecret
+			secret: SESSION_SECRET
 		},
 		allowedGithubIds,
 		redis: {
-			url: redisUrl
+			url: HEROKU_REDIS_URL
 		}
 	};
 };

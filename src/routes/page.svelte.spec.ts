@@ -140,7 +140,12 @@ describe('/+page.svelte', () => {
 
 				rerender({
 					data: {
-						active: newActive,
+						active: undefined,
+						serverNow
+					},
+					form: {
+						ok: true,
+						workLog: newActive,
 						serverNow: newServerNow
 					}
 				});
@@ -150,16 +155,56 @@ describe('/+page.svelte', () => {
 					expect(screen.getByText(/記録中/)).toBeInTheDocument();
 				});
 				expect(screen.getByRole('button', { name: '作業終了' })).toBeInTheDocument();
+
+				// 成功メッセージが表示される
+				await waitFor(() => {
+					expect(screen.getByText('作業を開始しました')).toBeInTheDocument();
+				});
 			});
 		});
 
 		describe('失敗時（409 Conflict）', () => {
-			it('既に作業が進行中の場合、エラー情報が表示される（実装予定）', () => {
-				// Note: 現在のページ実装ではform propを使ったエラー表示は未実装
-				// このテストは将来の実装のためのプレースホルダー
-				// 実装時には、fail(409, {...})のレスポンスをform propで受け取り、
-				// エラーメッセージを表示する機能を追加する必要がある
-				expect(true).toBe(true);
+			it('既に作業が進行中の場合、エラーメッセージが表示され、サーバー状態で更新される', async () => {
+				const { rerender } = render(Page, {
+					props: {
+						data: {
+							active: undefined,
+							serverNow
+						}
+					}
+				});
+
+				// 初期状態: 停止中
+				expect(screen.getByText('停止中')).toBeInTheDocument();
+
+				// 409エラーレスポンスをシミュレート
+				const existingActive = {
+					id: 'existing-work-log-id',
+					startedAt: '2025-10-22T09:00:00.000Z',
+					endedAt: null
+				};
+
+				rerender({
+					data: {
+						active: undefined,
+						serverNow
+					},
+					form: {
+						reason: 'ACTIVE_EXISTS' as const,
+						active: existingActive,
+						serverNow: '2025-10-22T10:00:05.000Z'
+					}
+				});
+
+				// エラーメッセージが表示される
+				await waitFor(() => {
+					expect(screen.getByText('既に作業が進行中です')).toBeInTheDocument();
+				});
+
+				// サーバーから返された進行中の作業で状態が更新される
+				await waitFor(() => {
+					expect(screen.getByText(/記録中/)).toBeInTheDocument();
+				});
 			});
 		});
 	});
@@ -188,11 +233,22 @@ describe('/+page.svelte', () => {
 
 				// アクション成功後の状態に更新
 				const newServerNow = '2025-10-22T10:30:00.000Z';
+				const stoppedWorkLog = {
+					id: active.id,
+					startedAt: active.startedAt,
+					endedAt: newServerNow
+				};
 
 				rerender({
 					data: {
-						active: undefined,
-						serverNow: newServerNow
+						active,
+						serverNow
+					},
+					form: {
+						ok: true,
+						workLog: stoppedWorkLog,
+						serverNow: newServerNow,
+						durationSec: 3600 // 60分
 					}
 				});
 
@@ -201,16 +257,55 @@ describe('/+page.svelte', () => {
 					expect(screen.getByText('停止中')).toBeInTheDocument();
 				});
 				expect(screen.getByRole('button', { name: '作業開始' })).toBeInTheDocument();
+
+				// 成功メッセージが表示される（経過時間付き）
+				await waitFor(() => {
+					expect(screen.getByText('作業を終了しました（60分）')).toBeInTheDocument();
+				});
 			});
 		});
 
 		describe('失敗時（404 Not Found）', () => {
-			it('進行中の作業がない場合、エラー情報が表示される（実装予定）', () => {
-				// Note: 現在のページ実装ではform propを使ったエラー表示は未実装
-				// このテストは将来の実装のためのプレースホルダー
-				// 実装時には、fail(404, {...})のレスポンスをform propで受け取り、
-				// エラーメッセージを表示する機能を追加する必要がある
-				expect(true).toBe(true);
+			it('進行中の作業がない場合、エラーメッセージが表示され、停止中に更新される', async () => {
+				const active = {
+					id: 'test-work-log-id',
+					startedAt: '2025-10-22T09:30:00.000Z',
+					endedAt: null
+				};
+
+				const { rerender } = render(Page, {
+					props: {
+						data: {
+							active,
+							serverNow
+						}
+					}
+				});
+
+				// 初期状態: 記録中
+				expect(screen.getByText(/記録中/)).toBeInTheDocument();
+
+				// 404エラーレスポンスをシミュレート
+				rerender({
+					data: {
+						active,
+						serverNow
+					},
+					form: {
+						reason: 'NO_ACTIVE' as const,
+						serverNow: '2025-10-22T10:00:05.000Z'
+					}
+				});
+
+				// エラーメッセージが表示される
+				await waitFor(() => {
+					expect(screen.getByText('進行中の作業がありません')).toBeInTheDocument();
+				});
+
+				// 停止中状態に更新される
+				await waitFor(() => {
+					expect(screen.getByText('停止中')).toBeInTheDocument();
+				});
 			});
 		});
 	});

@@ -26,7 +26,7 @@
 	let messageTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	// メッセージを表示して自動的に消す
-	function showMessage(message: string, type: 'success' | 'error') {
+	const showMessage = (message: string, type: 'success' | 'error') => {
 		if (messageTimeout) {
 			clearTimeout(messageTimeout);
 		}
@@ -43,7 +43,52 @@
 			errorMessage = null;
 			successMessage = null;
 		}, 5000);
-	}
+	};
+
+	// 作業開始成功時の処理
+	const handleStartSuccess = (form: NonNullable<ActionData>) => {
+		if (!('workLog' in form) || !form.workLog) return;
+		if (form.workLog.endedAt !== null) return; // 型ガード
+		currentActive = form.workLog;
+		if ('serverNow' in form) {
+			currentServerNow = form.serverNow;
+		}
+		showMessage('作業を開始しました', 'success');
+	};
+
+	// 作業終了成功時の処理
+	const handleStopSuccess = (form: NonNullable<ActionData>) => {
+		if (!('workLog' in form) || !form.workLog) return;
+		currentActive = undefined;
+		const duration =
+			'durationSec' in form && typeof form.durationSec === 'number'
+				? Math.floor(form.durationSec / 60)
+				: 0;
+		if ('serverNow' in form) {
+			currentServerNow = form.serverNow;
+		}
+		showMessage(`作業を終了しました（${duration}分）`, 'success');
+	};
+
+	// エラー処理ハンドラーマップ
+	const errorHandlers: Record<string, (form: NonNullable<ActionData>) => void> = {
+		ACTIVE_EXISTS: (form) => {
+			// 409エラー: 既に進行中の作業がある
+			if ('active' in form && 'serverNow' in form && form.active) {
+				currentActive = form.active;
+				currentServerNow = form.serverNow;
+			}
+			showMessage('既に作業が進行中です', 'error');
+		},
+		NO_ACTIVE: (form) => {
+			// 404エラー: 進行中の作業がない
+			currentActive = undefined;
+			if ('serverNow' in form) {
+				currentServerNow = form.serverNow;
+			}
+			showMessage('進行中の作業がありません', 'error');
+		}
+	};
 
 	// dataが変更されたら状態を同期
 	$effect(() => {
@@ -57,41 +102,22 @@
 
 		// 成功時
 		if ('ok' in form && form.ok) {
-			// serverNowを更新
-			if ('serverNow' in form) {
-				currentServerNow = form.serverNow;
+			if ('workLog' in form) {
+				if (form.workLog.endedAt === null) {
+					handleStartSuccess(form);
+				} else {
+					handleStopSuccess(form);
+				}
 			}
+			return;
+		}
 
-			// 作業開始成功
-			if ('workLog' in form && form.workLog.endedAt === null) {
-				currentActive = form.workLog;
-				showMessage('作業を開始しました', 'success');
+		// エラー時
+		if ('reason' in form && typeof form.reason === 'string') {
+			const handler = errorHandlers[form.reason];
+			if (handler) {
+				handler(form);
 			}
-			// 作業終了成功
-			else if ('workLog' in form && form.workLog.endedAt !== null) {
-				currentActive = undefined;
-				const duration =
-					'durationSec' in form && typeof form.durationSec === 'number'
-						? Math.floor(form.durationSec / 60)
-						: 0;
-				showMessage(`作業を終了しました（${duration}分）`, 'success');
-			}
-		}
-		// 409エラー: 既に進行中の作業がある
-		else if ('reason' in form && form.reason === 'ACTIVE_EXISTS') {
-			if ('active' in form && 'serverNow' in form) {
-				currentActive = form.active;
-				currentServerNow = form.serverNow;
-				showMessage('既に作業が進行中です', 'error');
-			}
-		}
-		// 404エラー: 進行中の作業がない
-		else if ('reason' in form && form.reason === 'NO_ACTIVE') {
-			currentActive = undefined;
-			if ('serverNow' in form) {
-				currentServerNow = form.serverNow;
-			}
-			showMessage('進行中の作業がありません', 'error');
 		}
 	});
 </script>
@@ -101,7 +127,7 @@
 
 	<!-- メッセージ表示エリア -->
 	{#if errorMessage}
-		<div class="alert alert-error mb-4" role="alert">
+		<div class="mb-4 alert alert-error" role="alert">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				class="h-6 w-6 shrink-0 stroke-current"
@@ -120,7 +146,7 @@
 	{/if}
 
 	{#if successMessage}
-		<div class="alert alert-success mb-4" role="alert">
+		<div class="mb-4 alert alert-success" role="alert">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				class="h-6 w-6 shrink-0 stroke-current"

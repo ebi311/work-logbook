@@ -1,11 +1,14 @@
 # 基本
+
 - 日本語で応答すること
 - 必要に応じて、ユーザに質問を行い、要求を明確にすること
 - 作業後、作業内容とユーザが次に取れる行動を説明すること
 - コマンドの出力が確認できない場合、 get last command / check background terminal を使用して確認すること
 
 ## develop
+
 各作業を以下のように定義する。
+
 - 開発は、”要件”の定義から、それを満たす"機能"をリスト化して、機能を実装するための"タスク"に分解することから始める。
 - "要件"は、"CONCEPT.md"に記載しているので、参照にする。
 - "機能"、"タスク"は、Marakdown形式で、docs/features、docs/taskに保存する。
@@ -14,6 +17,7 @@
 - 各ステップのコードは、必要に応じて説明を加える。
 - 各ステップのコードは、TDDの原則に従い、テストコードを最初に提供し、その後に実装コードを提供する。
 - 最小限のテスト項目と実装コードを提供し、動作確認を行いながら進める。
+- 関数は、Arrow Function を原則として使用する。(クラスのメソッド等は除く)
 
 ## unit tests
 
@@ -22,6 +26,7 @@
 - component のテストは、 Testing Library for Svelte を使用する。
 
 ## documents
+
 - docs/reports/{yyyy-mm-dd HH:MM}-{簡単な内容(英語)}.md : 調査レポート
 - docs/features/{yyyy-mm-dd HH:MM}-{簡単な内容(英語)}.md : 機能仕様書
 - docs/task/{yyyy-mm-dd HH:MM}-{簡単な内容(英語)}.md : タスク

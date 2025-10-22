@@ -22,7 +22,7 @@ describe('WorkLogStatus', () => {
 			});
 
 			const element = screen.getByText('停止中');
-			expect(element).toBeDefined();
+			expect(element).toBeInTheDocument();
 		});
 
 		it('activeがundefinedの場合「停止中」を表示する', () => {
@@ -34,7 +34,7 @@ describe('WorkLogStatus', () => {
 			});
 
 			const element = screen.getByText('停止中');
-			expect(element).toBeDefined();
+			expect(element).toBeInTheDocument();
 		});
 	});
 
@@ -54,7 +54,7 @@ describe('WorkLogStatus', () => {
 			});
 
 			const element = screen.getByText(/記録中/);
-			expect(element).toBeDefined();
+			expect(element).toBeInTheDocument();
 		});
 
 		it('経過時間が00:00:00で表示される（開始直後）', () => {
@@ -72,7 +72,7 @@ describe('WorkLogStatus', () => {
 			});
 
 			const element = screen.getByText('記録中（経過 00:00:00）');
-			expect(element).toBeDefined();
+			expect(element).toBeInTheDocument();
 		});
 
 		it('経過時間が00:01:00で表示される（1分後）', () => {
@@ -90,7 +90,7 @@ describe('WorkLogStatus', () => {
 			});
 
 			const element = screen.getByText('記録中（経過 00:01:00）');
-			expect(element).toBeDefined();
+			expect(element).toBeInTheDocument();
 		});
 
 		it('経過時間が01:23:45で表示される（1時間23分45秒後）', () => {
@@ -108,7 +108,7 @@ describe('WorkLogStatus', () => {
 			});
 
 			const element = screen.getByText('記録中（経過 01:23:45）');
-			expect(element).toBeDefined();
+			expect(element).toBeInTheDocument();
 		});
 	});
 
@@ -133,7 +133,7 @@ describe('WorkLogStatus', () => {
 
 			// 初期表示
 			const initialElement = screen.getByText('記録中（経過 00:00:00）');
-			expect(initialElement).toBeDefined();
+			expect(initialElement).toBeInTheDocument();
 
 			// 500ms進めて、システム時刻を0.5秒進める
 			vi.setSystemTime(new Date(mockDate.getTime() + 500));
@@ -145,7 +145,7 @@ describe('WorkLogStatus', () => {
 
 			// 更新されたかチェック
 			const updatedElement = screen.getByText('記録中（経過 00:00:01）');
-			expect(updatedElement).toBeDefined();
+			expect(updatedElement).toBeInTheDocument();
 		});
 
 		it('タイマーが定期的に更新される', async () => {
@@ -166,7 +166,7 @@ describe('WorkLogStatus', () => {
 			});
 
 			// 初期表示
-			expect(screen.getByText('記録中（経過 00:00:00）')).toBeDefined();
+			expect(screen.getByText('記録中（経過 00:00:00）')).toBeInTheDocument();
 
 			// 2秒進める
 			vi.setSystemTime(new Date(mockDate.getTime() + 2000));
@@ -174,7 +174,7 @@ describe('WorkLogStatus', () => {
 
 			// タイマーが更新されて、初期状態(00:00:00)ではないことを確認
 			const updatedText = screen.getByText(/記録中（経過 00:00:0[2-4]）/);
-			expect(updatedText).toBeDefined();
+			expect(updatedText).toBeInTheDocument();
 		});
 	});
 

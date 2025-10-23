@@ -49,6 +49,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	}
 
+	// 認証が必要なパスで未認証の場合、/auth/login にリダイレクト
+	if (!locals.user) {
+		return new Response(null, {
+			status: 302,
+			headers: {
+				location: '/auth/login'
+			}
+		});
+	}
+
 	const response = await resolve(event);
 
 	return response;

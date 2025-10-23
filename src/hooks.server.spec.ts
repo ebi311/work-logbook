@@ -123,7 +123,7 @@ describe('hooks.server.ts', () => {
 		expect(resolve).toHaveBeenCalledWith(event);
 	});
 
-	it('セッションCookieがない場合、locals.userは未設定のまま', async () => {
+	it('セッションCookieがない場合、/auth/loginにリダイレクトする', async () => {
 		const cookies = {
 			get: vi.fn(() => undefined)
 		} as any;
@@ -136,7 +136,7 @@ describe('hooks.server.ts', () => {
 
 		const resolve = vi.fn(async () => new Response('OK'));
 
-		await handle({ event, resolve });
+		const response = await handle({ event, resolve });
 
 		// セッション検証は呼ばれない
 		expect(sessionModule.validateSession).not.toHaveBeenCalled();
@@ -144,11 +144,15 @@ describe('hooks.server.ts', () => {
 		// locals.user は undefined
 		expect(event.locals.user).toBeUndefined();
 
-		// resolve は呼ばれる
-		expect(resolve).toHaveBeenCalledWith(event);
+		// /auth/login にリダイレクトされる
+		expect(response.status).toBe(302);
+		expect(response.headers.get('location')).toBe('/auth/login');
+
+		// resolve は呼ばれない
+		expect(resolve).not.toHaveBeenCalled();
 	});
 
-	it('セッションが無効な場合、locals.userは未設定のまま', async () => {
+	it('セッションが無効な場合、/auth/loginにリダイレクトする', async () => {
 		const sessionId = 'invalid-session';
 
 		// Mock: セッション検証失敗
@@ -168,7 +172,7 @@ describe('hooks.server.ts', () => {
 
 		const resolve = vi.fn(async () => new Response('OK'));
 
-		await handle({ event, resolve });
+		const response = await handle({ event, resolve });
 
 		// セッション検証が呼ばれた
 		expect(sessionModule.validateSession).toHaveBeenCalledWith(sessionId);
@@ -176,11 +180,15 @@ describe('hooks.server.ts', () => {
 		// locals.user は undefined
 		expect(event.locals.user).toBeUndefined();
 
-		// resolve は呼ばれる
-		expect(resolve).toHaveBeenCalledWith(event);
+		// /auth/login にリダイレクトされる
+		expect(response.status).toBe(302);
+		expect(response.headers.get('location')).toBe('/auth/login');
+
+		// resolve は呼ばれない
+		expect(resolve).not.toHaveBeenCalled();
 	});
 
-	it('ユーザーがDBに存在しない、またはis_active=falseの場合、locals.userは未設定', async () => {
+	it('ユーザーがDBに存在しない、またはis_active=falseの場合、/auth/loginにリダイレクトする', async () => {
 		const sessionId = 'valid-session-456';
 		const userId = 'user-uuid-2';
 
@@ -206,7 +214,7 @@ describe('hooks.server.ts', () => {
 
 		const resolve = vi.fn(async () => new Response('OK'));
 
-		await handle({ event, resolve });
+		const response = await handle({ event, resolve });
 
 		// セッション検証が呼ばれた
 		expect(sessionModule.validateSession).toHaveBeenCalledWith(sessionId);
@@ -217,7 +225,11 @@ describe('hooks.server.ts', () => {
 		// locals.user は undefined
 		expect(event.locals.user).toBeUndefined();
 
-		// resolve は呼ばれる
-		expect(resolve).toHaveBeenCalledWith(event);
+		// /auth/login にリダイレクトされる
+		expect(response.status).toBe(302);
+		expect(response.headers.get('location')).toBe('/auth/login');
+
+		// resolve は呼ばれない
+		expect(resolve).not.toHaveBeenCalled();
 	});
 });

@@ -1,9 +1,11 @@
-import type { RequestHandler } from '@sveltejs/kit';
-import { getEnvConfig, isAllowedGithubId } from '$lib/server/config/env';
-import { getRedisClient } from '$lib/server/config/redis';
-import { createSession } from '$lib/server/auth/session';
-import { db } from '$lib/server/db';
-import { users } from '$lib/server/db/schema';
+import type { RequestHandler } from '@sveltejs/kit'
+import type { Cookies } from '@sveltejs/kit'
+import { getEnvConfig, isAllowedGithubId } from '$lib/server/config/env'
+import { getRedisClient } from '$lib/server/config/redis'
+import { createSession } from '$lib/server/auth/session'
+import { db } from '$lib/server/db'
+import { users } from '$lib/server/db/schema'
+import type { RedisClientType } from 'redis'
 
 export const _SESSION_COOKIE = 'session_id';
 export const _SESSION_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
@@ -70,63 +72,55 @@ const fetchGitHubUser = async (accessToken: string, fetchFn: typeof fetch): Prom
 	return (await res.json()) as GitHubUser;
 };
 
-export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
-	const { github } = getEnvConfig();
-
-	// Extract query params
-	const code = url.searchParams.get('code');
-	const state = url.searchParams.get('state');
-
-	// Validate state (Cookie + Redis)
+/**
+ * state を Cookie と Redis で検証し、検証後に削除する
+ */
+const validateAndConsumeState = async (
+	state: string | null,
+	cookies: Cookies,
+	redisClient: RedisClientType
+): Promise<boolean> => {
 	const stateCookie = cookies.get('oauth_state');
 	if (!stateCookie || stateCookie !== state) {
-		return new Response(JSON.stringify({ error: 'Invalid state' }), {
-			status: 400,
-			headers: { 'Content-Type': 'application/json' }
-		});
+		return false;
 	}
 
-	const client = await getRedisClient();
-	const redisState = await client.get(`oauth_state:${state}`);
+	const redisState = await redisClient.get(`oauth_state:${state}`);
 	if (!redisState) {
-		return new Response(JSON.stringify({ error: 'Invalid state' }), {
-			status: 400,
-			headers: { 'Content-Type': 'application/json' }
-		});
+		return false;
 	}
 
 	// Delete state from Redis and Cookie
-	await client.del(`oauth_state:${state}`);
+	await redisClient.del(`oauth_state:${state}`);
 	cookies.delete('oauth_state', { path: '/' });
 
-	if (!code) {
-		return new Response(JSON.stringify({ error: 'Missing code' }), {
-			status: 400,
-			headers: { 'Content-Type': 'application/json' }
-		});
-	}
+	return true;
+};
 
-	// Exchange code for access token
+/**
+ * GitHub OAuth フローを実行: code → access_token → user
+ */
+const authenticateWithGitHub = async (
+	code: string,
+	clientId: string,
+	clientSecret: string,
+	callbackUrl: string,
+	fetchFn: typeof fetch
+): Promise<GitHubUser> => {
 	const accessToken = await exchangeCodeForToken(
 		code,
-		github.clientId,
-		github.clientSecret,
-		github.callbackUrl,
-		fetch
+		clientId,
+		clientSecret,
+		callbackUrl,
+		fetchFn
 	);
+	return await fetchGitHubUser(accessToken, fetchFn);
+};
 
-	// Fetch GitHub user
-	const githubUser = await fetchGitHubUser(accessToken, fetch);
-
-	// Check whitelist
-	if (!isAllowedGithubId(String(githubUser.id))) {
-		return new Response(JSON.stringify({ error: 'Access denied' }), {
-			status: 403,
-			headers: { 'Content-Type': 'application/json' }
-		});
-	}
-
-	// Upsert user in DB
+/**
+ * GitHub ユーザー情報を DB に upsert し、DB上のユーザーレコードを返す
+ */
+const upsertUser = async (githubUser: GitHubUser) => {
 	const [dbUser] = await db
 		.insert(users)
 		.values({
@@ -146,10 +140,15 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 		})
 		.returning();
 
-	// Create session
-	const sessionId = await createSession(dbUser.id);
+	return dbUser;
+};
 
-	// Set session cookie
+/**
+ * セッションを作成し、Cookie に設定する
+ */
+const createSessionAndSetCookie = async (userId: string, cookies: Cookies): Promise<void> => {
+	const sessionId = await createSession(userId);
+
 	cookies.set(_SESSION_COOKIE, sessionId, {
 		path: '/',
 		httpOnly: true,
@@ -157,6 +156,55 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 		secure: true,
 		maxAge: _SESSION_TTL_SECONDS
 	});
+};
+
+export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
+	const { github } = getEnvConfig();
+	const redisClient = await getRedisClient();
+
+	// Extract query params
+	const code = url.searchParams.get('code');
+	const state = url.searchParams.get('state');
+
+	// Validate state
+	const isStateValid = await validateAndConsumeState(state, cookies, redisClient);
+	if (!isStateValid) {
+		return new Response(JSON.stringify({ error: 'Invalid state' }), {
+			status: 400,
+			headers: { 'Content-Type': 'application/json' }
+		});
+	}
+
+	// Validate code
+	if (!code) {
+		return new Response(JSON.stringify({ error: 'Missing code' }), {
+			status: 400,
+			headers: { 'Content-Type': 'application/json' }
+		});
+	}
+
+	// Authenticate with GitHub
+	const githubUser = await authenticateWithGitHub(
+		code,
+		github.clientId,
+		github.clientSecret,
+		github.callbackUrl,
+		fetch
+	);
+
+	// Check whitelist
+	if (!isAllowedGithubId(String(githubUser.id))) {
+		return new Response(JSON.stringify({ error: 'Access denied' }), {
+			status: 403,
+			headers: { 'Content-Type': 'application/json' }
+		});
+	}
+
+	// Upsert user in DB
+	const dbUser = await upsertUser(githubUser);
+
+	// Create session and set cookie
+	await createSessionAndSetCookie(dbUser.id, cookies);
 
 	// Redirect to home
 	return new Response(null, {

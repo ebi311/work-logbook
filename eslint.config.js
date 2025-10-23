@@ -21,6 +21,11 @@ export default defineConfig(
 	...svelte.configs.prettier,
 	...storybook.configs['flat/recommended'],
 	{
+		rules: {
+			complexity: ['error', { max: 10 }]
+		}
+	},
+	{
 		languageOptions: {
 			globals: { ...globals.browser, ...globals.node }
 		},

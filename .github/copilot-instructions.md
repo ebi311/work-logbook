@@ -30,6 +30,8 @@
 - テストフレームワークは Vitest を使用する。
 - `pnpm test:unit` コマンドで実行する。
 - component のテストは、 Testing Library for Svelte を使用する。
+- テスト対象のファイル名のプレフィックスに `+` がついていても、テストコードのファイルにはつけないこと。
+  - Vitest、Svelte の予約語のため。
 
 ## documents
 

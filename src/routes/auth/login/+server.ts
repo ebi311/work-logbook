@@ -1,48 +1,48 @@
-import type { RequestHandler } from '@sveltejs/kit'
-import { getEnvConfig } from '$lib/server/config/env'
-import { getRedisClient } from '$lib/server/config/redis'
+import type { RequestHandler } from '@sveltejs/kit';
+import { getEnvConfig } from '$lib/server/config/env';
+import { getRedisClient } from '$lib/server/config/redis';
 
-export const _OAUTH_STATE_COOKIE = 'oauth_state'
-export const _OAUTH_STATE_TTL_SECONDS = 60 * 10 // 10 minutes
+export const _OAUTH_STATE_COOKIE = 'oauth_state';
+export const _OAUTH_STATE_TTL_SECONDS = 60 * 10; // 10 minutes
 
 const buildAuthorizeUrl = (clientId: string, redirectUri: string, state: string): string => {
-  const u = new URL('https://github.com/login/oauth/authorize')
-  u.searchParams.set('client_id', clientId)
-  u.searchParams.set('redirect_uri', redirectUri)
-  u.searchParams.set('scope', 'read:user user:email')
-  u.searchParams.set('allow_signup', 'false')
-  u.searchParams.set('state', state)
-  return u.toString()
-}
+	const u = new URL('https://github.com/login/oauth/authorize');
+	u.searchParams.set('client_id', clientId);
+	u.searchParams.set('redirect_uri', redirectUri);
+	u.searchParams.set('scope', 'read:user user:email');
+	u.searchParams.set('allow_signup', 'false');
+	u.searchParams.set('state', state);
+	return u.toString();
+};
 
 const randomState = (): string => {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return crypto.randomUUID()
-  }
-  return `${Date.now()}-${Math.random().toString(36).slice(2)}`
-}
+	if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+		return crypto.randomUUID();
+	}
+	return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
 
 export const GET: RequestHandler = async ({ cookies }) => {
-  const { github } = getEnvConfig()
+	const { github } = getEnvConfig();
 
-  const state = randomState()
+	const state = randomState();
 
-  // Store state in Redis with TTL
-  const client = await getRedisClient()
-  await client.set(`oauth_state:${state}`, '1', { EX: _OAUTH_STATE_TTL_SECONDS })
+	// Store state in Redis with TTL
+	const client = await getRedisClient();
+	await client.set(`oauth_state:${state}`, '1', { EX: _OAUTH_STATE_TTL_SECONDS });
 
-  // Set state cookie (httpOnly)
-  cookies.set(_OAUTH_STATE_COOKIE, state, {
-    path: '/',
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: true,
-    maxAge: _OAUTH_STATE_TTL_SECONDS
-  })
+	// Set state cookie (httpOnly)
+	cookies.set(_OAUTH_STATE_COOKIE, state, {
+		path: '/',
+		httpOnly: true,
+		sameSite: 'lax',
+		secure: true,
+		maxAge: _OAUTH_STATE_TTL_SECONDS
+	});
 
-  const location = buildAuthorizeUrl(github.clientId, github.callbackUrl, state)
-  return new Response(null, {
-    status: 302,
-    headers: { Location: location }
-  })
-}
+	const location = buildAuthorizeUrl(github.clientId, github.callbackUrl, state);
+	return new Response(null, {
+		status: 302,
+		headers: { Location: location }
+	});
+};

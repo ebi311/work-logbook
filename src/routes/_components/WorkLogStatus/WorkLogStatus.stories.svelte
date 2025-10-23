@@ -9,13 +9,13 @@
 		argTypes: {
 			active: {
 				control: 'object',
-				description: 'アクティブな作業ログ',
+				description: 'アクティブな作業ログ'
 			},
 			serverNow: {
 				control: 'text',
-				description: 'サーバーの現在時刻（ISO 8601形式）',
-			},
-		},
+				description: 'サーバーの現在時刻（ISO 8601形式）'
+			}
+		}
 	});
 </script>
 
@@ -23,9 +23,8 @@
 	// 現在時刻を取得
 	const now = new Date().toISOString();
 	// 時間計算用のヘルパー関数（Arrow function）
-	const getTimeAgo = (minutes: number) => 
-		new Date(Date.now() - minutes * 60 * 1000).toISOString();
-	
+	const getTimeAgo = (minutes: number) => new Date(Date.now() - minutes * 60 * 1000).toISOString();
+
 	// 1時間前
 	const oneHourAgo = getTimeAgo(60);
 	// 30分前
@@ -38,8 +37,8 @@
 <Story
 	name="Stopped"
 	args={{
-		active: null,
-		serverNow: now,
+		active: undefined,
+		serverNow: now
 	}}
 />
 
@@ -49,9 +48,9 @@
 	args={{
 		active: {
 			id: 'test-id-1',
-			startedAt: now,
+			startedAt: now
 		},
-		serverNow: now,
+		serverNow: now
 	}}
 />
 
@@ -61,9 +60,9 @@
 	args={{
 		active: {
 			id: 'test-id-2',
-			startedAt: fiveMinutesAgo,
+			startedAt: fiveMinutesAgo
 		},
-		serverNow: now,
+		serverNow: now
 	}}
 />
 
@@ -73,9 +72,9 @@
 	args={{
 		active: {
 			id: 'test-id-3',
-			startedAt: thirtyMinutesAgo,
+			startedAt: thirtyMinutesAgo
 		},
-		serverNow: now,
+		serverNow: now
 	}}
 />
 
@@ -85,9 +84,9 @@
 	args={{
 		active: {
 			id: 'test-id-4',
-			startedAt: oneHourAgo,
+			startedAt: oneHourAgo
 		},
-		serverNow: now,
+		serverNow: now
 	}}
 />
 
@@ -97,8 +96,8 @@
 	args={{
 		active: {
 			id: 'test-id-5',
-			startedAt: new Date(Date.now() - 10 * 1000).toISOString(), // 10秒前
+			startedAt: new Date(Date.now() - 10 * 1000).toISOString() // 10秒前
 		},
-		serverNow: now,
+		serverNow: now
 	}}
 />

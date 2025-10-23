@@ -6,6 +6,9 @@ declare global {
 		interface Locals {
 			user?: {
 				id: string;
+				githubId: string;
+				githubUsername: string;
+				isActive: boolean;
 			};
 		}
 		// interface PageData {}

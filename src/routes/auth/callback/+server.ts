@@ -1,11 +1,11 @@
-import type { RequestHandler } from '@sveltejs/kit'
-import type { Cookies } from '@sveltejs/kit'
-import { getEnvConfig, isAllowedGithubId } from '$lib/server/config/env'
-import { getRedisClient } from '$lib/server/config/redis'
-import { createSession } from '$lib/server/auth/session'
-import { db } from '$lib/server/db'
-import { users } from '$lib/server/db/schema'
-import type { RedisClientType } from 'redis'
+import type { RequestHandler } from '@sveltejs/kit';
+import type { Cookies } from '@sveltejs/kit';
+import { getEnvConfig, isAllowedGithubId } from '$lib/server/config/env';
+import { getRedisClient } from '$lib/server/config/redis';
+import { createSession } from '$lib/server/auth/session';
+import { db } from '$lib/server/db';
+import { users } from '$lib/server/db/schema';
+import type { RedisClientType } from 'redis';
 
 export const _SESSION_COOKIE = 'session_id';
 export const _SESSION_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days

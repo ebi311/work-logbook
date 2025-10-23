@@ -1,4 +1,5 @@
 import type { RequestHandler } from '@sveltejs/kit';
+import { nanoid } from 'nanoid';
 import { getEnvConfig } from '$lib/server/config/env';
 import { getRedisClient } from '$lib/server/config/redis';
 
@@ -15,12 +16,7 @@ const buildAuthorizeUrl = (clientId: string, redirectUri: string, state: string)
 	return u.toString();
 };
 
-const randomState = (): string => {
-	if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-		return crypto.randomUUID();
-	}
-	return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-};
+const randomState = (): string => nanoid(32);
 
 export const GET: RequestHandler = async ({ cookies }) => {
 	const { github } = getEnvConfig();

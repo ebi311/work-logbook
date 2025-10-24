@@ -4,9 +4,10 @@
 	type Props = {
 		isActive: boolean;
 		isSubmitting: boolean;
+		buttonElement?: HTMLButtonElement | null;
 	};
 
-	let { isActive, isSubmitting }: Props = $props();
+	let { isActive, isSubmitting, buttonElement = $bindable() }: Props = $props();
 
 	// ボタンのテキスト
 	const buttonText = $derived(isActive ? '作業終了' : '作業開始');
@@ -25,6 +26,7 @@
 </script>
 
 <button
+	bind:this={buttonElement}
 	type="submit"
 	formaction={formAction}
 	disabled={isSubmitting}

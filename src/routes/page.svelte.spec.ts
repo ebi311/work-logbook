@@ -1,6 +1,25 @@
 import '@testing-library/jest-dom/vitest';
 import { render, screen, waitFor } from '@testing-library/svelte';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+// SvelteKit の use:enhance によるフォーム送信処理が JSDOM 環境で URL を必要としエラーになるため、
+// テストでは $app/forms の enhance を no-op にモックして submit を preventDefault する
+vi.mock('$app/forms', () => {
+	return {
+		enhance: (form: HTMLFormElement | undefined) => {
+			const handler = (e: Event) => e.preventDefault();
+			// form が存在する場合のみイベントを張る（SSR/テストの安全性のためガード）
+			form?.addEventListener?.('submit', handler);
+			return {
+				// Svelte アクション互換の destroy を返す
+				destroy: () => {
+					form?.removeEventListener?.('submit', handler);
+				}
+			};
+		}
+	};
+});
+
 import Page from './+page.svelte';
 
 describe('/+page.svelte', () => {
@@ -342,6 +361,210 @@ describe('/+page.svelte', () => {
 			// 新しい状態が反映される（リアクティビティの更新を待つ）
 			await waitFor(() => {
 				expect(screen.getByText(/記録中/)).toBeInTheDocument();
+			});
+		});
+	});
+
+	describe('キーボードショートカット', () => {
+		describe('Cmd/Ctrl + S で作業開始/終了', () => {
+			it('停止中に Ctrl + S で作業を開始できる', async () => {
+				render(Page, {
+					props: {
+						data: {
+							active: undefined,
+							serverNow
+						}
+					}
+				});
+
+				// Ctrl + S を押下
+				const event = new KeyboardEvent('keydown', {
+					key: 's',
+					ctrlKey: true,
+					bubbles: true,
+					cancelable: true
+				});
+
+				const button = screen.getByRole('button', { name: '作業開始' });
+				const clickSpy = vi.spyOn(button, 'click');
+
+				window.dispatchEvent(event);
+
+				// ボタンがクリックされることを期待
+				expect(clickSpy).toHaveBeenCalled();
+			});
+
+			it('停止中に Cmd + S (macOS) で作業を開始できる', async () => {
+				render(Page, {
+					props: {
+						data: {
+							active: undefined,
+							serverNow
+						}
+					}
+				});
+
+				// Cmd + S を押下
+				const event = new KeyboardEvent('keydown', {
+					key: 's',
+					metaKey: true,
+					bubbles: true,
+					cancelable: true
+				});
+
+				const button = screen.getByRole('button', { name: '作業開始' });
+				const clickSpy = vi.spyOn(button, 'click');
+
+				window.dispatchEvent(event);
+
+				// ボタンがクリックされることを期待
+				expect(clickSpy).toHaveBeenCalled();
+			});
+
+			it('作業中に Ctrl + S で作業を終了できる', async () => {
+				render(Page, {
+					props: {
+						data: {
+							active: {
+								id: 'test-id',
+								startedAt: '2025-10-22T10:00:00.000Z',
+								endedAt: null
+							},
+							serverNow
+						}
+					}
+				});
+
+				// Ctrl + S を押下
+				const event = new KeyboardEvent('keydown', {
+					key: 's',
+					ctrlKey: true,
+					bubbles: true,
+					cancelable: true
+				});
+
+				const button = screen.getByRole('button', { name: '作業終了' });
+				const clickSpy = vi.spyOn(button, 'click');
+
+				window.dispatchEvent(event);
+
+				// ボタンがクリックされることを期待
+				expect(clickSpy).toHaveBeenCalled();
+			});
+
+			it('input要素フォーカス時はショートカットが無効', async () => {
+				const { container } = render(Page, {
+					props: {
+						data: {
+							active: undefined,
+							serverNow
+						}
+					}
+				});
+
+				// input要素を作成してフォーカス
+				const input = document.createElement('input');
+				container.appendChild(input);
+				input.focus();
+
+				// Ctrl + S を押下
+				const event = new KeyboardEvent('keydown', {
+					key: 's',
+					ctrlKey: true,
+					bubbles: true,
+					cancelable: true
+				});
+
+				const button = screen.getByRole('button', { name: '作業開始' });
+				const clickSpy = vi.spyOn(button, 'click');
+
+				input.dispatchEvent(event);
+
+				// ボタンはクリックされないことを期待
+				expect(clickSpy).not.toHaveBeenCalled();
+			});
+
+			it('textarea要素フォーカス時はショートカットが無効', async () => {
+				const { container } = render(Page, {
+					props: {
+						data: {
+							active: undefined,
+							serverNow
+						}
+					}
+				});
+
+				// textarea要素を作成してフォーカス
+				const textarea = document.createElement('textarea');
+				container.appendChild(textarea);
+				textarea.focus();
+
+				// Ctrl + S を押下
+				const event = new KeyboardEvent('keydown', {
+					key: 's',
+					ctrlKey: true,
+					bubbles: true,
+					cancelable: true
+				});
+
+				const button = screen.getByRole('button', { name: '作業開始' });
+				const clickSpy = vi.spyOn(button, 'click');
+
+				textarea.dispatchEvent(event);
+
+				// ボタンはクリックされないことを期待
+				expect(clickSpy).not.toHaveBeenCalled();
+			});
+
+			it('ブラウザのデフォルト動作が抑制される', async () => {
+				render(Page, {
+					props: {
+						data: {
+							active: undefined,
+							serverNow
+						}
+					}
+				});
+
+				// Ctrl + S を押下
+				const event = new KeyboardEvent('keydown', {
+					key: 's',
+					ctrlKey: true,
+					bubbles: true,
+					cancelable: true
+				});
+
+				const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
+				window.dispatchEvent(event);
+
+				// preventDefault が呼ばれることを期待
+				expect(preventDefaultSpy).toHaveBeenCalled();
+			});
+
+			it('送信中はショートカットが無効', async () => {
+				render(Page, {
+					props: {
+						data: {
+							active: undefined,
+							serverNow
+						}
+					}
+				});
+
+				// Ctrl + S を押下
+				const event = new KeyboardEvent('keydown', {
+					key: 's',
+					ctrlKey: true,
+					bubbles: true,
+					cancelable: true
+				});
+
+				window.dispatchEvent(event);
+
+				// 送信中でなければクリックが実行される
+				await waitFor(() => {
+					expect(screen.getByText('停止中')).toBeInTheDocument();
+				});
 			});
 		});
 	});

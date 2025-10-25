@@ -172,6 +172,42 @@ type StartActionFailure = {
 };
 
 /**
+ * 作業開始アクションの実装
+ */
+const handleStartAction = async (userId: string) => {
+	const serverNow = new Date();
+
+	// 進行中の作業を確認
+	const activeWorkLog = await getActiveWorkLog(userId);
+
+	if (activeWorkLog) {
+		// 既に進行中の作業がある
+		return fail(409, {
+			reason: 'ACTIVE_EXISTS',
+			active: {
+				id: activeWorkLog.id,
+				startedAt: activeWorkLog.startedAt.toISOString(),
+				endedAt: null
+			},
+			serverNow: serverNow.toISOString()
+		} satisfies StartActionFailure);
+	}
+
+	// 新規作業を開始
+	const workLog = await createWorkLog(userId, serverNow);
+
+	return {
+		ok: true,
+		workLog: {
+			id: workLog.id,
+			startedAt: workLog.startedAt.toISOString(),
+			endedAt: null
+		},
+		serverNow: serverNow.toISOString()
+	} satisfies StartActionSuccess;
+};
+
+/**
  * F-001: 作業終了
  */
 
@@ -191,6 +227,55 @@ type StopActionFailure = {
 	serverNow: string;
 };
 
+/**
+ * 作業終了アクションの実装
+ */
+const handleStopAction = async (userId: string) => {
+	const serverNow = new Date();
+
+	// 進行中の作業を取得
+	const activeWorkLog = await getActiveWorkLog(userId);
+
+	if (!activeWorkLog) {
+		// 進行中の作業がない
+		return fail(404, {
+			reason: 'NO_ACTIVE',
+			serverNow: serverNow.toISOString()
+		} satisfies StopActionFailure);
+	}
+
+	// 作業を終了
+	const stoppedWorkLog = await stopWorkLog(activeWorkLog.id, serverNow);
+
+	if (!stoppedWorkLog) {
+		// 更新失敗（既に終了済み）
+		return fail(404, {
+			reason: 'NO_ACTIVE',
+			serverNow: serverNow.toISOString()
+		} satisfies StopActionFailure);
+	}
+
+	// 作業時間を計算
+	const durationSec = stoppedWorkLog.getDuration();
+
+	// endedAtが設定されているはずだが、型安全のためチェック
+	if (durationSec === null) {
+		console.error('stoppedWorkLog.getDuration() returned null');
+		throw error(500, 'Internal Server Error');
+	}
+
+	return {
+		ok: true,
+		workLog: {
+			id: stoppedWorkLog.id,
+			startedAt: stoppedWorkLog.startedAt.toISOString(),
+			endedAt: stoppedWorkLog.endedAt!.toISOString()
+		},
+		serverNow: serverNow.toISOString(),
+		durationSec
+	} satisfies StopActionSuccess;
+};
+
 export const actions: Actions = {
 	start: async ({ locals }) => {
 		// 認証チェック
@@ -199,37 +284,9 @@ export const actions: Actions = {
 		}
 
 		const userId = locals.user.id;
-		const serverNow = new Date();
 
 		try {
-			// 進行中の作業を確認
-			const activeWorkLog = await getActiveWorkLog(userId);
-
-			if (activeWorkLog) {
-				// 既に進行中の作業がある
-				return fail(409, {
-					reason: 'ACTIVE_EXISTS',
-					active: {
-						id: activeWorkLog.id,
-						startedAt: activeWorkLog.startedAt.toISOString(),
-						endedAt: null
-					},
-					serverNow: serverNow.toISOString()
-				} satisfies StartActionFailure);
-			}
-
-			// 新規作業を開始
-			const workLog = await createWorkLog(userId, serverNow);
-
-			return {
-				ok: true,
-				workLog: {
-					id: workLog.id,
-					startedAt: workLog.startedAt.toISOString(),
-					endedAt: null
-				},
-				serverNow: serverNow.toISOString()
-			} satisfies StartActionSuccess;
+			return await handleStartAction(userId);
 		} catch (err) {
 			console.error('Failed to start work log:', err);
 			throw error(500, 'Internal Server Error');
@@ -243,50 +300,9 @@ export const actions: Actions = {
 		}
 
 		const userId = locals.user.id;
-		const serverNow = new Date();
 
 		try {
-			// 進行中の作業を取得
-			const activeWorkLog = await getActiveWorkLog(userId);
-
-			if (!activeWorkLog) {
-				// 進行中の作業がない
-				return fail(404, {
-					reason: 'NO_ACTIVE',
-					serverNow: serverNow.toISOString()
-				} satisfies StopActionFailure);
-			}
-
-			// 作業を終了
-			const stoppedWorkLog = await stopWorkLog(activeWorkLog.id, serverNow);
-
-			if (!stoppedWorkLog) {
-				// 更新失敗（既に終了済み）
-				return fail(404, {
-					reason: 'NO_ACTIVE',
-					serverNow: serverNow.toISOString()
-				} satisfies StopActionFailure);
-			}
-
-			// 作業時間を計算
-			const durationSec = stoppedWorkLog.getDuration();
-
-			// endedAtが設定されているはずだが、型安全のためチェック
-			if (durationSec === null) {
-				console.error('stoppedWorkLog.getDuration() returned null');
-				throw error(500, 'Internal Server Error');
-			}
-
-			return {
-				ok: true,
-				workLog: {
-					id: stoppedWorkLog.id,
-					startedAt: stoppedWorkLog.startedAt.toISOString(),
-					endedAt: stoppedWorkLog.endedAt!.toISOString()
-				},
-				serverNow: serverNow.toISOString(),
-				durationSec
-			} satisfies StopActionSuccess;
+			return await handleStopAction(userId);
 		} catch (err) {
 			console.error('Failed to stop work log:', err);
 			throw error(500, 'Internal Server Error');

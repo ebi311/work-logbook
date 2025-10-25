@@ -32,7 +32,7 @@
 				{#each items as item (item.id)}
 					{@const isActive = item.endedAt === null}
 					{@const duration = calculateDuration(item.startedAt, item.endedAt, serverNow)}
-					<tr data-active={isActive} class={isActive ? 'bg-blue-50' : ''}>
+					<tr data-active={isActive} class={isActive ? 'bg-accent text-accent-content' : ''}>
 						<td>{formatDate(item.startedAt)}</td>
 						<td>{formatTime(item.startedAt)}</td>
 						<td>{item.endedAt ? formatTime(item.endedAt) : '—'}</td>

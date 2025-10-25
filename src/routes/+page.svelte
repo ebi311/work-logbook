@@ -180,7 +180,7 @@
 		<MessageAlert message={successMessage} type="success" />
 	{/if}
 
-	<div class="card bg-base-100">
+	<div class="card mb-8 border border-neutral-300 bg-base-100">
 		<div class="card-body">
 			<WorkLogStatus active={currentActive} serverNow={currentServerNow} />
 			<form

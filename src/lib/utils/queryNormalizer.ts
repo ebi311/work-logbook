@@ -9,10 +9,22 @@ dayjs.extend(utc);
  * クエリパラメータのスキーマ
  */
 export const WorkLogQueryParamsSchema = z.object({
-	month: z.string().regex(/^\d{4}-\d{2}$/).optional(), // YYYY-MM
-	date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), // YYYY-MM-DD
-	from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), // YYYY-MM-DD
-	to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), // YYYY-MM-DD
+	month: z
+		.string()
+		.regex(/^\d{4}-\d{2}$/)
+		.optional(), // YYYY-MM
+	date: z
+		.string()
+		.regex(/^\d{4}-\d{2}-\d{2}$/)
+		.optional(), // YYYY-MM-DD
+	from: z
+		.string()
+		.regex(/^\d{4}-\d{2}-\d{2}$/)
+		.optional(), // YYYY-MM-DD
+	to: z
+		.string()
+		.regex(/^\d{4}-\d{2}-\d{2}$/)
+		.optional(), // YYYY-MM-DD
 	page: z.number().int().positive().optional(),
 	size: z.number().int().min(10).max(100).optional()
 });
@@ -31,7 +43,10 @@ export const NormalizedWorkLogQuerySchema = z.object({
 	page: z.number().int().positive(),
 	size: z.number().int().min(10).max(100),
 	offset: z.number().int().nonnegative(),
-	month: z.string().regex(/^\d{4}-\d{2}$/).optional()
+	month: z
+		.string()
+		.regex(/^\d{4}-\d{2}$/)
+		.optional()
 });
 
 /**
@@ -71,7 +86,10 @@ const getCurrentMonth = (): { from: Date; to: Date; month: string } => {
  */
 const resolveMonthRange = (month: string): { from: Date; to: Date; month: string } | null => {
 	// Zodでバリデーション
-	const validation = z.string().regex(/^\d{4}-\d{2}$/).safeParse(month);
+	const validation = z
+		.string()
+		.regex(/^\d{4}-\d{2}$/)
+		.safeParse(month);
 	if (!validation.success) return null;
 
 	try {
@@ -97,10 +115,7 @@ const resolveDateRange = (date: string): { from: Date; to: Date } | null => {
 /**
  * from/to パラメータから日付範囲を解決
  */
-const resolveFromToRange = (
-	from?: string,
-	to?: string
-): { from: Date; to: Date } | null => {
+const resolveFromToRange = (from?: string, to?: string): { from: Date; to: Date } | null => {
 	const fromDate = from ? parseStartOfDay(from) : null;
 	const toDate = to ? parseEndOfDay(to) : null;
 	// 両方が有効で、from <= to の場合のみ
@@ -139,9 +154,7 @@ const resolveQueryDateRange = (
  * クエリパラメータを正規化
  * 優先順位: month > date > from/to > デフォルト（今月）
  */
-export const normalizeWorkLogQuery = (
-	params: WorkLogQueryParams
-): NormalizedWorkLogQuery => {
+export const normalizeWorkLogQuery = (params: WorkLogQueryParams): NormalizedWorkLogQuery => {
 	// 日付範囲を解決
 	const { from, to, month } = resolveQueryDateRange(params);
 

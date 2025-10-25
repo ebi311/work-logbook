@@ -1,11 +1,83 @@
 import { error, fail } from '@sveltejs/kit';
 import type { ServerLoad, Actions } from '@sveltejs/kit';
-import { getActiveWorkLog, createWorkLog, stopWorkLog } from '$lib/server/db/workLogs';
+import {
+	getActiveWorkLog,
+	createWorkLog,
+	stopWorkLog,
+	listWorkLogs,
+	aggregateMonthlyWorkLogDuration
+} from '$lib/server/db/workLogs';
+import { normalizeWorkLogQuery } from '$lib/utils/queryNormalizer';
+
+/**
+ * URLからクエリパラメータをパース
+ */
+const parseQueryParams = (url: URL) => {
+	return {
+		month: url.searchParams.get('month') ?? undefined,
+		date: url.searchParams.get('date') ?? undefined,
+		from: url.searchParams.get('from') ?? undefined,
+		to: url.searchParams.get('to') ?? undefined,
+		page: url.searchParams.get('page') ? parseInt(url.searchParams.get('page')!, 10) : undefined,
+		size: url.searchParams.get('size') ? parseInt(url.searchParams.get('size')!, 10) : undefined
+	};
+};
+
+/**
+ * 作業一覧と月次合計を取得（並列実行）
+ */
+const fetchListData = async (
+	userId: string,
+	normalized: {
+		from: Date;
+		to: Date;
+		page: number;
+		size: number;
+		offset: number;
+		month?: string;
+	}
+) => {
+	// 並列で取得
+	const monthForAggregate = normalized.month ?? new Date().toISOString().slice(0, 7);
+
+	const [{ items: dbItems, hasNext }, monthlyTotalSec] = await Promise.all([
+		listWorkLogs(userId, {
+			from: normalized.from,
+			to: normalized.to,
+			limit: normalized.size,
+			offset: normalized.offset
+		}),
+		aggregateMonthlyWorkLogDuration(userId, { month: monthForAggregate })
+	]);
+
+	// アイテムを変換
+	const items: WorkLogItem[] = dbItems.map((item) => {
+		const durationSec = item.endedAt
+			? Math.floor((item.endedAt.getTime() - item.startedAt.getTime()) / 1000)
+			: null;
+
+		return {
+			id: item.id,
+			startedAt: item.startedAt.toISOString(),
+			endedAt: item.endedAt ? item.endedAt.toISOString() : null,
+			durationSec
+		};
+	});
+
+	return {
+		items,
+		page: normalized.page,
+		size: normalized.size,
+		hasNext,
+		monthlyTotalSec
+	};
+};
 
 /**
  * F-001: 初期状態取得
- * 
- * ページ初期ロード時に、ユーザーの進行中の作業状態とサーバー時刻を取得する。
+ * F-005/F-006: 作業一覧と月次合計
+ *
+ * ページ初期ロード時に、ユーザーの進行中の作業状態、一覧、月次合計、サーバー時刻を取得する。
  */
 
 type ActiveWorkLog = {
@@ -14,12 +86,27 @@ type ActiveWorkLog = {
 	endedAt: null;
 };
 
+type WorkLogItem = {
+	id: string;
+	startedAt: string;
+	endedAt: string | null;
+	durationSec: number | null;
+};
+
 type LoadData = {
 	active?: ActiveWorkLog;
 	serverNow: string;
+	// F-005/F-006: 一覧と月次合計（Promiseでストリーミング）
+	listData: Promise<{
+		items: WorkLogItem[];
+		page: number;
+		size: number;
+		hasNext: boolean;
+		monthlyTotalSec: number;
+	}>;
 };
 
-export const load: ServerLoad = async ({ locals }) => {
+export const load: ServerLoad = async ({ locals, url }) => {
 	// 認証チェック
 	if (!locals.user) {
 		throw error(401, 'Unauthorized');
@@ -28,15 +115,21 @@ export const load: ServerLoad = async ({ locals }) => {
 	const userId = locals.user.id;
 
 	try {
-		// 進行中の作業を取得
-		const activeWorkLog = await getActiveWorkLog(userId);
+		// クエリパラメータを正規化
+		const queryParams = parseQueryParams(url);
+		const normalized = normalizeWorkLogQuery(queryParams);
 
-		// サーバー時刻
+		// 軽量なデータ: 進行中の作業とサーバー時刻（即座に返す）
+		const activeWorkLog = await getActiveWorkLog(userId);
 		const serverNow = new Date().toISOString();
 
-		// レスポンス構築
+		// 重いデータ: 一覧と月次合計（Promiseのまま返してストリーミング）
+		const listData = fetchListData(userId, normalized);
+
+		// レスポンス構築（軽量データ + Promise）
 		const response: LoadData = {
-			serverNow
+			serverNow,
+			listData
 		};
 
 		if (activeWorkLog) {

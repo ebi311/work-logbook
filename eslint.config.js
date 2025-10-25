@@ -22,7 +22,14 @@ export default defineConfig(
 	...storybook.configs['flat/recommended'],
 	{
 		rules: {
-			complexity: ['error', { max: 10 }]
+			complexity: ['error', { max: 10 }],
+			'@typescript-eslint/no-unused-vars': [
+				'error',
+				{
+					argsIgnorePattern: '^_',
+					varsIgnorePattern: '^_'
+				}
+			]
 		}
 	},
 	{

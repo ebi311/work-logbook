@@ -19,6 +19,12 @@
 - 最小限のテスト項目と実装コードを提供し、動作確認を行いながら進める。
 - 関数は、Arrow Function を原則として使用する。(クラスのメソッド等は除く)
 
+## use libraries
+
+- 日付の操作には、Day.jsを使用する。
+- DBアクセスには、Drizzle ORMを使用する。
+- スタイルフレームワークには、Tailwind CSS + daisyUI を使用する。
+
 ## infrastructure
 
 - クラウドサービスとして、Heroku を使用する。

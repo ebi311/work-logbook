@@ -48,7 +48,7 @@ describe('aggregateMonthlyWorkLogDuration', () => {
 		expect(mockDb.from).toHaveBeenCalledTimes(1);
 		// where が呼ばれたことを確認
 		expect(mockDb.where).toHaveBeenCalledTimes(1);
-		
+
 		// where の引数を検証（userId, isNotNull, 範囲チェック）
 		const whereArg = mockDb.where.mock.calls[0][0];
 		expect(whereArg).toBeDefined();
@@ -122,4 +122,3 @@ describe('aggregateMonthlyWorkLogDuration', () => {
 		expect(mockDb.select).not.toHaveBeenCalled();
 	});
 });
-

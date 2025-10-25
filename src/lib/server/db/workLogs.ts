@@ -107,4 +107,3 @@ export const aggregateMonthlyWorkLogDuration = async (
 
 	return Math.floor(result[0].totalSec);
 };
-

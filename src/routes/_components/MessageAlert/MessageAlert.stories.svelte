@@ -1,50 +1,77 @@
-<script lang="ts">
+<script lang="ts" context="module">
+	import { defineMeta } from '@storybook/addon-svelte-csf';
 	import MessageAlert from './MessageAlert.svelte';
-	import type { Snippet } from 'svelte';
 
-	interface Props {
-		children?: Snippet;
-	}
-
-	let { children }: Props = $props();
+	const { Story } = defineMeta({
+		component: MessageAlert,
+		title: 'Components/MessageAlert',
+		tags: ['autodocs'],
+		argTypes: {
+			message: {
+				control: 'text',
+				description: 'メッセージ内容'
+			},
+			type: {
+				control: 'select',
+				options: ['success', 'error'],
+				description: 'メッセージタイプ'
+			}
+		}
+	});
 </script>
 
-<div class="p-8">
-	<h1 class="mb-8 text-2xl font-bold">MessageAlert Component</h1>
+<!-- Success Message -->
+<Story
+	name="Success"
+	args={{
+		message: '作業を開始しました',
+		type: 'success'
+	}}
+/>
 
-	<div class="space-y-8">
-		<section>
-			<h2 class="mb-4 text-xl font-semibold">Success Messages</h2>
-			<div class="space-y-4">
-				<MessageAlert message="作業を開始しました" type="success" />
-				<MessageAlert message="作業を終了しました（60分）" type="success" />
-				<MessageAlert message="データを保存しました" type="success" />
-			</div>
-		</section>
+<!-- Error Message -->
+<Story
+	name="Error"
+	args={{
+		message: '既に作業が進行中です',
+		type: 'error'
+	}}
+/>
 
-		<section>
-			<h2 class="mb-4 text-xl font-semibold">Error Messages</h2>
-			<div class="space-y-4">
-				<MessageAlert message="既に作業が進行中です" type="error" />
-				<MessageAlert message="進行中の作業がありません" type="error" />
-				<MessageAlert message="エラーが発生しました" type="error" />
-			</div>
-		</section>
+<!-- Long Success Message -->
+<Story
+	name="LongSuccess"
+	args={{
+		message:
+			'これは非常に長いメッセージです。複数行にわたる可能性があり、レイアウトが適切に処理されることを確認するために使用されます。',
+		type: 'success'
+	}}
+/>
 
-		<section>
-			<h2 class="mb-4 text-xl font-semibold">Long Messages</h2>
-			<div class="space-y-4">
-				<MessageAlert
-					message="これは非常に長いメッセージです。複数行にわたる可能性があり、レイアウトが適切に処理されることを確認するために使用されます。"
-					type="success"
-				/>
-				<MessageAlert
-					message="エラー: サーバーとの接続に失敗しました。ネットワーク接続を確認してから、もう一度お試しください。"
-					type="error"
-				/>
-			</div>
-		</section>
-	</div>
+<!-- Long Error Message -->
+<Story
+	name="LongError"
+	args={{
+		message:
+			'エラー: サーバーとの接続に失敗しました。ネットワーク接続を確認してから、もう一度お試しください。',
+		type: 'error'
+	}}
+/>
 
-	{@render children?.()}
-</div>
+<!-- Work Started -->
+<Story
+	name="WorkStarted"
+	args={{
+		message: '作業を終了しました（60分）',
+		type: 'success'
+	}}
+/>
+
+<!-- No Active Work -->
+<Story
+	name="NoActiveWork"
+	args={{
+		message: '進行中の作業がありません',
+		type: 'error'
+	}}
+/>

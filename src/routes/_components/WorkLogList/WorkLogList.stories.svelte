@@ -54,8 +54,7 @@
 	const manyItems = Array.from({ length: 10 }, (_, i) => ({
 		id: String(i + 1),
 		startedAt: `2025-10-${String(25 - i).padStart(2, '0')}T09:00:00.000Z`,
-		endedAt:
-			i === 0 ? null : `2025-10-${String(25 - i).padStart(2, '0')}T17:30:00.000Z` // 最初の1件は進行中
+		endedAt: i === 0 ? null : `2025-10-${String(25 - i).padStart(2, '0')}T17:30:00.000Z` // 最初の1件は進行中
 	}));
 </script>
 

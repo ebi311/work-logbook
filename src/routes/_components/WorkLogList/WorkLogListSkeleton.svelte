@@ -20,16 +20,16 @@
 			{#each Array(rows) as _, i (i)}
 				<tr>
 					<td>
-						<div class="skeleton h-4 w-24"></div>
+						<div class="h-4 w-24 skeleton"></div>
 					</td>
 					<td>
-						<div class="skeleton h-4 w-16"></div>
+						<div class="h-4 w-16 skeleton"></div>
 					</td>
 					<td>
-						<div class="skeleton h-4 w-16"></div>
+						<div class="h-4 w-16 skeleton"></div>
 					</td>
 					<td>
-						<div class="skeleton h-4 w-16"></div>
+						<div class="h-4 w-16 skeleton"></div>
 					</td>
 				</tr>
 			{/each}

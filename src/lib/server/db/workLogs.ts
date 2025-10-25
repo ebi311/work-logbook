@@ -1,7 +1,8 @@
 import { db } from './index';
 import { workLogs, type DbWorkLog } from './schema';
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, and, isNull, sql, lt, gt, isNotNull } from 'drizzle-orm';
 import { WorkLog } from '../../../models/workLog';
+import { getMonthRange } from '../../utils/dateRange';
 
 /**
  * DB → ドメイン変換
@@ -70,3 +71,40 @@ export const stopWorkLog = async (workLogId: string, endedAt: Date): Promise<Wor
 
 	return toWorkLog(dbWorkLog);
 };
+
+/**
+ * 指定月の作業時間合計を集計（境界クリップ、進行中除外）
+ * @param userId - ユーザーID
+ * @param options - { month: YYYY-MM }
+ * @returns 月次合計作業秒数
+ */
+export const aggregateMonthlyWorkLogDuration = async (
+	userId: string,
+	{ month }: { month: string }
+): Promise<number> => {
+	const { from, toExclusive } = getMonthRange(month);
+
+	// SQLで境界クリップを実行: GREATEST/LEASTで範囲内の寄与時間を算出
+	// contribSec = EXTRACT(EPOCH FROM (LEAST(ended_at, toExclusive) - GREATEST(started_at, from)))
+	const result = await db
+		.select({
+			totalSec: sql<number>`COALESCE(SUM(
+				EXTRACT(EPOCH FROM (
+					LEAST(${workLogs.endedAt}, ${toExclusive.toISOString()}::timestamptz)
+					- GREATEST(${workLogs.startedAt}, ${from.toISOString()}::timestamptz)
+				))
+			), 0)`
+		})
+		.from(workLogs)
+		.where(
+			and(
+				eq(workLogs.userId, userId),
+				isNotNull(workLogs.endedAt),
+				lt(workLogs.startedAt, toExclusive),
+				gt(workLogs.endedAt, from)
+			)
+		);
+
+	return Math.floor(result[0].totalSec);
+};
+

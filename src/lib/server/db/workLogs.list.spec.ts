@@ -224,7 +224,12 @@ describe('listWorkLogs', () => {
 		const sameDate = new Date('2025-10-15T00:00:00Z');
 		mockDb.offset.mockResolvedValue([]);
 
-		const result = await listWorkLogs(testUserId, { limit: 10, offset: 0, from: sameDate, to: sameDate });
+		const result = await listWorkLogs(testUserId, {
+			limit: 10,
+			offset: 0,
+			from: sameDate,
+			to: sameDate
+		});
 
 		expect(result.items).toEqual([]);
 		expect(result.hasNext).toBe(false);

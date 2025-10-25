@@ -1,8 +1,32 @@
 import { db } from './index';
 import { workLogs, type DbWorkLog } from './schema';
-import { eq, and, isNull, sql, lt, gt, isNotNull } from 'drizzle-orm';
+import { eq, and, isNull, sql, lt, gt, isNotNull, gte, lte, desc } from 'drizzle-orm';
 import { WorkLog } from '../../../models/workLog';
 import { getMonthRange } from '../../utils/dateRange';
+import { z } from 'zod';
+
+/**
+ * listWorkLogs オプションのバリデーションスキーマ
+ */
+const ListWorkLogsOptionsSchema = z
+	.object({
+		limit: z.number().int().min(10).max(100),
+		offset: z.number().int().min(0),
+		from: z.date().optional(),
+		to: z.date().optional()
+	})
+	.refine(
+		(data) => {
+			// from と to の両方が指定されている場合、from <= to を検証
+			if (data.from && data.to) {
+				return data.from <= data.to;
+			}
+			return true;
+		},
+		{
+			message: 'from must be less than or equal to to'
+		}
+	);
 
 /**
  * DB → ドメイン変換
@@ -106,4 +130,53 @@ export const aggregateMonthlyWorkLogDuration = async (
 		);
 
 	return Math.floor(result[0].totalSec);
+};
+
+/**
+ * 作業ログを一覧取得（降順・ページング）
+ * @param userId - ユーザーID
+ * @param options - { limit: 件数(10〜100), offset: オフセット(0以上), from?: 開始日時, to?: 終了日時 }
+ * @returns { items: 作業ログ配列, hasNext: 次ページの有無 }
+ * @throws ZodError - バリデーション失敗時（limit/offset範囲外、from > to）
+ */
+export const listWorkLogs = async (
+	userId: string,
+	options: {
+		limit: number;
+		offset: number;
+		from?: Date;
+		to?: Date;
+	}
+): Promise<{
+	items: DbWorkLog[];
+	hasNext: boolean;
+}> => {
+	// Zodでバリデーション
+	const validatedOptions = ListWorkLogsOptionsSchema.parse(options);
+	const { limit, offset, from, to } = validatedOptions;
+
+	// limit+1 件取得して hasNext を判定
+	const conditions = [eq(workLogs.userId, userId)];
+
+	// from/to 範囲フィルタ（指定がある場合）
+	if (from) {
+		conditions.push(gte(workLogs.startedAt, from));
+	}
+	if (to) {
+		conditions.push(lte(workLogs.startedAt, to));
+	}
+
+	const results = await db
+		.select()
+		.from(workLogs)
+		.where(and(...conditions))
+		.orderBy(desc(workLogs.startedAt))
+		.limit(limit + 1)
+		.offset(offset);
+
+	// limit+1 件取得できた場合は次ページあり
+	const hasNext = results.length > limit;
+	const items = hasNext ? results.slice(0, limit) : results;
+
+	return { items, hasNext };
 };

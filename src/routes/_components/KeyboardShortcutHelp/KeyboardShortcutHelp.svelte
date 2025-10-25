@@ -33,7 +33,7 @@
 </script>
 
 <div
-	class="card prose-sm border border-base-300 bg-base-200"
+	class="card prose-sm border border-base-100 bg-base-300"
 	role="region"
 	aria-label="キーボードショートカット一覧"
 >

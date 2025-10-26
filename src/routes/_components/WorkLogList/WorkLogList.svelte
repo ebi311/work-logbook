@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatDate, formatTime, formatDuration, calculateDuration } from '$lib/utils/timeFormat';
+	import classNames from 'classnames';
 	import { fade } from 'svelte/transition';
 
 	type Props = {
@@ -12,6 +13,13 @@
 	};
 
 	let { items, serverNow }: Props = $props();
+
+	// 行のクラス
+	let rowClass = $derived((item: { endedAt: string | null }) =>
+		classNames('transition-colors', 'duration-300', {
+			'bg-accent text-accent-content': item.endedAt === null
+		})
+	);
 </script>
 
 <div class="overflow-x-auto">
@@ -33,11 +41,7 @@
 				{#each items as item (item.id)}
 					{@const isActive = item.endedAt === null}
 					{@const duration = calculateDuration(item.startedAt, item.endedAt, serverNow)}
-					<tr
-						data-active={isActive}
-						class={isActive ? 'bg-accent text-accent-content' : ''}
-						transition:fade
-					>
+					<tr data-active={isActive} class={rowClass(item)} transition:fade>
 						<td>{formatDate(item.startedAt)}</td>
 						<td>{formatTime(item.startedAt)}</td>
 						<td>{item.endedAt ? formatTime(item.endedAt) : '—'}</td>

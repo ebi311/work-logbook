@@ -9,6 +9,7 @@
 	import MonthlyTotal from './_components/MonthlyTotal/MonthlyTotal.svelte';
 	import Pagination from './_components/Pagination/Pagination.svelte';
 	import { enhance } from '$app/forms';
+	import { toast } from '@zerodevx/svelte-toast';
 
 	type Props = {
 		data: PageData;
@@ -24,36 +25,9 @@
 	// フォーム送信中の状態
 	let isSubmitting = $state(false);
 
-	// エラーメッセージ
-	let errorMessage = $state<string | null>(null);
-	let successMessage = $state<string | null>(null);
-
-	// メッセージ自動消去タイマー
-	let messageTimeout: ReturnType<typeof setTimeout> | null = null;
-
 	// フォームとボタンへの参照
 	let formElement: HTMLFormElement | null = $state(null);
 	let toggleButtonElement: HTMLButtonElement | null = $state(null);
-
-	// メッセージを表示して自動的に消す
-	const showMessage = (message: string, type: 'success' | 'error') => {
-		if (messageTimeout) {
-			clearTimeout(messageTimeout);
-		}
-
-		if (type === 'success') {
-			successMessage = message;
-			errorMessage = null;
-		} else {
-			errorMessage = message;
-			successMessage = null;
-		}
-
-		messageTimeout = setTimeout(() => {
-			errorMessage = null;
-			successMessage = null;
-		}, 5000);
-	};
 
 	// 作業開始成功時の処理
 	const handleStartSuccess = (form: NonNullable<ActionData>) => {
@@ -63,7 +37,12 @@
 		if ('serverNow' in form) {
 			currentServerNow = form.serverNow;
 		}
-		showMessage('作業を開始しました', 'success');
+		// showMessage('作業を開始しました', 'success');
+		toast.push('作業を開始しました', {
+			theme: {
+				'--toastBarBackground': 'green'
+			}
+		});
 	};
 
 	// 作業終了成功時の処理
@@ -77,7 +56,12 @@
 		if ('serverNow' in form) {
 			currentServerNow = form.serverNow;
 		}
-		showMessage(`作業を終了しました（${duration}分）`, 'success');
+		// showMessage(`作業を終了しました（${duration}分）`, 'success');
+		toast.push(`作業を終了しました（${duration}分）`, {
+			theme: {
+				'--toastBarBackground': 'green'
+			}
+		});
 	};
 
 	// エラー処理ハンドラーマップ
@@ -88,7 +72,12 @@
 				currentActive = form.active;
 				currentServerNow = form.serverNow;
 			}
-			showMessage('既に作業が進行中です', 'error');
+			// showMessage('既に作業が進行中です', 'error');
+			toast.push('既に作業が進行中です', {
+				theme: {
+					'--toastBarBackground': 'red'
+				}
+			});
 		},
 		NO_ACTIVE: (form) => {
 			// 404エラー: 進行中の作業がない
@@ -96,7 +85,12 @@
 			if ('serverNow' in form) {
 				currentServerNow = form.serverNow;
 			}
-			showMessage('進行中の作業がありません', 'error');
+			// showMessage('進行中の作業がありません', 'error');
+			toast.push('進行中の作業がありません', {
+				theme: {
+					'--toastBarBackground': 'red'
+				}
+			});
 		}
 	};
 
@@ -174,15 +168,6 @@
 
 <div class="mx-auto prose h-full w-xl bg-base-300 py-16">
 	<h1>作業記録</h1>
-
-	<!-- メッセージ表示エリア -->
-	{#if errorMessage}
-		<MessageAlert message={errorMessage} type="error" />
-	{/if}
-
-	{#if successMessage}
-		<MessageAlert message={successMessage} type="success" />
-	{/if}
 
 	<div class="card mb-8 border border-neutral-300 bg-base-100">
 		<div class="card-body">

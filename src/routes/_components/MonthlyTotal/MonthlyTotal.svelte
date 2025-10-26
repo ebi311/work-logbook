@@ -23,7 +23,7 @@
 	const formattedDuration = $derived(formatDuration(totalSec));
 </script>
 
-<div class="stat" aria-label={`${monthLabel}: ${formattedDuration}`}>
+<div class="stat border-0" aria-label={`${monthLabel}: ${formattedDuration}`}>
 	<div class="stat-title text-sm">{monthLabel}</div>
 	<div class="stat-value text-2xl">{formattedDuration}</div>
 </div>

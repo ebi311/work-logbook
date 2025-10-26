@@ -201,14 +201,14 @@
 				<!-- ローディング中 -->
 				<WorkLogListSkeleton rows={5} />
 			{:then listData}
+				<div class="grid grid-cols-[1fr_auto] items-end">
+					<MonthlyTotal totalSec={listData.monthlyTotalSec} />
+					<Pagination currentPage={listData.page} hasNext={listData.hasNext} size={listData.size} />
+				</div>
 				<!-- データ表示 -->
 				<WorkLogList items={listData.items} serverNow={currentServerNow} />
 
 				<!-- フッター: 月次合計とページネーション -->
-				<div class="mt-4 card-actions items-center justify-between">
-					<MonthlyTotal totalSec={listData.monthlyTotalSec} />
-					<Pagination currentPage={listData.page} hasNext={listData.hasNext} size={listData.size} />
-				</div>
 			{:catch error}
 				<!-- エラー表示 -->
 				<div class="alert alert-error">

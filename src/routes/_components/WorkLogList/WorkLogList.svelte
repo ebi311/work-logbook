@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatDate, formatTime, formatDuration, calculateDuration } from '$lib/utils/timeFormat';
+	import { fade } from 'svelte/transition';
 
 	type Props = {
 		items: Array<{
@@ -32,7 +33,11 @@
 				{#each items as item (item.id)}
 					{@const isActive = item.endedAt === null}
 					{@const duration = calculateDuration(item.startedAt, item.endedAt, serverNow)}
-					<tr data-active={isActive} class={isActive ? 'bg-accent text-accent-content' : ''}>
+					<tr
+						data-active={isActive}
+						class={isActive ? 'bg-accent text-accent-content' : ''}
+						transition:fade
+					>
 						<td>{formatDate(item.startedAt)}</td>
 						<td>{formatTime(item.startedAt)}</td>
 						<td>{item.endedAt ? formatTime(item.endedAt) : '—'}</td>

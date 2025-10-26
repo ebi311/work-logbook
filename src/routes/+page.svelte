@@ -4,6 +4,10 @@
 	import WorkLogToggleButton from './_components/WorkLogToggleButton/WorkLogToggleButton.svelte';
 	import MessageAlert from './_components/MessageAlert/MessageAlert.svelte';
 	import KeyboardShortcutHelp from './_components/KeyboardShortcutHelp/KeyboardShortcutHelp.svelte';
+	import WorkLogList from './_components/WorkLogList/WorkLogList.svelte';
+	import WorkLogListSkeleton from './_components/WorkLogList/WorkLogListSkeleton.svelte';
+	import MonthlyTotal from './_components/MonthlyTotal/MonthlyTotal.svelte';
+	import Pagination from './_components/Pagination/Pagination.svelte';
 	import { enhance } from '$app/forms';
 
 	type Props = {
@@ -201,6 +205,32 @@
 					{isSubmitting}
 				/>
 			</form>
+		</div>
+	</div>
+
+	<!-- 作業一覧セクション -->
+	<div class="card mb-8 border border-neutral-300 bg-base-100">
+		<div class="card-body">
+			<h2 class="card-title">作業履歴</h2>
+
+			{#await data.listData}
+				<!-- ローディング中 -->
+				<WorkLogListSkeleton rows={5} />
+			{:then listData}
+				<!-- データ表示 -->
+				<WorkLogList items={listData.items} serverNow={currentServerNow} />
+
+				<!-- フッター: 月次合計とページネーション -->
+				<div class="mt-4 card-actions items-center justify-between">
+					<MonthlyTotal totalSec={listData.monthlyTotalSec} />
+					<Pagination currentPage={listData.page} hasNext={listData.hasNext} size={listData.size} />
+				</div>
+			{:catch error}
+				<!-- エラー表示 -->
+				<div class="alert alert-error">
+					<span>データの読み込みに失敗しました</span>
+				</div>
+			{/await}
 		</div>
 	</div>
 

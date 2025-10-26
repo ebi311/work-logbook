@@ -1,23 +1,18 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { randomUUID } from 'crypto';
 import type { DbWorkLog } from './schema';
-import {
-	toWorkLog,
-	getActiveWorkLog,
-	createWorkLog,
-	stopWorkLog
-} from './workLogs';
+import { toWorkLog, getActiveWorkLog, createWorkLog, stopWorkLog } from './workLogs';
 import { WorkLog } from '../../../models/workLog';
 
 /**
  * F-001: 作業記録 DB関数のテスト (モック版)
- * 
+ *
  * テストケース:
  * 1. 変換関数: toWorkLog()
  * 2. DB関数: getActiveWorkLog(), createWorkLog(), stopWorkLog()
  * 3. 統合テスト: 作業開始→終了の正常フロー
  * 4. 異常系: 二重開始、進行中なしで停止
- * 
+ *
  * 注: 実際のDBへの接続をモック化し、高速で実行可能なユニットテストとして実装
  */
 

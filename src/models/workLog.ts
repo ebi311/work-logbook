@@ -10,7 +10,7 @@ const workLogSchema = z
 		startedAt: z.date(),
 		endedAt: z.date().nullable(),
 		createdAt: z.date(),
-		updatedAt: z.date(),
+		updatedAt: z.date()
 	})
 	.refine(
 		(data) => {
@@ -22,7 +22,7 @@ const workLogSchema = z
 		},
 		{
 			message: 'endedAt must be greater than startedAt',
-			path: ['endedAt'],
+			path: ['endedAt']
 		}
 	);
 
@@ -111,7 +111,7 @@ export class WorkLog {
 			startedAt: this.startedAt,
 			endedAt: this.endedAt,
 			createdAt: this.createdAt,
-			updatedAt: this.updatedAt,
+			updatedAt: this.updatedAt
 		};
 	}
 }
@@ -122,7 +122,7 @@ export class WorkLog {
 export const startWorkLogResponseSchema = z.object({
 	ok: z.literal(true),
 	workLog: workLogSchema,
-	serverNow: z.date(),
+	serverNow: z.date()
 });
 
 export type StartWorkLogResponse = {
@@ -138,7 +138,7 @@ export const stopWorkLogResponseSchema = z.object({
 	ok: z.literal(true),
 	workLog: workLogSchema,
 	serverNow: z.date(),
-	durationSec: z.number().int().nonnegative(),
+	durationSec: z.number().int().nonnegative()
 });
 
 export type StopWorkLogResponse = {
@@ -153,7 +153,7 @@ export type StopWorkLogResponse = {
  */
 export const loadWorkLogResponseSchema = z.object({
 	active: workLogSchema.nullable(),
-	serverNow: z.date(),
+	serverNow: z.date()
 });
 
 export type LoadWorkLogResponse = {
@@ -169,7 +169,7 @@ export const errorResponseSchema = z.object({
 	reason: z.enum(['ACTIVE_EXISTS', 'NO_ACTIVE', 'UNAUTHORIZED', 'INTERNAL_ERROR']),
 	message: z.string(),
 	serverNow: z.date().optional(),
-	active: workLogSchema.optional(),
+	active: workLogSchema.optional()
 });
 
 export type ErrorResponse = {

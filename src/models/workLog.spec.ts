@@ -4,7 +4,7 @@ import {
 	startWorkLogResponseSchema,
 	errorResponseSchema,
 	validateWorkLog,
-	isWorkLog,
+	isWorkLog
 } from './workLog';
 
 describe('WorkLog ドメインモデル', () => {
@@ -16,7 +16,7 @@ describe('WorkLog ドメインモデル', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
-				updatedAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
 
 			const result = WorkLog.from(data);
@@ -36,7 +36,7 @@ describe('WorkLog ドメインモデル', () => {
 				startedAt,
 				endedAt,
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
-				updatedAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
 
 			const result = WorkLog.from(data);
@@ -51,7 +51,7 @@ describe('WorkLog ドメインモデル', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
-				updatedAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
 
 			expect(() => WorkLog.from(data)).toThrow();
@@ -64,7 +64,7 @@ describe('WorkLog ドメインモデル', () => {
 				startedAt: 'invalid-date',
 				endedAt: null,
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
-				updatedAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
 
 			expect(() => WorkLog.from(data)).toThrow();
@@ -77,7 +77,7 @@ describe('WorkLog ドメインモデル', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: new Date('2025-10-20T11:00:00.000Z'), // 1時間前
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
-				updatedAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
 
 			expect(() => WorkLog.from(data)).toThrow();
@@ -91,7 +91,7 @@ describe('WorkLog ドメインモデル', () => {
 				startedAt: sameTime,
 				endedAt: sameTime,
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
-				updatedAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
 
 			expect(() => WorkLog.from(data)).toThrow();
@@ -108,9 +108,9 @@ describe('WorkLog ドメインモデル', () => {
 					startedAt: new Date('2025-10-20T12:00:00.000Z'),
 					endedAt: null,
 					createdAt: new Date('2025-10-20T12:00:00.000Z'),
-					updatedAt: new Date('2025-10-20T12:00:00.000Z'),
+					updatedAt: new Date('2025-10-20T12:00:00.000Z')
 				},
-				serverNow: new Date('2025-10-20T12:00:00.000Z'),
+				serverNow: new Date('2025-10-20T12:00:00.000Z')
 			};
 
 			const result = startWorkLogResponseSchema.parse(data);
@@ -125,7 +125,7 @@ describe('WorkLog ドメインモデル', () => {
 				ok: false as const,
 				reason: 'ACTIVE_EXISTS' as const,
 				message: '既に進行中の作業があります',
-				serverNow: new Date('2025-10-20T12:00:00.000Z'),
+				serverNow: new Date('2025-10-20T12:00:00.000Z')
 			};
 
 			const result = errorResponseSchema.parse(data);
@@ -142,7 +142,7 @@ describe('WorkLog ドメインモデル', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
-				updatedAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
 
 			expect(() => validateWorkLog(data)).not.toThrow();
@@ -157,7 +157,7 @@ describe('WorkLog ドメインモデル', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
-				updatedAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
 
 			expect(WorkLog.isValid(data)).toBe(true);
@@ -177,7 +177,7 @@ describe('WorkLog ドメインモデル', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
-				updatedAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
 
 			expect(isWorkLog(data)).toBe(true);
@@ -197,7 +197,7 @@ describe('WorkLog ドメインモデル', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
-				updatedAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			});
 
 			expect(workLog.isActive()).toBe(true);
@@ -210,7 +210,7 @@ describe('WorkLog ドメインモデル', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: new Date('2025-10-20T13:00:00.000Z'),
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
-				updatedAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			});
 
 			expect(workLog.isActive()).toBe(false);
@@ -225,7 +225,7 @@ describe('WorkLog ドメインモデル', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: new Date('2025-10-20T13:00:00.000Z'),
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
-				updatedAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			});
 
 			expect(workLog.getDuration()).toBe(3600); // 1時間 = 3600秒
@@ -238,7 +238,7 @@ describe('WorkLog ドメインモデル', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
-				updatedAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			});
 
 			expect(workLog.getDuration()).toBeNull();
@@ -253,7 +253,7 @@ describe('WorkLog ドメインモデル', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
-				updatedAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			});
 
 			expect(workLog.canStop()).toBe(true);
@@ -266,7 +266,7 @@ describe('WorkLog ドメインモデル', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: new Date('2025-10-20T13:00:00.000Z'),
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
-				updatedAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			});
 
 			expect(workLog.canStop()).toBe(false);
@@ -281,7 +281,7 @@ describe('WorkLog ドメインモデル', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
-				updatedAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
 			const workLog = WorkLog.from(data);
 

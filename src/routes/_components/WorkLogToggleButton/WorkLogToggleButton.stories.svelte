@@ -9,13 +9,13 @@
 		argTypes: {
 			isActive: {
 				control: 'boolean',
-				description: '作業中かどうか',
+				description: '作業中かどうか'
 			},
 			isSubmitting: {
 				control: 'boolean',
-				description: '送信中かどうか',
-			},
-		},
+				description: '送信中かどうか'
+			}
+		}
 	});
 </script>
 
@@ -24,7 +24,7 @@
 	name="Inactive"
 	args={{
 		isActive: false,
-		isSubmitting: false,
+		isSubmitting: false
 	}}
 />
 
@@ -33,7 +33,7 @@
 	name="Inactive Submitting"
 	args={{
 		isActive: false,
-		isSubmitting: true,
+		isSubmitting: true
 	}}
 />
 
@@ -42,7 +42,7 @@
 	name="Active"
 	args={{
 		isActive: true,
-		isSubmitting: false,
+		isSubmitting: false
 	}}
 />
 
@@ -51,6 +51,6 @@
 	name="Active Submitting"
 	args={{
 		isActive: true,
-		isSubmitting: true,
+		isSubmitting: true
 	}}
 />

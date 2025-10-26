@@ -11,9 +11,11 @@
 ## 要件
 
 ### 入力
+
 - なし（認証情報は`locals.user`から取得）
 
 ### 出力
+
 ```typescript
 {
   active?: {
@@ -26,40 +28,47 @@
 ```
 
 ### 振る舞い
+
 1. 認証チェック: `locals.user`が無い場合は401エラー
 2. `getActiveWorkLog(userId)`で進行中の作業を取得
 3. 進行中の作業がある場合、activeオブジェクトを返却
 4. サーバー現在時刻（UTC）を返却
 
 ### エラーハンドリング
+
 - 401: 未認証
 - 500: DB接続エラーやその他の内部エラー
 
 ## API仕様
 
 ### 関数名
+
 `load: PageServerLoad`
 
 ### 引数
+
 - `locals.user`: 認証済みユーザー情報
   - `id`: string (UUID)
 
 ### 戻り値の型定義
 
 #### ActiveWorkLog型
-| プロパティ | 型 | 説明 |
-|----------|---|------|
-| id | string | 作業記録ID（UUID） |
-| startedAt | string | 開始時刻（ISO 8601形式） |
-| endedAt | null | 終了時刻（進行中はnull） |
+
+| プロパティ | 型     | 説明                     |
+| ---------- | ------ | ------------------------ |
+| id         | string | 作業記録ID（UUID）       |
+| startedAt  | string | 開始時刻（ISO 8601形式） |
+| endedAt    | null   | 終了時刻（進行中はnull） |
 
 #### LoadData型
-| プロパティ | 型 | 必須 | 説明 |
-|----------|---|-----|------|
-| active | ActiveWorkLog | 任意 | 進行中の作業（存在する場合） |
-| serverNow | string | 必須 | サーバー現在時刻（ISO 8601形式、UTC） |
+
+| プロパティ | 型            | 必須 | 説明                                  |
+| ---------- | ------------- | ---- | ------------------------------------- |
+| active     | ActiveWorkLog | 任意 | 進行中の作業（存在する場合）          |
+| serverNow  | string        | 必須 | サーバー現在時刻（ISO 8601形式、UTC） |
 
 ### 処理フロー
+
 1. `locals.user`の存在チェック
    - 存在しない場合: 401エラーをスロー
 2. `userId`を取得
@@ -72,10 +81,12 @@
 ## 実装ステップ
 
 ### Step 1: 型定義
+
 - [x] `ActiveWorkLog`型を定義
 - [x] `LoadData`型を定義
 
 ### Step 2: load関数の実装
+
 - [x] 認証チェックを実装
 - [x] `getActiveWorkLog()`を呼び出し
 - [x] WorkLogインスタンスをプレーンオブジェクトに変換
@@ -83,6 +94,7 @@
 - [x] レスポンスオブジェクトを構築
 
 ### Step 3: エラーハンドリング
+
 - [x] try-catchでDB接続エラーをハンドリング
 - [x] エラーログの出力（console.error）
 - [x] 500エラーを返却
@@ -90,25 +102,30 @@
 ## テストケース
 
 ### Step 4: テストコード作成
+
 ファイル: `src/routes/+page.server.spec.ts`
 
 #### TC1: 正常系 - 進行中の作業がある場合
+
 - [x] モック: `locals.user`が存在
 - [x] モック: `getActiveWorkLog()`が進行中の作業を返す
 - [x] 検証: `active`オブジェクトが返却される
 - [x] 検証: `serverNow`がISO 8601形式
 
 #### TC2: 正常系 - 進行中の作業がない場合
+
 - [x] モック: `locals.user`が存在
 - [x] モック: `getActiveWorkLog()`がnullを返す
 - [x] 検証: `active`が含まれない
 - [x] 検証: `serverNow`が返却される
 
 #### TC3: 異常系 - 未認証
+
 - [x] モック: `locals.user`がundefined
 - [x] 検証: 401エラーがスローされる
 
 #### TC4: 異常系 - DB接続エラー
+
 - [x] モック: `getActiveWorkLog()`がエラーをスロー
 - [x] 検証: 500エラーがスローされる
 - [x] 検証: エラーログが出力される

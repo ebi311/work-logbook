@@ -11,35 +11,39 @@
 ## 要件
 
 ### 入力
+
 - なし（認証情報は`locals.user`から取得）
 
 ### 出力（成功時）
+
 ```typescript
 {
-  ok: true;
-  workLog: {
-    id: string;
-    startedAt: string;    // ISO 8601形式
-    endedAt: null;
-  };
-  serverNow: string;      // ISO 8601形式（UTC）
+	ok: true;
+	workLog: {
+		id: string;
+		startedAt: string; // ISO 8601形式
+		endedAt: null;
+	}
+	serverNow: string; // ISO 8601形式（UTC）
 }
 ```
 
 ### 出力（失敗時）
+
 ```typescript
 {
-  reason: 'ACTIVE_EXISTS';
-  active: {
-    id: string;
-    startedAt: string;
-    endedAt: null;
-  };
-  serverNow: string;
+	reason: 'ACTIVE_EXISTS';
+	active: {
+		id: string;
+		startedAt: string;
+		endedAt: null;
+	}
+	serverNow: string;
 }
 ```
 
 ### 振る舞い
+
 1. 認証チェック: `locals.user`が無い場合は401エラー
 2. 進行中の作業を確認（`getActiveWorkLog()`）
 3. 既に進行中の作業がある場合、409エラーを返却
@@ -47,6 +51,7 @@
 5. 作成した作業とサーバー時刻を返却
 
 ### エラーハンドリング
+
 - 401: 未認証
 - 409: 既に進行中の作業がある
 - 500: DB接続エラーやその他の内部エラー
@@ -54,33 +59,38 @@
 ## API仕様
 
 ### 関数名
+
 `actions.start: Action`
 
 ### 引数
+
 - `locals.user`: 認証済みユーザー情報
   - `id`: string (UUID)
 
 ### 戻り値の型定義
 
 #### StartActionSuccess型（成功時）
-| プロパティ | 型 | 説明 |
-|----------|---|------|
-| ok | true | 成功フラグ |
-| workLog.id | string | 作業記録ID（UUID） |
-| workLog.startedAt | string | 開始時刻（ISO 8601形式） |
-| workLog.endedAt | null | 終了時刻（進行中はnull） |
-| serverNow | string | サーバー現在時刻（ISO 8601形式、UTC） |
+
+| プロパティ        | 型     | 説明                                  |
+| ----------------- | ------ | ------------------------------------- |
+| ok                | true   | 成功フラグ                            |
+| workLog.id        | string | 作業記録ID（UUID）                    |
+| workLog.startedAt | string | 開始時刻（ISO 8601形式）              |
+| workLog.endedAt   | null   | 終了時刻（進行中はnull）              |
+| serverNow         | string | サーバー現在時刻（ISO 8601形式、UTC） |
 
 #### StartActionFailure型（失敗時: 409）
-| プロパティ | 型 | 説明 |
-|----------|---|------|
-| reason | 'ACTIVE_EXISTS' | エラー理由 |
-| active.id | string | 既存の進行中作業のID |
-| active.startedAt | string | 既存の進行中作業の開始時刻 |
-| active.endedAt | null | 既存の進行中作業の終了時刻 |
-| serverNow | string | サーバー現在時刻（ISO 8601形式、UTC） |
+
+| プロパティ       | 型              | 説明                                  |
+| ---------------- | --------------- | ------------------------------------- |
+| reason           | 'ACTIVE_EXISTS' | エラー理由                            |
+| active.id        | string          | 既存の進行中作業のID                  |
+| active.startedAt | string          | 既存の進行中作業の開始時刻            |
+| active.endedAt   | null            | 既存の進行中作業の終了時刻            |
+| serverNow        | string          | サーバー現在時刻（ISO 8601形式、UTC） |
 
 ### 処理フロー
+
 1. `locals.user`の存在チェック
    - 存在しない場合: 401エラーをスロー
 2. `userId`を取得
@@ -97,10 +107,12 @@
 ## 実装ステップ
 
 ### Step 1: 型定義
+
 - [x] `StartActionSuccess`型を定義
 - [x] `StartActionFailure`型を定義
 
 ### Step 2: start actionの実装
+
 - [x] 認証チェックを実装
 - [x] サーバー現在時刻を取得
 - [x] `getActiveWorkLog()`を呼び出し
@@ -109,6 +121,7 @@
 - [x] レスポンスオブジェクトを構築
 
 ### Step 3: エラーハンドリング
+
 - [x] try-catchでDB接続エラーをハンドリング
 - [x] エラーログの出力（console.error）
 - [x] 500エラーを返却
@@ -116,9 +129,11 @@
 ## テストケース
 
 ### Step 4: テストコード作成
+
 ファイル: `src/routes/+page.server.spec.ts`
 
 #### TC1: 正常系 - 作業開始成功
+
 - [x] モック: `locals.user`が存在
 - [x] モック: `getActiveWorkLog()`がnullを返す
 - [x] モック: `createWorkLog()`が新規作業を返す
@@ -127,6 +142,7 @@
 - [x] 検証: `serverNow`がISO 8601形式
 
 #### TC2: 異常系 - 既に進行中の作業がある
+
 - [x] モック: `locals.user`が存在
 - [x] モック: `getActiveWorkLog()`が進行中の作業を返す
 - [x] 検証: 409エラーが返却される
@@ -134,15 +150,18 @@
 - [x] 検証: `active`オブジェクトが含まれる
 
 #### TC3: 異常系 - 未認証
+
 - [x] モック: `locals.user`がundefined
 - [x] 検証: 401エラーがスローされる
 
 #### TC4: 異常系 - DB接続エラー
+
 - [x] モック: `createWorkLog()`がエラーをスロー
 - [x] 検証: 500エラーがスローされる
 - [x] 検証: エラーログが出力される
 
 #### TC5: 異常系 - UNIQUE制約違反
+
 - [x] モック: `createWorkLog()`がUNIQUE制約違反をスロー
 - [x] 検証: 409エラーまたは適切なエラーハンドリング
 

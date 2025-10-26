@@ -25,13 +25,24 @@ import Page from './+page.svelte';
 describe('/+page.svelte', () => {
 	const serverNow = '2025-10-22T10:00:00.000Z';
 
+	// テストデータヘルパー: デフォルトのlistDataを生成
+	const createDefaultListData = () =>
+		Promise.resolve({
+			items: [],
+			page: 1,
+			size: 10,
+			hasNext: false,
+			monthlyTotalSec: 0
+		});
+
 	describe('停止中の状態', () => {
 		it('「停止中」のステータスが表示される', () => {
 			render(Page, {
 				props: {
 					data: {
 						active: undefined,
-						serverNow
+						serverNow,
+						listData: createDefaultListData()
 					}
 				}
 			});
@@ -44,7 +55,8 @@ describe('/+page.svelte', () => {
 				props: {
 					data: {
 						active: undefined,
-						serverNow
+						serverNow,
+						listData: createDefaultListData()
 					}
 				}
 			});
@@ -58,7 +70,8 @@ describe('/+page.svelte', () => {
 				props: {
 					data: {
 						active: undefined,
-						serverNow
+						serverNow,
+						listData: createDefaultListData()
 					}
 				}
 			});
@@ -80,7 +93,8 @@ describe('/+page.svelte', () => {
 				props: {
 					data: {
 						active,
-						serverNow
+						serverNow,
+						listData: createDefaultListData()
 					}
 				}
 			});
@@ -94,7 +108,8 @@ describe('/+page.svelte', () => {
 				props: {
 					data: {
 						active,
-						serverNow
+						serverNow,
+						listData: createDefaultListData()
 					}
 				}
 			});
@@ -109,7 +124,8 @@ describe('/+page.svelte', () => {
 				props: {
 					data: {
 						active,
-						serverNow
+						serverNow,
+						listData: createDefaultListData()
 					}
 				}
 			});
@@ -123,7 +139,8 @@ describe('/+page.svelte', () => {
 				props: {
 					data: {
 						active,
-						serverNow
+						serverNow,
+						listData: createDefaultListData()
 					}
 				}
 			});
@@ -140,7 +157,8 @@ describe('/+page.svelte', () => {
 					props: {
 						data: {
 							active: undefined,
-							serverNow
+							serverNow,
+							listData: createDefaultListData()
 						}
 					}
 				});
@@ -160,7 +178,8 @@ describe('/+page.svelte', () => {
 				rerender({
 					data: {
 						active: undefined,
-						serverNow
+						serverNow,
+						listData: createDefaultListData()
 					},
 					form: {
 						ok: true,
@@ -188,7 +207,8 @@ describe('/+page.svelte', () => {
 					props: {
 						data: {
 							active: undefined,
-							serverNow
+							serverNow,
+							listData: createDefaultListData()
 						}
 					}
 				});
@@ -206,7 +226,8 @@ describe('/+page.svelte', () => {
 				rerender({
 					data: {
 						active: undefined,
-						serverNow
+						serverNow,
+						listData: createDefaultListData()
 					},
 					form: {
 						reason: 'ACTIVE_EXISTS' as const,
@@ -241,7 +262,8 @@ describe('/+page.svelte', () => {
 					props: {
 						data: {
 							active,
-							serverNow
+							serverNow,
+							listData: createDefaultListData()
 						}
 					}
 				});
@@ -261,7 +283,8 @@ describe('/+page.svelte', () => {
 				rerender({
 					data: {
 						active,
-						serverNow
+						serverNow,
+						listData: createDefaultListData()
 					},
 					form: {
 						ok: true,
@@ -296,7 +319,8 @@ describe('/+page.svelte', () => {
 					props: {
 						data: {
 							active,
-							serverNow
+							serverNow,
+							listData: createDefaultListData()
 						}
 					}
 				});
@@ -308,7 +332,8 @@ describe('/+page.svelte', () => {
 				rerender({
 					data: {
 						active,
-						serverNow
+						serverNow,
+						listData: createDefaultListData()
 					},
 					form: {
 						reason: 'NO_ACTIVE' as const,
@@ -335,7 +360,8 @@ describe('/+page.svelte', () => {
 				props: {
 					data: {
 						active: undefined,
-						serverNow
+						serverNow,
+						listData: createDefaultListData()
 					}
 				}
 			});
@@ -354,7 +380,8 @@ describe('/+page.svelte', () => {
 			rerender({
 				data: {
 					active: newActive,
-					serverNow: newServerNow
+					serverNow: newServerNow,
+					listData: createDefaultListData()
 				}
 			});
 
@@ -372,7 +399,8 @@ describe('/+page.svelte', () => {
 					props: {
 						data: {
 							active: undefined,
-							serverNow
+							serverNow,
+							listData: createDefaultListData()
 						}
 					}
 				});
@@ -399,7 +427,8 @@ describe('/+page.svelte', () => {
 					props: {
 						data: {
 							active: undefined,
-							serverNow
+							serverNow,
+							listData: createDefaultListData()
 						}
 					}
 				});
@@ -430,7 +459,8 @@ describe('/+page.svelte', () => {
 								startedAt: '2025-10-22T10:00:00.000Z',
 								endedAt: null
 							},
-							serverNow
+							serverNow,
+							listData: createDefaultListData()
 						}
 					}
 				});
@@ -457,7 +487,8 @@ describe('/+page.svelte', () => {
 					props: {
 						data: {
 							active: undefined,
-							serverNow
+							serverNow,
+							listData: createDefaultListData()
 						}
 					}
 				});
@@ -489,7 +520,8 @@ describe('/+page.svelte', () => {
 					props: {
 						data: {
 							active: undefined,
-							serverNow
+							serverNow,
+							listData: createDefaultListData()
 						}
 					}
 				});
@@ -521,7 +553,8 @@ describe('/+page.svelte', () => {
 					props: {
 						data: {
 							active: undefined,
-							serverNow
+							serverNow,
+							listData: createDefaultListData()
 						}
 					}
 				});
@@ -546,7 +579,8 @@ describe('/+page.svelte', () => {
 					props: {
 						data: {
 							active: undefined,
-							serverNow
+							serverNow,
+							listData: createDefaultListData()
 						}
 					}
 				});
@@ -565,6 +599,161 @@ describe('/+page.svelte', () => {
 				await waitFor(() => {
 					expect(screen.getByText('停止中')).toBeInTheDocument();
 				});
+			});
+		});
+	});
+
+	describe('作業一覧の表示', () => {
+		it('ローディング中はスケルトンが表示される', async () => {
+			const listDataPromise = new Promise<{
+				items: Array<{
+					id: string;
+					startedAt: string;
+					endedAt: string | null;
+					durationSec: number | null;
+				}>;
+				page: number;
+				size: number;
+				hasNext: boolean;
+				monthlyTotalSec: number;
+			}>(() => {
+				// 未解決のPromise（ローディング状態をシミュレート）
+			});
+
+			render(Page, {
+				props: {
+					data: {
+						active: undefined,
+						serverNow,
+						listData: listDataPromise
+					}
+				}
+			});
+
+			// スケルトン要素が表示されることを確認
+			const skeletons = screen.getAllByRole('row');
+			expect(skeletons.length).toBeGreaterThan(0);
+		});
+
+		it('データ取得後は一覧が表示される', async () => {
+			const listData = Promise.resolve({
+				items: [
+					{
+						id: '1',
+						startedAt: '2025-10-25T09:00:00.000Z',
+						endedAt: '2025-10-25T10:30:00.000Z',
+						durationSec: 5400
+					},
+					{
+						id: '2',
+						startedAt: '2025-10-25T11:00:00.000Z',
+						endedAt: null, // 進行中
+						durationSec: null
+					}
+				],
+				page: 1,
+				size: 10,
+				hasNext: false,
+				monthlyTotalSec: 5400 // 1時間30分
+			});
+
+			render(Page, {
+				props: {
+					data: {
+						active: undefined,
+						serverNow,
+						listData
+					}
+				}
+			});
+
+			// データが表示されるのを待つ
+			await waitFor(() => {
+				expect(screen.getByText('作業履歴')).toBeInTheDocument();
+			});
+
+			// 日付ヘッダーが表示されている
+			expect(screen.getByText('日付')).toBeInTheDocument();
+
+			// 月次合計が表示されている
+			expect(screen.getByText(/合計/)).toBeInTheDocument();
+		});
+
+		it('ページネーションが機能する', async () => {
+			const listData = Promise.resolve({
+				items: [
+					{
+						id: '1',
+						startedAt: '2025-10-25T09:00:00.000Z',
+						endedAt: '2025-10-25T10:30:00.000Z',
+						durationSec: 5400
+					}
+				],
+				page: 1,
+				size: 10,
+				hasNext: true,
+				monthlyTotalSec: 5400
+			});
+
+			render(Page, {
+				props: {
+					data: {
+						active: undefined,
+						serverNow,
+						listData
+					}
+				}
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('作業履歴')).toBeInTheDocument();
+			});
+
+			// 次へボタンが有効
+			const nextButton = screen.getByRole('link', { name: '次のページ' });
+			expect(nextButton).toBeInTheDocument();
+			expect(nextButton).not.toHaveAttribute('aria-disabled', 'true');
+		});
+
+		it('エラー時は適切なメッセージが表示される', async () => {
+			const listData = Promise.reject(new Error('Failed to load'));
+
+			render(Page, {
+				props: {
+					data: {
+						active: undefined,
+						serverNow,
+						listData
+					}
+				}
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('データの読み込みに失敗しました')).toBeInTheDocument();
+			});
+		});
+
+		it('空の一覧の場合は適切なメッセージが表示される', async () => {
+			const listData = Promise.resolve({
+				items: [],
+				page: 1,
+				size: 10,
+				hasNext: false,
+				monthlyTotalSec: 0
+			});
+
+			render(Page, {
+				props: {
+					data: {
+						active: undefined,
+						serverNow,
+						listData
+					}
+				}
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('データがありません')).toBeInTheDocument();
 			});
 		});
 	});

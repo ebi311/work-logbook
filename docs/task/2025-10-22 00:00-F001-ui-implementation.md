@@ -21,6 +21,7 @@ F-001「作業開始・終了」機能のUIを実装する。サーバー側の�
 トップページに作業開始・終了のUIを実装する。
 
 **画面要素:**
+
 - ステータス表示エリア
   - 停止中: 「停止中」
   - 記録中: 「記録中（経過 00:12:34）」
@@ -36,15 +37,18 @@ F-001「作業開始・終了」機能のUIを実装する。サーバー側の�
 **配置:** `src/routes/_components/WorkLogStatus/`
 
 **責務:**
+
 - 停止中/記録中のステータス表示
 - 記録中の場合、経過時間をリアルタイム表示（1秒更新）
 - サーバー時刻とローカル時刻のドリフト考慮
 
 **Props:**
+
 - `active`: 進行中の作業情報（id, startedAt）またはnull/undefined
 - `serverNow`: サーバー時刻（ISO文字列）
 
 **出力:**
+
 - ステータステキスト（「停止中」または「記録中（経過 HH:MM:SS）」）
 
 ### 3. トグルボタンコンポーネント（`WorkLogToggleButton`）
@@ -54,15 +58,18 @@ F-001「作業開始・終了」機能のUIを実装する。サーバー側の�
 **配置:** `src/routes/_components/WorkLogToggleButton/`
 
 **責務:**
+
 - 現在の状態に応じたボタン表示（開始/終了）
 - フォーム送信処理
 - 送信中の無効化（二重送信防止）
 
 **Props:**
+
 - `isActive`: 現在記録中かどうか
 - `isSubmitting`: 送信中かどうか
 
 **イベント:**
+
 - なし（フォームアクションを使用）
 
 ### 4. 経過時間計算ユーティリティ
@@ -70,6 +77,7 @@ F-001「作業開始・終了」機能のUIを実装する。サーバー側の�
 **配置:** `src/lib/utils/duration.ts`
 
 **関数:**
+
 - `formatDuration(seconds: number): string`
   - 秒数を `HH:MM:SS` 形式の文字列に変換
   - 例: `3661` → `"01:00:01"`
@@ -85,10 +93,12 @@ F-001「作業開始・終了」機能のUIを実装する。サーバー側の�
 **ファイル:** `src/lib/utils/duration.ts` と `src/lib/utils/duration.spec.ts`
 
 **実装内容:**
+
 1. `formatDuration` 関数の実装とテスト
 2. `calculateElapsedSeconds` 関数の実装とテスト
 
 **合格基準:**
+
 - すべてのテストがパスすること
 - エッジケース（0秒、負数、大きな値）が正しく処理されること
 
@@ -97,6 +107,7 @@ F-001「作業開始・終了」機能のUIを実装する。サーバー側の�
 ### ステップ2: WorkLogStatusコンポーネントの実装
 
 **ディレクトリ構成:**
+
 ```
 src/routes/_components/WorkLogStatus/
 ├── WorkLogStatus.svelte
@@ -105,6 +116,7 @@ src/routes/_components/WorkLogStatus/
 ```
 
 **実装内容:**
+
 1. コンポーネント本体の実装
    - Props定義
    - 経過時間の計算とフォーマット
@@ -119,6 +131,7 @@ src/routes/_components/WorkLogStatus/
    - 記録中のストーリー（複数パターン：直後、数分後、数時間後）
 
 **合格基準:**
+
 - すべてのテストがパスすること
 - Storybookでビジュアル確認ができること
 - タイマーが1秒ごとに更新されること
@@ -129,6 +142,7 @@ src/routes/_components/WorkLogStatus/
 ### ステップ3: WorkLogToggleButtonコンポーネントの実装
 
 **ディレクトリ構成:**
+
 ```
 src/routes/_components/WorkLogToggleButton/
 ├── WorkLogToggleButton.svelte
@@ -137,6 +151,7 @@ src/routes/_components/WorkLogToggleButton/
 ```
 
 **実装内容:**
+
 1. コンポーネント本体の実装
    - Props定義
    - ボタンテキストの切り替え
@@ -152,6 +167,7 @@ src/routes/_components/WorkLogToggleButton/
    - 送信中ボタン（両方）
 
 **合格基準:**
+
 - すべてのテストがパスすること
 - Storybookでビジュアル確認ができること
 - ボタンが状態に応じて正しく表示されること
@@ -164,6 +180,7 @@ src/routes/_components/WorkLogToggleButton/
 **ファイル:** `src/routes/+page.svelte`
 
 **実装内容:**
+
 1. ページコンポーネントの実装
    - `data` プロップからサーバーデータを取得
    - `form` プロップからアクション結果を取得
@@ -176,6 +193,7 @@ src/routes/_components/WorkLogToggleButton/
    - エラー時の状態同期
 
 **合格基準:**
+
 - ページが正しく表示されること
 - 開始ボタンを押すと作業が開始されること
 - 終了ボタンを押すと作業が終了されること
@@ -189,6 +207,7 @@ src/routes/_components/WorkLogToggleButton/
 **ファイル:** `src/routes/page.svelte.spec.ts`
 
 **実装内容:**
+
 1. ページコンポーネントのテスト
    - 停止中の初期表示
    - 記録中の初期表示
@@ -198,6 +217,7 @@ src/routes/_components/WorkLogToggleButton/
    - 作業終了アクションの失敗（404）
 
 **合格基準:**
+
 - すべてのテストがパスすること
 - 各シナリオが正しく処理されること
 
@@ -208,12 +228,14 @@ src/routes/_components/WorkLogToggleButton/
 **ファイル:** `e2e/work-log-start-stop.test.ts`
 
 **実装内容:**
+
 1. E2Eテストの実装
    - 作業開始・終了の一連の流れ
    - タイマー表示の確認
    - エラーハンドリングの確認
 
 **合格基準:**
+
 - すべてのE2Eテストがパスすること
 - 実際のブラウザで動作確認ができること
 
@@ -222,6 +244,7 @@ src/routes/_components/WorkLogToggleButton/
 ## データフロー
 
 ### 初期ロード
+
 ```
 +page.server.ts load
   ↓
@@ -234,6 +257,7 @@ WorkLogToggleButton (isActive)
 ```
 
 ### 作業開始
+
 ```
 ユーザー: [作業開始]ボタンクリック
   ↓
@@ -250,6 +274,7 @@ WorkLogToggleButton (isActive)
 ```
 
 ### 作業終了
+
 ```
 ユーザー: [作業終了]ボタンクリック
   ↓
@@ -268,18 +293,22 @@ WorkLogToggleButton (isActive)
 ## エラーハンドリング
 
 ### 409 Conflict (ACTIVE_EXISTS)
+
 - 発生条件: 既に作業が進行中の状態で開始ボタンを押した
 - 対応: エラーメッセージ表示 + サーバーから返された active 状態で UI を更新
 
 ### 404 Not Found (NO_ACTIVE)
+
 - 発生条件: 進行中の作業がない状態で終了ボタンを押した
 - 対応: エラーメッセージ表示 + 停止中状態に UI を更新
 
 ### 401 Unauthorized
+
 - 発生条件: 未認証状態で操作を試みた
 - 対応: ログインページへリダイレクト（SvelteKitのフック機能で実装予定）
 
 ### 500 Internal Server Error
+
 - 発生条件: サーバー側でエラーが発生
 - 対応: エラーメッセージ表示 + 状態再取得を促す
 

@@ -2,7 +2,6 @@
 	import type { PageData, ActionData } from './$types';
 	import WorkLogStatus from './_components/WorkLogStatus/WorkLogStatus.svelte';
 	import WorkLogToggleButton from './_components/WorkLogToggleButton/WorkLogToggleButton.svelte';
-	import MessageAlert from './_components/MessageAlert/MessageAlert.svelte';
 	import KeyboardShortcutHelp from './_components/KeyboardShortcutHelp/KeyboardShortcutHelp.svelte';
 	import WorkLogList from './_components/WorkLogList/WorkLogList.svelte';
 	import WorkLogListSkeleton from './_components/WorkLogList/WorkLogListSkeleton.svelte';

@@ -18,6 +18,7 @@ describe('WorkLogList', () => {
 			expect(screen.getByText('開始')).toBeInTheDocument();
 			expect(screen.getByText('終了')).toBeInTheDocument();
 			expect(screen.getByText('作業時間')).toBeInTheDocument();
+			expect(screen.getByText('作業内容')).toBeInTheDocument();
 		});
 
 		it('空配列の場合は「データがありません」メッセージを表示', () => {
@@ -38,7 +39,8 @@ describe('WorkLogList', () => {
 				{
 					id: '1',
 					startedAt: '2025-10-25T09:00:00.000Z',
-					endedAt: '2025-10-25T10:30:00.000Z'
+					endedAt: '2025-10-25T10:30:00.000Z',
+					description: ''
 				}
 			];
 
@@ -60,7 +62,8 @@ describe('WorkLogList', () => {
 				{
 					id: '1',
 					startedAt: '2025-10-25T09:00:00.000Z',
-					endedAt: null
+					endedAt: null,
+					description: ''
 				}
 			];
 
@@ -71,9 +74,9 @@ describe('WorkLogList', () => {
 				}
 			});
 
-			// 「—」が2つ表示されることを確認（終了時刻と作業時間）
+			// 「—」が3つ表示されることを確認（終了時刻、作業時間、作業内容）
 			const dashes = screen.getAllByText('—');
-			expect(dashes).toHaveLength(2);
+			expect(dashes).toHaveLength(3);
 		});
 
 		it('複数の作業が表示される', () => {
@@ -81,17 +84,20 @@ describe('WorkLogList', () => {
 				{
 					id: '1',
 					startedAt: '2025-10-25T09:00:00.000Z',
-					endedAt: '2025-10-25T10:30:00.000Z'
+					endedAt: '2025-10-25T10:30:00.000Z',
+					description: ''
 				},
 				{
 					id: '2',
 					startedAt: '2025-10-25T11:00:00.000Z',
-					endedAt: '2025-10-25T12:00:00.000Z'
+					endedAt: '2025-10-25T12:00:00.000Z',
+					description: ''
 				},
 				{
 					id: '3',
 					startedAt: '2025-10-25T13:00:00.000Z',
-					endedAt: null
+					endedAt: null,
+					description: ''
 				}
 			];
 
@@ -118,7 +124,7 @@ describe('WorkLogList', () => {
 			});
 
 			const headers = screen.getAllByRole('columnheader');
-			expect(headers.length).toBe(4);
+			expect(headers.length).toBe(5);
 			headers.forEach((header) => {
 				expect(header).toHaveAttribute('scope', 'col');
 			});
@@ -143,12 +149,14 @@ describe('WorkLogList', () => {
 				{
 					id: '1',
 					startedAt: '2025-10-25T09:00:00.000Z',
-					endedAt: '2025-10-25T10:30:00.000Z'
+					endedAt: '2025-10-25T10:30:00.000Z',
+					description: ''
 				},
 				{
 					id: '2',
 					startedAt: '2025-10-25T11:00:00.000Z',
-					endedAt: null
+					endedAt: null,
+					description: ''
 				}
 			];
 

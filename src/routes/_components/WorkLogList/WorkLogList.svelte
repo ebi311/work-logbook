@@ -8,6 +8,7 @@
 			id: string;
 			startedAt: string; // ISO
 			endedAt: string | null; // ISO
+			description: string; // 作業内容
 		}>;
 		serverNow: string; // ISO（進行中の作業時間計算用）
 	};
@@ -30,12 +31,13 @@
 				<th scope="col" class="text-right">開始</th>
 				<th scope="col" class="text-right">終了</th>
 				<th scope="col" class="text-right">作業時間</th>
+				<th scope="col">作業内容</th>
 			</tr>
 		</thead>
 		<tbody>
 			{#if items.length === 0}
 				<tr>
-					<td colspan="4" class="text-center text-base-content/60">データがありません</td>
+					<td colspan="5" class="text-center text-base-content/60">データがありません</td>
 				</tr>
 			{:else}
 				{#each items as item (item.id)}
@@ -46,6 +48,13 @@
 						<td class="text-right">{formatTime(item.startedAt)}</td>
 						<td class="text-right">{item.endedAt ? formatTime(item.endedAt) : '—'}</td>
 						<td class="text-right">{duration !== null ? formatDuration(duration) : '—'}</td>
+						<td>
+							{#if item.description}
+								<div class="max-w-md truncate text-sm">{item.description}</div>
+							{:else}
+								<span class="text-base-content/40">—</span>
+							{/if}
+						</td>
 					</tr>
 				{/each}
 			{/if}

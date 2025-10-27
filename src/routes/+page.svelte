@@ -28,6 +28,12 @@
 	let formElement: HTMLFormElement | null = $state(null);
 	let toggleButtonElement: HTMLButtonElement | null = $state(null);
 
+	// 作業内容の入力値（currentActiveが変更されたら同期）
+	let description = $state('');
+	$effect(() => {
+		description = currentActive?.description || '';
+	});
+
 	// 作業開始成功時の処理
 	const handleStartSuccess = (form: NonNullable<ActionData>) => {
 		if (!('workLog' in form) || !form.workLog) return;
@@ -174,7 +180,7 @@
 			<form
 				bind:this={formElement}
 				method="POST"
-				class="card-actions"
+				class="card-actions flex-col gap-4"
 				use:enhance={() => {
 					isSubmitting = true;
 					return async ({ result, update }) => {
@@ -183,6 +189,22 @@
 					};
 				}}
 			>
+				<!-- 作業内容入力フィールド -->
+				<div class="form-control flex w-full flex-col">
+					<label for="description" class="label">
+						<span class="label-text">作業内容（Markdown対応）</span>
+					</label>
+					<textarea
+						id="description"
+						name="description"
+						bind:value={description}
+						placeholder="作業内容を入力..."
+						class="textarea-bordered textarea w-full font-mono text-sm"
+						rows="3"
+						disabled={isSubmitting}
+					></textarea>
+				</div>
+
 				<WorkLogToggleButton
 					bind:buttonElement={toggleButtonElement}
 					isActive={!!currentActive}

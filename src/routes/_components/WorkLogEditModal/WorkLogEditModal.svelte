@@ -3,6 +3,7 @@
 	import { enhance } from '$app/forms';
 	import type { WorkLog } from '../../../models/workLog';
 	import { validateTimeRange, validateDescription } from '$lib/utils/validation';
+	import { toDatetimeLocal } from '$lib/utils/timeFormat';
 
 	type Props = {
 		workLog: WorkLog;
@@ -26,16 +27,6 @@
 
 	// バリデーションエラー
 	let errors = $state<Record<string, string>>({});
-
-	// WorkLogのDateをdatetime-local形式に変換
-	const toDatetimeLocal = (date: Date): string => {
-		const year = date.getFullYear();
-		const month = String(date.getMonth() + 1).padStart(2, '0');
-		const day = String(date.getDate()).padStart(2, '0');
-		const hours = String(date.getHours()).padStart(2, '0');
-		const minutes = String(date.getMinutes()).padStart(2, '0');
-		return `${year}-${month}-${day}T${hours}:${minutes}`;
-	};
 
 	// workLogが変更されたら、フォーム値を初期化
 	$effect(() => {

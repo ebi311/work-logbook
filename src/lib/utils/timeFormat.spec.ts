@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { formatDuration, formatDate, formatTime, calculateDuration } from './timeFormat';
+import {
+	formatDuration,
+	formatDate,
+	formatTime,
+	calculateDuration,
+	toDatetimeLocal
+} from './timeFormat';
 
 describe('timeFormat', () => {
 	describe('formatDuration', () => {
@@ -103,6 +109,27 @@ describe('timeFormat', () => {
 
 			const result = calculateDuration(startedAt, endedAt, serverNow);
 			expect(result).toBe(86400); // 24時間 = 86400秒
+		});
+	});
+
+	describe('toDatetimeLocal', () => {
+		it('DateオブジェクトをYYYY-MM-DDTHH:mm形式にフォーマット', () => {
+			const date = new Date('2024-10-27T09:30:00.000Z');
+			const result = toDatetimeLocal(date);
+			// datetime-local形式（YYYY-MM-DDTHH:mm）
+			expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
+		});
+
+		it('異なる日付でも正しくフォーマット', () => {
+			const date = new Date('2024-01-01T00:00:00.000Z');
+			const result = toDatetimeLocal(date);
+			expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
+		});
+
+		it('深夜0時を正しくフォーマット', () => {
+			const date = new Date('2024-12-31T23:59:00.000Z');
+			const result = toDatetimeLocal(date);
+			expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
 		});
 	});
 });

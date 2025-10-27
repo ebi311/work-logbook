@@ -59,3 +59,12 @@ export const calculateDuration = (
 	// 秒単位で差分を計算
 	return end.diff(start, 'second');
 };
+
+/**
+ * DateオブジェクトをHTML datetime-local 入力用の形式に変換
+ * @param date Dateオブジェクト
+ * @returns YYYY-MM-DDTHH:mm 形式の文字列
+ */
+export const toDatetimeLocal = (date: Date): string => {
+	return dayjs(date).format('YYYY-MM-DDTHH:mm');
+};

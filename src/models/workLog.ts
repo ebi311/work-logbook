@@ -109,11 +109,7 @@ export class WorkLog {
 	 * @param params - 更新するフィールド
 	 * @returns 更新された新しいWorkLogインスタンス
 	 */
-	update(params: {
-		startedAt?: Date;
-		endedAt?: Date | null;
-		description?: string;
-	}): WorkLog {
+	update(params: { startedAt?: Date; endedAt?: Date | null; description?: string }): WorkLog {
 		const updatedData = {
 			id: this.id,
 			userId: this.userId,

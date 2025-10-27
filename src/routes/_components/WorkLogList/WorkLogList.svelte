@@ -27,9 +27,9 @@
 		<thead>
 			<tr>
 				<th scope="col">日付</th>
-				<th scope="col">開始</th>
-				<th scope="col">終了</th>
-				<th scope="col">作業時間</th>
+				<th scope="col" class="text-right">開始</th>
+				<th scope="col" class="text-right">終了</th>
+				<th scope="col" class="text-right">作業時間</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -43,9 +43,9 @@
 					{@const duration = calculateDuration(item.startedAt, item.endedAt, serverNow)}
 					<tr data-active={isActive} class={rowClass(item)} transition:fade>
 						<td>{formatDate(item.startedAt)}</td>
-						<td>{formatTime(item.startedAt)}</td>
-						<td>{item.endedAt ? formatTime(item.endedAt) : '—'}</td>
-						<td>{duration !== null ? formatDuration(duration) : '—'}</td>
+						<td class="text-right">{formatTime(item.startedAt)}</td>
+						<td class="text-right">{item.endedAt ? formatTime(item.endedAt) : '—'}</td>
+						<td class="text-right">{duration !== null ? formatDuration(duration) : '—'}</td>
 					</tr>
 				{/each}
 			{/if}

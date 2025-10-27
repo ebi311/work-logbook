@@ -2,6 +2,7 @@
 	import { formatDate, formatTime, formatDuration, calculateDuration } from '$lib/utils/timeFormat';
 	import classNames from 'classnames';
 	import { fade } from 'svelte/transition';
+	import WorkLogDetailDialog from '../WorkLogDetailDialog/WorkLogDetailDialog.svelte';
 
 	type Props = {
 		items: Array<{
@@ -15,6 +16,22 @@
 
 	let { items, serverNow }: Props = $props();
 
+	// 選択されたアイテム
+	let selectedItem: (typeof items)[0] | null = $state(null);
+	let selectedDuration: number | null = $state(null);
+
+	// アイテムクリック
+	const handleItemClick = (item: (typeof items)[0]) => {
+		selectedItem = item;
+		selectedDuration = calculateDuration(item.startedAt, item.endedAt, serverNow);
+	};
+
+	// ダイアログを閉じる
+	const closeDialog = () => {
+		selectedItem = null;
+		selectedDuration = null;
+	};
+
 	// アイテムのクラス
 	let itemClass = $derived((item: { endedAt: string | null }) =>
 		classNames(
@@ -25,8 +42,10 @@
 			'p-3',
 			'border-b',
 			'border-base-content/10',
+			'cursor-pointer',
+			'hover:bg-base-200',
 			{
-				'bg-accent text-accent-content': item.endedAt === null
+				'bg-accent text-accent-content hover:bg-accent/90': item.endedAt === null
 			}
 		)
 	);
@@ -51,7 +70,21 @@
 			{#each items as item (item.id)}
 				{@const isActive = item.endedAt === null}
 				{@const duration = calculateDuration(item.startedAt, item.endedAt, serverNow)}
-				<div data-active={isActive} class={itemClass(item)} transition:fade>
+				<div
+					data-active={isActive}
+					class={itemClass(item)}
+					transition:fade
+					onclick={() => handleItemClick(item)}
+					onkeydown={(e) => {
+						if (e.key === 'Enter' || e.key === ' ') {
+							e.preventDefault();
+							handleItemClick(item);
+						}
+					}}
+					role="button"
+					tabindex="0"
+					aria-label={`${formatDate(item.startedAt)}の作業詳細を表示`}
+				>
 					<!-- 1行目: 日付・時刻・作業時間 -->
 					<div class="grid grid-cols-[6em_1fr_1fr_1fr] gap-2 text-sm">
 						<div class="row-span-2">{formatDate(item.startedAt)}</div>
@@ -72,6 +105,11 @@
 		</div>
 	{/if}
 </div>
+
+<!-- ダイアログ -->
+{#if selectedItem}
+	<WorkLogDetailDialog item={selectedItem} duration={selectedDuration} onClose={closeDialog} />
+{/if}
 
 <style>
 	.grid-item {

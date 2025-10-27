@@ -206,4 +206,49 @@ describe('WorkLogList', () => {
 			expect(activeRow).toBeInTheDocument();
 		});
 	});
+
+	describe('インタラクション', () => {
+		it('行はクリック可能である', () => {
+			const items = [
+				{
+					id: '1',
+					startedAt: '2025-10-25T09:00:00.000Z',
+					endedAt: '2025-10-25T10:30:00.000Z',
+					description: 'テスト作業'
+				}
+			];
+
+			const { container } = render(WorkLogList, {
+				props: {
+					items,
+					serverNow
+				}
+			});
+
+			const button = container.querySelector('[role="button"]');
+			expect(button).toBeInTheDocument();
+			expect(button).toHaveAttribute('tabindex', '0');
+		});
+
+		it('行にカーソルを当てるとホバースタイルが適用される', () => {
+			const items = [
+				{
+					id: '1',
+					startedAt: '2025-10-25T09:00:00.000Z',
+					endedAt: '2025-10-25T10:30:00.000Z',
+					description: 'テスト作業'
+				}
+			];
+
+			const { container } = render(WorkLogList, {
+				props: {
+					items,
+					serverNow
+				}
+			});
+
+			const button = container.querySelector('[role="button"]');
+			expect(button).toHaveClass('cursor-pointer');
+		});
+	});
 });

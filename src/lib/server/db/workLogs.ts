@@ -191,3 +191,54 @@ export const listWorkLogs = async (
 
 	return { items, hasNext };
 };
+
+/**
+ * 作業記録をIDで取得
+ * F-004: 編集機能のために追加
+ * @param id - 作業記録ID
+ * @returns 作業記録、または null
+ */
+export const getWorkLogById = async (id: string): Promise<WorkLog | null> => {
+	const dbWorkLog = await db.query.workLogs.findFirst({
+		where: (workLogs, { eq }) => eq(workLogs.id, id)
+	});
+
+	if (!dbWorkLog) {
+		return null;
+	}
+
+	return toWorkLog(dbWorkLog);
+};
+
+/**
+ * 作業記録を更新
+ * F-004: 編集機能のために追加
+ * @param id - 作業記録ID
+ * @param updates - 更新するフィールド
+ * @returns 更新後の作業記録、または null（見つからない場合）
+ */
+export const updateWorkLog = async (
+	id: string,
+	updates: {
+		startedAt?: Date;
+		endedAt?: Date | null;
+		description?: string;
+	}
+): Promise<WorkLog | null> => {
+	const now = new Date();
+
+	const result = await db
+		.update(workLogs)
+		.set({
+			...updates,
+			updatedAt: now
+		})
+		.where(eq(workLogs.id, id))
+		.returning();
+
+	if (result.length === 0) {
+		return null;
+	}
+
+	return toWorkLog(result[0]);
+};

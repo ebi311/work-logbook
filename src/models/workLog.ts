@@ -9,6 +9,7 @@ const workLogSchema = z
 		userId: z.string().uuid(),
 		startedAt: z.date(),
 		endedAt: z.date().nullable(),
+		description: z.string(),
 		createdAt: z.date(),
 		updatedAt: z.date()
 	})
@@ -37,6 +38,7 @@ export class WorkLog {
 	readonly userId: string;
 	readonly startedAt: Date;
 	readonly endedAt: Date | null;
+	readonly description: string;
 	readonly createdAt: Date;
 	readonly updatedAt: Date;
 
@@ -49,6 +51,7 @@ export class WorkLog {
 		this.userId = props.userId;
 		this.startedAt = props.startedAt;
 		this.endedAt = props.endedAt;
+		this.description = props.description;
 		this.createdAt = props.createdAt;
 		this.updatedAt = props.updatedAt;
 	}
@@ -110,6 +113,7 @@ export class WorkLog {
 			userId: this.userId,
 			startedAt: this.startedAt,
 			endedAt: this.endedAt,
+			description: this.description,
 			createdAt: this.createdAt,
 			updatedAt: this.updatedAt
 		};

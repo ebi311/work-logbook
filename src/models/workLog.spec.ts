@@ -15,6 +15,7 @@ describe('WorkLog ドメインモデル', () => {
 				userId: '123e4567-e89b-12d3-a456-426614174001',
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
+				description: '',
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
@@ -25,6 +26,7 @@ describe('WorkLog ドメインモデル', () => {
 			expect(result.userId).toBe(data.userId);
 			expect(result.startedAt).toEqual(data.startedAt);
 			expect(result.endedAt).toBe(data.endedAt);
+			expect(result.description).toBe('');
 		});
 
 		it('正常系: 正しいデータをパースできる（完了）', () => {
@@ -35,6 +37,7 @@ describe('WorkLog ドメインモデル', () => {
 				userId: '123e4567-e89b-12d3-a456-426614174001',
 				startedAt,
 				endedAt,
+				description: 'テスト作業',
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
@@ -42,6 +45,53 @@ describe('WorkLog ドメインモデル', () => {
 			const result = WorkLog.from(data);
 			expect(result).toBeInstanceOf(WorkLog);
 			expect(result.endedAt).toEqual(endedAt);
+			expect(result.description).toBe('テスト作業');
+		});
+
+		it('正常系: descriptionが空文字列の場合', () => {
+			const data = {
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: null,
+				description: '',
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			};
+
+			const result = WorkLog.from(data);
+			expect(result).toBeInstanceOf(WorkLog);
+			expect(result.description).toBe('');
+		});
+
+		it('正常系: descriptionにMarkdown形式のテキストが含まれる場合', () => {
+			const data = {
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: null,
+				description: '# タスク\n- 項目1\n- 項目2',
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			};
+
+			const result = WorkLog.from(data);
+			expect(result).toBeInstanceOf(WorkLog);
+			expect(result.description).toBe('# タスク\n- 項目1\n- 項目2');
+		});
+
+		it('異常系: descriptionがnullの場合はエラー', () => {
+			const data = {
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: null,
+				description: null,
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			};
+
+			expect(() => WorkLog.from(data as any)).toThrow();
 		});
 
 		it('異常系: 不正なUUIDでエラー', () => {
@@ -50,6 +100,7 @@ describe('WorkLog ドメインモデル', () => {
 				userId: '123e4567-e89b-12d3-a456-426614174001',
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
+				description: '',
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
@@ -63,6 +114,7 @@ describe('WorkLog ドメインモデル', () => {
 				userId: '123e4567-e89b-12d3-a456-426614174001',
 				startedAt: 'invalid-date',
 				endedAt: null,
+				description: '',
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
@@ -76,6 +128,7 @@ describe('WorkLog ドメインモデル', () => {
 				userId: '123e4567-e89b-12d3-a456-426614174001',
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: new Date('2025-10-20T11:00:00.000Z'), // 1時間前
+				description: '',
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
@@ -90,6 +143,7 @@ describe('WorkLog ドメインモデル', () => {
 				userId: '123e4567-e89b-12d3-a456-426614174001',
 				startedAt: sameTime,
 				endedAt: sameTime,
+				description: '',
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
@@ -107,6 +161,7 @@ describe('WorkLog ドメインモデル', () => {
 					userId: '123e4567-e89b-12d3-a456-426614174001',
 					startedAt: new Date('2025-10-20T12:00:00.000Z'),
 					endedAt: null,
+					description: '',
 					createdAt: new Date('2025-10-20T12:00:00.000Z'),
 					updatedAt: new Date('2025-10-20T12:00:00.000Z')
 				},
@@ -141,6 +196,7 @@ describe('WorkLog ドメインモデル', () => {
 				userId: '123e4567-e89b-12d3-a456-426614174001',
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
+				description: '',
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
@@ -156,6 +212,7 @@ describe('WorkLog ドメインモデル', () => {
 				userId: '123e4567-e89b-12d3-a456-426614174001',
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
+				description: '',
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
@@ -176,6 +233,7 @@ describe('WorkLog ドメインモデル', () => {
 				userId: '123e4567-e89b-12d3-a456-426614174001',
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
+				description: '',
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
@@ -196,6 +254,7 @@ describe('WorkLog ドメインモデル', () => {
 				userId: '123e4567-e89b-12d3-a456-426614174001',
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
+				description: '',
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			});
@@ -209,6 +268,7 @@ describe('WorkLog ドメインモデル', () => {
 				userId: '123e4567-e89b-12d3-a456-426614174001',
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: new Date('2025-10-20T13:00:00.000Z'),
+				description: '',
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			});
@@ -224,6 +284,7 @@ describe('WorkLog ドメインモデル', () => {
 				userId: '123e4567-e89b-12d3-a456-426614174001',
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: new Date('2025-10-20T13:00:00.000Z'),
+				description: '',
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			});
@@ -237,6 +298,7 @@ describe('WorkLog ドメインモデル', () => {
 				userId: '123e4567-e89b-12d3-a456-426614174001',
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
+				description: '',
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			});
@@ -252,6 +314,7 @@ describe('WorkLog ドメインモデル', () => {
 				userId: '123e4567-e89b-12d3-a456-426614174001',
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
+				description: '',
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			});
@@ -265,6 +328,7 @@ describe('WorkLog ドメインモデル', () => {
 				userId: '123e4567-e89b-12d3-a456-426614174001',
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: new Date('2025-10-20T13:00:00.000Z'),
+				description: '',
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			});
@@ -280,6 +344,7 @@ describe('WorkLog ドメインモデル', () => {
 				userId: '123e4567-e89b-12d3-a456-426614174001',
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
+				description: '',
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};

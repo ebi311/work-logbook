@@ -20,19 +20,20 @@
 	const countId = `${id}-count`;
 </script>
 
-<div class="form-control">
-	<label class="label" for={id}>
-		<span class="label-text">{label}</span>
-	</label>
+<fieldset class="fieldset w-full rounded-box border border-base-300 p-4">
+	<legend class="fieldset-legend">{label}</legend>
+	<label class="label" for={id}>{label}</label>
 	<textarea
 		{id}
 		{name}
-		class="textarea-bordered textarea min-h-32"
+		class="textarea-bordered textarea min-h-32 w-full"
 		bind:value
 		{disabled}
 		aria-describedby={countId}
 	></textarea>
-	<div class="label">
-		<span id={countId} class="label-text-alt">{value.length} / {maxLength.toLocaleString()}</span>
+	<div class="text-end">
+		<span id={countId} class="text-xs opacity-60"
+			>{value.length} / {maxLength.toLocaleString()}</span
+		>
 	</div>
-</div>
+</fieldset>

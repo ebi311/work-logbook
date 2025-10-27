@@ -40,7 +40,8 @@ RUN git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git ~/.oh-my-zsh \
 	# base .zshrc -> enable powerlevel10k and useful plugins
 	&& cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc \
 	&& sed -i 's|ZSH_THEME=".*"|ZSH_THEME="powerlevel10k/powerlevel10k"|' ~/.zshrc \
-	&& sed -i 's|plugins=(git)|plugins=(git zsh-autosuggestions zsh-syntax-highlighting)|' ~/.zshrc
+	&& sed -i 's|plugins=(git)|plugins=(git zsh-autosuggestions zsh-syntax-highlighting)|' ~/.zshrc \
+	&& sed -i '\nbindkey -v' ~/.zshrc
 
 
 # Optionally copy Powerlevel10k config from repository into image

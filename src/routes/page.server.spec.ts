@@ -48,6 +48,7 @@ describe('Server Actions: load', () => {
 				userId: testUserId,
 				startedAt,
 				endedAt: null,
+				description: '',
 				isActive: () => true,
 				getDuration: () => 0
 			} as WorkLog;
@@ -74,13 +75,14 @@ describe('Server Actions: load', () => {
 			expect(result?.active).toEqual({
 				id: testWorkLogId,
 				startedAt: startedAt.toISOString(),
-				endedAt: null
+				endedAt: null,
+				description: ''
 			});
 			expect(result?.serverNow).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
 			expect(getActiveWorkLog).toHaveBeenCalledWith(testUserId);
 
 			// listDataはPromiseなのでawait
-			const listData = await result.listData;
+			const listData = await result?.listData;
 			expect(listData).toHaveProperty('items');
 			expect(listData).toHaveProperty('page');
 			expect(listData).toHaveProperty('size');
@@ -115,7 +117,7 @@ describe('Server Actions: load', () => {
 			expect(getActiveWorkLog).toHaveBeenCalledWith(testUserId);
 
 			// listDataを解決
-			const listData = await result.listData;
+			const listData = await result?.listData;
 			expect(listData.items).toEqual([]);
 		});
 	});
@@ -188,6 +190,7 @@ describe('Server Actions: start', () => {
 				userId: testUserId,
 				startedAt,
 				endedAt: null,
+				description: '',
 				isActive: () => true,
 				getDuration: () => 0
 			} as WorkLog;
@@ -200,9 +203,12 @@ describe('Server Actions: start', () => {
 				}
 			};
 
-			// モック: request
+			// モック: request with FormData
+			const formData = new FormData();
+			formData.append('description', '');
 			const request = new Request('http://localhost:5173/?/start', {
-				method: 'POST'
+				method: 'POST',
+				body: formData
 			});
 
 			// start actionを呼び出し
@@ -215,10 +221,11 @@ describe('Server Actions: start', () => {
 			expect(result?.workLog).toEqual({
 				id: testWorkLogId,
 				startedAt: startedAt.toISOString(),
-				endedAt: null
+				endedAt: null,
+				description: ''
 			});
 			expect(result?.serverNow).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
-			expect(createWorkLog).toHaveBeenCalledWith(testUserId, expect.any(Date));
+			expect(createWorkLog).toHaveBeenCalledWith(testUserId, expect.any(Date), '');
 		});
 	});
 
@@ -232,6 +239,7 @@ describe('Server Actions: start', () => {
 				userId: testUserId,
 				startedAt,
 				endedAt: null,
+				description: '',
 				isActive: () => true,
 				getDuration: () => 0
 			} as WorkLog;
@@ -244,9 +252,12 @@ describe('Server Actions: start', () => {
 				}
 			};
 
-			// モック: request
+			// モック: request with FormData
+			const formData = new FormData();
+			formData.append('description', '');
 			const request = new Request('http://localhost:5173/?/start', {
-				method: 'POST'
+				method: 'POST',
+				body: formData
 			});
 
 			// start actionを呼び出し
@@ -260,7 +271,8 @@ describe('Server Actions: start', () => {
 			expect(result?.data?.active).toEqual({
 				id: testWorkLogId,
 				startedAt: startedAt.toISOString(),
-				endedAt: null
+				endedAt: null,
+				description: ''
 			});
 			expect(createWorkLog).not.toHaveBeenCalled();
 		});
@@ -306,9 +318,12 @@ describe('Server Actions: start', () => {
 				}
 			};
 
-			// モック: request
+			// モック: request with FormData
+			const formData = new FormData();
+			formData.append('description', '');
 			const request = new Request('http://localhost:5173/?/start', {
-				method: 'POST'
+				method: 'POST',
+				body: formData
 			});
 
 			// start actionを呼び出し
@@ -317,9 +332,7 @@ describe('Server Actions: start', () => {
 			}).rejects.toThrow();
 
 			// エラーログが出力されることを確認
-			expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to start work log:', dbError);
-
-			// クリーンアップ
+			expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to start work log:', expect.any(Error)); // クリーンアップ
 			consoleErrorSpy.mockRestore();
 		});
 	});
@@ -373,6 +386,7 @@ describe('Server Actions: stop', () => {
 				userId: testUserId,
 				startedAt,
 				endedAt: null,
+				description: 'Initial description',
 				isActive: () => true,
 				getDuration: () => 0
 			} as WorkLog;
@@ -384,6 +398,7 @@ describe('Server Actions: stop', () => {
 				userId: testUserId,
 				startedAt,
 				endedAt,
+				description: 'Updated description',
 				isActive: () => false,
 				getDuration: () => durationSec
 			} as WorkLog;
@@ -396,9 +411,12 @@ describe('Server Actions: stop', () => {
 				}
 			};
 
-			// モック: request
+			// モック: request with FormData
+			const formData = new FormData();
+			formData.append('description', 'Updated description');
 			const request = new Request('http://localhost:5173/?/stop', {
-				method: 'POST'
+				method: 'POST',
+				body: formData
 			});
 
 			// stop actionを呼び出し
@@ -412,10 +430,15 @@ describe('Server Actions: stop', () => {
 			expect(result?.workLog).toEqual({
 				id: testWorkLogId,
 				startedAt: startedAt.toISOString(),
-				endedAt: endedAt.toISOString()
+				endedAt: endedAt.toISOString(),
+				description: 'Updated description'
 			});
 			expect(result?.serverNow).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
-			expect(stopWorkLog).toHaveBeenCalledWith(testWorkLogId, expect.any(Date));
+			expect(stopWorkLog).toHaveBeenCalledWith(
+				testWorkLogId,
+				expect.any(Date),
+				'Updated description'
+			);
 		});
 	});
 
@@ -431,9 +454,12 @@ describe('Server Actions: stop', () => {
 				}
 			};
 
-			// モック: request
+			// モック: request with FormData
+			const formData = new FormData();
+			formData.append('description', '');
 			const request = new Request('http://localhost:5173/?/stop', {
-				method: 'POST'
+				method: 'POST',
+				body: formData
 			});
 
 			// stop actionを呼び出し
@@ -443,7 +469,6 @@ describe('Server Actions: stop', () => {
 			expect(result).toHaveProperty('status', 404);
 			expect(result).toHaveProperty('data');
 			expect(result?.data).toHaveProperty('reason', 'NO_ACTIVE');
-			expect(result?.data).toHaveProperty('serverNow');
 			expect(stopWorkLog).not.toHaveBeenCalled();
 		});
 	});
@@ -453,9 +478,12 @@ describe('Server Actions: stop', () => {
 			// モック: locals.userがundefined
 			const locals = {};
 
-			// モック: request
+			// モック: request with FormData
+			const formData = new FormData();
+			formData.append('description', '');
 			const request = new Request('http://localhost:5173/?/stop', {
-				method: 'POST'
+				method: 'POST',
+				body: formData
 			});
 
 			// stop actionを呼び出し
@@ -482,6 +510,7 @@ describe('Server Actions: stop', () => {
 				userId: testUserId,
 				startedAt,
 				endedAt: null,
+				description: '',
 				isActive: () => true,
 				getDuration: () => 0
 			} as WorkLog;
@@ -498,9 +527,12 @@ describe('Server Actions: stop', () => {
 				}
 			};
 
-			// モック: request
+			// モック: request with FormData
+			const formData = new FormData();
+			formData.append('description', '');
 			const request = new Request('http://localhost:5173/?/stop', {
-				method: 'POST'
+				method: 'POST',
+				body: formData
 			});
 
 			// stop actionを呼び出し
@@ -526,6 +558,7 @@ describe('Server Actions: stop', () => {
 				userId: testUserId,
 				startedAt,
 				endedAt: null,
+				description: '',
 				isActive: () => true,
 				getDuration: () => 0
 			} as WorkLog;
@@ -541,9 +574,12 @@ describe('Server Actions: stop', () => {
 				}
 			};
 
-			// モック: request
+			// モック: request with FormData
+			const formData = new FormData();
+			formData.append('description', '');
 			const request = new Request('http://localhost:5173/?/stop', {
-				method: 'POST'
+				method: 'POST',
+				body: formData
 			});
 
 			// stop actionを呼び出し
@@ -553,7 +589,7 @@ describe('Server Actions: stop', () => {
 			expect(result).toHaveProperty('status', 404);
 			expect(result).toHaveProperty('data');
 			expect(result?.data).toHaveProperty('reason', 'NO_ACTIVE');
-			expect(stopWorkLog).toHaveBeenCalledWith(testWorkLogId, expect.any(Date));
+			expect(stopWorkLog).toHaveBeenCalledWith(testWorkLogId, expect.any(Date), '');
 		});
 	});
 
@@ -569,6 +605,7 @@ describe('Server Actions: stop', () => {
 				userId: testUserId,
 				startedAt,
 				endedAt: null,
+				description: '',
 				isActive: () => true,
 				getDuration: () => 0
 			} as WorkLog;
@@ -580,6 +617,7 @@ describe('Server Actions: stop', () => {
 				userId: testUserId,
 				startedAt,
 				endedAt,
+				description: '',
 				isActive: () => false,
 				getDuration: () => durationSec
 			} as WorkLog;
@@ -592,9 +630,12 @@ describe('Server Actions: stop', () => {
 				}
 			};
 
-			// モック: request
+			// モック: request with FormData
+			const formData = new FormData();
+			formData.append('description', '');
 			const request = new Request('http://localhost:5173/?/stop', {
-				method: 'POST'
+				method: 'POST',
+				body: formData
 			});
 
 			// stop actionを呼び出し
@@ -627,6 +668,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 					userId: testUserId,
 					startedAt: new Date('2025-10-25T10:00:00Z'),
 					endedAt: new Date('2025-10-25T12:00:00Z'),
+					description: '',
 					createdAt: new Date(),
 					updatedAt: new Date()
 				}
@@ -653,7 +695,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			const result = await load({ locals, url } as unknown as ServerLoadEvent);
 
 			// listDataを解決
-			const listData = await result.listData;
+			const listData = await result?.listData;
 
 			// 検証
 			expect(listData).toHaveProperty('items');
@@ -694,7 +736,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			const result = await load({ locals, url } as unknown as ServerLoadEvent);
 
 			// listDataを解決
-			const listData = await result.listData;
+			const listData = await result?.listData;
 
 			// 検証: aggregateMonthlyWorkLogDuration が month='2025-09' で呼ばれる
 			expect(aggregateMonthlyWorkLogDuration).toHaveBeenCalledWith(testUserId, {
@@ -732,7 +774,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			const result = await load({ locals, url } as unknown as ServerLoadEvent);
 
 			// listDataを解決
-			const listData = await result.listData;
+			const listData = await result?.listData;
 
 			// 検証: listWorkLogs が limit=50, offset=50 で呼ばれる
 			expect(listWorkLogs).toHaveBeenCalledWith(

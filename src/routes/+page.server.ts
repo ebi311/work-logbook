@@ -1,5 +1,5 @@
 import { error, fail } from '@sveltejs/kit';
-import type { ServerLoad, Actions } from '@sveltejs/kit';
+import type { ServerLoad, Actions, RequestEvent } from '@sveltejs/kit';
 import {
 	getActiveWorkLog,
 	createWorkLog,
@@ -60,7 +60,8 @@ const fetchListData = async (
 			id: item.id,
 			startedAt: item.startedAt.toISOString(),
 			endedAt: item.endedAt ? item.endedAt.toISOString() : null,
-			durationSec
+			durationSec,
+			description: item.description
 		};
 	});
 
@@ -84,6 +85,7 @@ type ActiveWorkLog = {
 	id: string;
 	startedAt: string;
 	endedAt: null;
+	description: string;
 };
 
 type WorkLogItem = {
@@ -91,6 +93,7 @@ type WorkLogItem = {
 	startedAt: string;
 	endedAt: string | null;
 	durationSec: number | null;
+	description: string;
 };
 
 type LoadData = {
@@ -136,10 +139,10 @@ export const load: ServerLoad = async ({ locals, url }) => {
 			response.active = {
 				id: activeWorkLog.id,
 				startedAt: activeWorkLog.startedAt.toISOString(),
-				endedAt: null
+				endedAt: null,
+				description: activeWorkLog.description
 			};
 		}
-
 		return response;
 	} catch (err) {
 		console.error('Failed to load work log:', err);
@@ -157,6 +160,7 @@ type StartActionSuccess = {
 		id: string;
 		startedAt: string;
 		endedAt: null;
+		description: string;
 	};
 	serverNow: string;
 };
@@ -167,6 +171,7 @@ type StartActionFailure = {
 		id: string;
 		startedAt: string;
 		endedAt: null;
+		description: string;
 	};
 	serverNow: string;
 };
@@ -174,8 +179,17 @@ type StartActionFailure = {
 /**
  * 作業開始アクションの実装
  */
-const handleStartAction = async (userId: string) => {
+const handleStartAction = async ({ locals, request }: RequestEvent) => {
+	if (!locals.user) {
+		throw error(401, 'Unauthorized');
+	}
+
+	const userId = locals.user.id;
 	const serverNow = new Date();
+
+	// FormDataから description を取得
+	const formData = await request.formData();
+	const description = (formData.get('description') as string) || '';
 
 	// 進行中の作業を確認
 	const activeWorkLog = await getActiveWorkLog(userId);
@@ -187,21 +201,23 @@ const handleStartAction = async (userId: string) => {
 			active: {
 				id: activeWorkLog.id,
 				startedAt: activeWorkLog.startedAt.toISOString(),
-				endedAt: null
+				endedAt: null,
+				description: activeWorkLog.description
 			},
 			serverNow: serverNow.toISOString()
 		} satisfies StartActionFailure);
 	}
 
 	// 新規作業を開始
-	const workLog = await createWorkLog(userId, serverNow);
+	const workLog = await createWorkLog(userId, serverNow, description);
 
 	return {
 		ok: true,
 		workLog: {
 			id: workLog.id,
 			startedAt: workLog.startedAt.toISOString(),
-			endedAt: null
+			endedAt: null,
+			description: workLog.description
 		},
 		serverNow: serverNow.toISOString()
 	} satisfies StartActionSuccess;
@@ -217,6 +233,7 @@ type StopActionSuccess = {
 		id: string;
 		startedAt: string;
 		endedAt: string;
+		description: string;
 	};
 	serverNow: string;
 	durationSec: number;
@@ -230,8 +247,17 @@ type StopActionFailure = {
 /**
  * 作業終了アクションの実装
  */
-const handleStopAction = async (userId: string) => {
+const handleStopAction = async ({ locals, request }: RequestEvent) => {
+	if (!locals.user) {
+		throw error(401, 'Unauthorized');
+	}
+
+	const userId = locals.user.id;
 	const serverNow = new Date();
+
+	// FormDataから description を取得
+	const formData = await request.formData();
+	const description = (formData.get('description') as string) || '';
 
 	// 進行中の作業を取得
 	const activeWorkLog = await getActiveWorkLog(userId);
@@ -245,7 +271,7 @@ const handleStopAction = async (userId: string) => {
 	}
 
 	// 作業を終了
-	const stoppedWorkLog = await stopWorkLog(activeWorkLog.id, serverNow);
+	const stoppedWorkLog = await stopWorkLog(activeWorkLog.id, serverNow, description);
 
 	if (!stoppedWorkLog) {
 		// 更新失敗（既に終了済み）
@@ -269,7 +295,8 @@ const handleStopAction = async (userId: string) => {
 		workLog: {
 			id: stoppedWorkLog.id,
 			startedAt: stoppedWorkLog.startedAt.toISOString(),
-			endedAt: stoppedWorkLog.endedAt!.toISOString()
+			endedAt: stoppedWorkLog.endedAt!.toISOString(),
+			description: stoppedWorkLog.description
 		},
 		serverNow: serverNow.toISOString(),
 		durationSec
@@ -277,32 +304,18 @@ const handleStopAction = async (userId: string) => {
 };
 
 export const actions: Actions = {
-	start: async ({ locals }) => {
-		// 認証チェック
-		if (!locals.user) {
-			throw error(401, 'Unauthorized');
-		}
-
-		const userId = locals.user.id;
-
+	start: async (event) => {
 		try {
-			return await handleStartAction(userId);
+			return await handleStartAction(event);
 		} catch (err) {
 			console.error('Failed to start work log:', err);
 			throw error(500, 'Internal Server Error');
 		}
 	},
 
-	stop: async ({ locals }) => {
-		// 認証チェック
-		if (!locals.user) {
-			throw error(401, 'Unauthorized');
-		}
-
-		const userId = locals.user.id;
-
+	stop: async (event) => {
 		try {
-			return await handleStopAction(userId);
+			return await handleStopAction(event);
 		} catch (err) {
 			console.error('Failed to stop work log:', err);
 			throw error(500, 'Internal Server Error');

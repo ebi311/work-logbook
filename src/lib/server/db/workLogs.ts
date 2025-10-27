@@ -60,16 +60,22 @@ export const getActiveWorkLog = async (userId: string): Promise<WorkLog | null> 
  * 作業を開始
  * @param userId - ユーザーID
  * @param startedAt - 作業開始日時
+ * @param description - 作業内容
  * @returns 作成された作業記録
  * @throws Error - 進行中の作業が既に存在する場合（部分ユニーク制約違反）
  */
-export const createWorkLog = async (userId: string, startedAt: Date): Promise<WorkLog> => {
+export const createWorkLog = async (
+	userId: string,
+	startedAt: Date,
+	description: string
+): Promise<WorkLog> => {
 	const [dbWorkLog] = await db
 		.insert(workLogs)
 		.values({
 			userId,
 			startedAt,
-			endedAt: null
+			endedAt: null,
+			description
 		})
 		.returning();
 
@@ -80,12 +86,17 @@ export const createWorkLog = async (userId: string, startedAt: Date): Promise<Wo
  * 作業を終了
  * @param workLogId - 作業記録ID
  * @param endedAt - 作業終了日時
+ * @param description - 作業内容
  * @returns 更新された作業記録、またはnull（レコードが見つからない場合）
  */
-export const stopWorkLog = async (workLogId: string, endedAt: Date): Promise<WorkLog | null> => {
+export const stopWorkLog = async (
+	workLogId: string,
+	endedAt: Date,
+	description: string
+): Promise<WorkLog | null> => {
 	const [dbWorkLog] = await db
 		.update(workLogs)
-		.set({ endedAt })
+		.set({ endedAt, description })
 		.where(and(eq(workLogs.id, workLogId), isNull(workLogs.endedAt)))
 		.returning();
 

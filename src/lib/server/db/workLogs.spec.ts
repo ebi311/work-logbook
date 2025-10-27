@@ -49,6 +49,7 @@ describe('WorkLogs DB Functions', () => {
 				userId: testUserId,
 				startedAt: serverNow,
 				endedAt: null,
+				description: '',
 				createdAt: serverNow,
 				updatedAt: serverNow
 			};
@@ -59,6 +60,7 @@ describe('WorkLogs DB Functions', () => {
 			expect(workLog.userId).toBe(testUserId);
 			expect(workLog.startedAt).toBeInstanceOf(Date);
 			expect(workLog.endedAt).toBeNull();
+			expect(workLog.description).toBe('');
 			expect(workLog.isActive()).toBe(true);
 		});
 
@@ -70,6 +72,7 @@ describe('WorkLogs DB Functions', () => {
 				userId: testUserId,
 				startedAt,
 				endedAt,
+				description: 'テスト作業',
 				createdAt: startedAt,
 				updatedAt: endedAt
 			};
@@ -79,6 +82,7 @@ describe('WorkLogs DB Functions', () => {
 			expect(workLog).toBeInstanceOf(WorkLog);
 			expect(workLog.isActive()).toBe(false);
 			expect(workLog.getDuration()).toBe(3600);
+			expect(workLog.description).toBe('テスト作業');
 		});
 
 		it('異常系: 不正なデータでエラー', () => {
@@ -87,6 +91,7 @@ describe('WorkLogs DB Functions', () => {
 				userId: testUserId,
 				startedAt: new Date(),
 				endedAt: null,
+				description: '',
 				createdAt: new Date(),
 				updatedAt: new Date()
 			} as DbWorkLog;
@@ -113,6 +118,7 @@ describe('WorkLogs DB Functions', () => {
 				userId: testUserId,
 				startedAt: serverNow,
 				endedAt: null,
+				description: '',
 				createdAt: serverNow,
 				updatedAt: serverNow
 			};
@@ -137,6 +143,7 @@ describe('WorkLogs DB Functions', () => {
 				userId: testUserId,
 				startedAt: serverNow,
 				endedAt: null,
+				description: '',
 				createdAt: serverNow,
 				updatedAt: serverNow
 			};
@@ -147,7 +154,7 @@ describe('WorkLogs DB Functions', () => {
 			const mockInsert = vi.fn().mockReturnValue({ values: mockValues });
 			vi.mocked(db.insert).mockImplementation(mockInsert);
 
-			const workLog = await createWorkLog(testUserId, serverNow);
+			const workLog = await createWorkLog(testUserId, serverNow, '');
 
 			expect(workLog).toBeInstanceOf(WorkLog);
 			expect(workLog.userId).toBe(testUserId);
@@ -166,7 +173,7 @@ describe('WorkLogs DB Functions', () => {
 			vi.mocked(db.insert).mockImplementation(mockInsert);
 
 			await expect(async () => {
-				await createWorkLog(testUserId, new Date());
+				await createWorkLog(testUserId, new Date(), '');
 			}).rejects.toThrow();
 		});
 	});
@@ -180,6 +187,7 @@ describe('WorkLogs DB Functions', () => {
 				userId: testUserId,
 				startedAt,
 				endedAt,
+				description: '',
 				createdAt: startedAt,
 				updatedAt: endedAt
 			};
@@ -191,7 +199,7 @@ describe('WorkLogs DB Functions', () => {
 			const mockUpdate = vi.fn().mockReturnValue({ set: mockSet });
 			vi.mocked(db.update).mockImplementation(mockUpdate);
 
-			const updated = await stopWorkLog(testWorkLogId, endedAt);
+			const updated = await stopWorkLog(testWorkLogId, endedAt, '');
 
 			expect(updated).toBeInstanceOf(WorkLog);
 			expect(updated?.endedAt).toBeInstanceOf(Date);
@@ -207,7 +215,7 @@ describe('WorkLogs DB Functions', () => {
 			const mockUpdate = vi.fn().mockReturnValue({ set: mockSet });
 			vi.mocked(db.update).mockImplementation(mockUpdate);
 
-			const result = await stopWorkLog(testWorkLogId, new Date());
+			const result = await stopWorkLog(testWorkLogId, new Date(), '');
 
 			expect(result).toBeNull();
 		});
@@ -222,7 +230,7 @@ describe('WorkLogs DB Functions', () => {
 			const mockUpdate = vi.fn().mockReturnValue({ set: mockSet });
 			vi.mocked(db.update).mockImplementation(mockUpdate);
 
-			const result = await stopWorkLog(fakeId, new Date());
+			const result = await stopWorkLog(fakeId, new Date(), '');
 
 			expect(result).toBeNull();
 		});
@@ -239,6 +247,7 @@ describe('WorkLogs DB Functions', () => {
 				userId: testUserId,
 				startedAt,
 				endedAt: null,
+				description: '',
 				createdAt: startedAt,
 				updatedAt: startedAt
 			};
@@ -247,7 +256,7 @@ describe('WorkLogs DB Functions', () => {
 			const mockInsert = vi.fn().mockReturnValue({ values: mockInsertValues });
 			vi.mocked(db.insert).mockImplementation(mockInsert);
 
-			const created = await createWorkLog(testUserId, startedAt);
+			const created = await createWorkLog(testUserId, startedAt, '');
 			expect(created.isActive()).toBe(true);
 
 			// 2. 進行中の作業を取得のモック
@@ -268,7 +277,7 @@ describe('WorkLogs DB Functions', () => {
 			const mockUpdate = vi.fn().mockReturnValue({ set: mockUpdateSet });
 			vi.mocked(db.update).mockImplementation(mockUpdate);
 
-			const stopped = await stopWorkLog(created.id, endedAt);
+			const stopped = await stopWorkLog(created.id, endedAt, '');
 			expect(stopped?.isActive()).toBe(false);
 			expect(stopped?.getDuration()).toBe(5);
 
@@ -290,6 +299,7 @@ describe('WorkLogs DB Functions', () => {
 				userId: testUserId,
 				startedAt,
 				endedAt: null,
+				description: '',
 				createdAt: startedAt,
 				updatedAt: originalUpdatedAt
 			};
@@ -298,7 +308,7 @@ describe('WorkLogs DB Functions', () => {
 			const mockInsert = vi.fn().mockReturnValue({ values: mockInsertValues });
 			vi.mocked(db.insert).mockImplementation(mockInsert);
 
-			const created = await createWorkLog(testUserId, startedAt);
+			const created = await createWorkLog(testUserId, startedAt, '');
 
 			// 作業を終了のモック（updated_atが更新される）
 			const endedAt = new Date(startedAt.getTime() + 100);
@@ -314,7 +324,7 @@ describe('WorkLogs DB Functions', () => {
 			const mockUpdate = vi.fn().mockReturnValue({ set: mockUpdateSet });
 			vi.mocked(db.update).mockImplementation(mockUpdate);
 
-			const updated = await stopWorkLog(created.id, endedAt);
+			const updated = await stopWorkLog(created.id, endedAt, '');
 
 			// updated_at が更新されていることを確認
 			expect(updated?.updatedAt.getTime()).toBeGreaterThan(originalUpdatedAt.getTime());

@@ -7,9 +7,18 @@ describe('WorkLogList', () => {
 
 	describe('基本表示', () => {
 		it('ヘッダーが正しく表示される', () => {
+			const items = [
+				{
+					id: '1',
+					startedAt: '2025-10-25T09:00:00.000Z',
+					endedAt: '2025-10-25T10:30:00.000Z',
+					description: 'テスト'
+				}
+			];
+
 			render(WorkLogList, {
 				props: {
-					items: [],
+					items,
 					serverNow
 				}
 			});
@@ -18,7 +27,6 @@ describe('WorkLogList', () => {
 			expect(screen.getByText('開始')).toBeInTheDocument();
 			expect(screen.getByText('終了')).toBeInTheDocument();
 			expect(screen.getByText('作業時間')).toBeInTheDocument();
-			// 「作業内容」ヘッダーは削除されました
 		});
 
 		it('空配列の場合は「データがありません」メッセージを表示', () => {
@@ -44,17 +52,16 @@ describe('WorkLogList', () => {
 				}
 			];
 
-			render(WorkLogList, {
+			const { container } = render(WorkLogList, {
 				props: {
 					items,
 					serverNow
 				}
 			});
 
-			// 日付、開始、終了、作業時間が表示されることを確認
-			// 実際の表示値はタイムゾーンに依存するため、要素の存在のみチェック
-			const rows = screen.getAllByRole('row');
-			expect(rows.length).toBeGreaterThan(1); // ヘッダー + データ行×2
+			// データが表示されることを確認
+			const dataItems = container.querySelectorAll('[data-active]');
+			expect(dataItems.length).toBe(1);
 		});
 
 		it('進行中の作業は終了時刻が「—」で表示される', () => {
@@ -101,16 +108,16 @@ describe('WorkLogList', () => {
 				}
 			];
 
-			render(WorkLogList, {
+			const { container } = render(WorkLogList, {
 				props: {
 					items,
 					serverNow
 				}
 			});
 
-			const rows = screen.getAllByRole('row');
-			// ヘッダー + 3データ×2行
-			expect(rows.length).toBe(7);
+			// 3つのデータアイテムが表示されることを確認
+			const dataItems = container.querySelectorAll('[data-active]');
+			expect(dataItems.length).toBe(3);
 		});
 
 		it('作業内容がある場合は正しく表示される', () => {
@@ -157,7 +164,7 @@ describe('WorkLogList', () => {
 	});
 
 	describe('アクセシビリティ', () => {
-		it('テーブルヘッダーに適切なscope属性がある', () => {
+		it('作業履歴一覧にaria-labelが設定されている', () => {
 			render(WorkLogList, {
 				props: {
 					items: [],
@@ -165,23 +172,8 @@ describe('WorkLogList', () => {
 				}
 			});
 
-			const headers = screen.getAllByRole('columnheader');
-			expect(headers.length).toBe(4);
-			headers.forEach((header) => {
-				expect(header).toHaveAttribute('scope', 'col');
-			});
-		});
-
-		it('テーブルにaria-labelが設定されている', () => {
-			render(WorkLogList, {
-				props: {
-					items: [],
-					serverNow
-				}
-			});
-
-			const table = screen.getByRole('table');
-			expect(table).toHaveAttribute('aria-label');
+			const region = screen.getByRole('region');
+			expect(region).toHaveAttribute('aria-label', '作業履歴一覧');
 		});
 	});
 

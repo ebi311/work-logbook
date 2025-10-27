@@ -27,12 +27,14 @@
 		{
 			id: '1',
 			startedAt: '2025-10-25T09:00:00.000Z',
-			endedAt: '2025-10-25T10:30:00.000Z'
+			endedAt: '2025-10-25T10:30:00.000Z',
+			description: 'データベース設計の見直しとスキーマ変更'
 		},
 		{
 			id: '2',
 			startedAt: '2025-10-25T11:00:00.000Z',
-			endedAt: '2025-10-25T12:00:00.000Z'
+			endedAt: '2025-10-25T12:00:00.000Z',
+			description: 'コードレビュー対応'
 		}
 	];
 
@@ -41,12 +43,15 @@
 		{
 			id: '1',
 			startedAt: '2025-10-25T09:00:00.000Z',
-			endedAt: '2025-10-25T10:30:00.000Z'
+			endedAt: '2025-10-25T10:30:00.000Z',
+			description: 'バグ修正: ログイン画面でのエラーハンドリング改善'
 		},
 		{
 			id: '2',
 			startedAt: '2025-10-25T11:00:00.000Z',
-			endedAt: null // 進行中
+			endedAt: null, // 進行中
+			description:
+				'新機能開発: ユーザー設定画面の実装中。レスポンシブデザイン対応とアクセシビリティの考慮を行っています。'
 		}
 	];
 
@@ -54,7 +59,13 @@
 	const manyItems = Array.from({ length: 10 }, (_, i) => ({
 		id: String(i + 1),
 		startedAt: `2025-10-${String(25 - i).padStart(2, '0')}T09:00:00.000Z`,
-		endedAt: i === 0 ? null : `2025-10-${String(25 - i).padStart(2, '0')}T17:30:00.000Z` // 最初の1件は進行中
+		endedAt: i === 0 ? null : `2025-10-${String(25 - i).padStart(2, '0')}T17:30:00.000Z`, // 最初の1件は進行中
+		description:
+			i % 3 === 0
+				? `タスク${i + 1}: これは長めの作業内容説明です。複数行にわたる場合の表示確認のため、意図的に長いテキストを入れています。`
+				: i % 3 === 1
+					? `タスク${i + 1}`
+					: ''
 	}));
 </script>
 
@@ -78,7 +89,8 @@
 			{
 				id: '1',
 				startedAt: '2025-10-25T09:00:00.000Z',
-				endedAt: '2025-10-25T17:30:00.000Z'
+				endedAt: '2025-10-25T17:30:00.000Z',
+				description: 'テスト実装とドキュメント作成'
 			}
 		],
 		serverNow
@@ -93,7 +105,8 @@
 			{
 				id: '1',
 				startedAt: '2025-10-25T09:00:00.000Z',
-				endedAt: null
+				endedAt: null,
+				description: '機能開発中'
 			}
 		],
 		serverNow

@@ -1,6 +1,8 @@
 import '@testing-library/jest-dom/vitest';
 import { render, screen, waitFor } from '@testing-library/svelte';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import Page from './+page.svelte';
+import { toast } from '@zerodevx/svelte-toast';
 
 // SvelteKit の use:enhance によるフォーム送信処理が JSDOM 環境で URL を必要としエラーになるため、
 // テストでは $app/forms の enhance を no-op にモックして submit を preventDefault する
@@ -20,10 +22,22 @@ vi.mock('$app/forms', () => {
 	};
 });
 
-import Page from './+page.svelte';
+// svelte-toast をモック
+vi.mock('@zerodevx/svelte-toast', () => {
+	return {
+		toast: {
+			push: vi.fn()
+		}
+	};
+});
 
 describe('/+page.svelte', () => {
 	const serverNow = '2025-10-22T10:00:00.000Z';
+
+	// 各テストの前にモックをリセット
+	beforeEach(() => {
+		vi.mocked(toast.push).mockClear();
+	});
 
 	// テストデータヘルパー: デフォルトのlistDataを生成
 	const createDefaultListData = () =>
@@ -117,7 +131,7 @@ describe('/+page.svelte', () => {
 
 			// 「記録中（経過」というテキストが含まれることを確認
 			// 具体的な時間は、WorkLogStatusコンポーネントのテストで確認済み
-			expect(screen.getByText(/記録中（経過 \d{2}:\d{2}:\d{2}）/)).toBeInTheDocument();
+			expect(screen.getByText(/記録中（経過 \d+:\d{2}:\d{2}）/)).toBeInTheDocument();
 		});
 
 		it('「作業終了」ボタンが表示される', () => {
@@ -198,7 +212,11 @@ describe('/+page.svelte', () => {
 
 				// 成功メッセージが表示される
 				await waitFor(() => {
-					expect(screen.getByText('作業を開始しました')).toBeInTheDocument();
+					expect(vi.mocked(toast.push)).toHaveBeenCalledWith('作業を開始しました', {
+						theme: {
+							'--toastBarBackground': 'green'
+						}
+					});
 				});
 			});
 		});
@@ -241,7 +259,11 @@ describe('/+page.svelte', () => {
 
 				// エラーメッセージが表示される
 				await waitFor(() => {
-					expect(screen.getByText('既に作業が進行中です')).toBeInTheDocument();
+					expect(vi.mocked(toast.push)).toHaveBeenCalledWith('既に作業が進行中です', {
+						theme: {
+							'--toastBarBackground': 'red'
+						}
+					});
 				});
 
 				// サーバーから返された進行中の作業で状態が更新される
@@ -307,7 +329,11 @@ describe('/+page.svelte', () => {
 
 				// 成功メッセージが表示される（経過時間付き）
 				await waitFor(() => {
-					expect(screen.getByText('作業を終了しました（60分）')).toBeInTheDocument();
+					expect(vi.mocked(toast.push)).toHaveBeenCalledWith('作業を終了しました（60分）', {
+						theme: {
+							'--toastBarBackground': 'green'
+						}
+					});
 				});
 			});
 		});
@@ -349,7 +375,11 @@ describe('/+page.svelte', () => {
 
 				// エラーメッセージが表示される
 				await waitFor(() => {
-					expect(screen.getByText('進行中の作業がありません')).toBeInTheDocument();
+					expect(vi.mocked(toast.push)).toHaveBeenCalledWith('進行中の作業がありません', {
+						theme: {
+							'--toastBarBackground': 'red'
+						}
+					});
 				});
 
 				// 停止中状態に更新される

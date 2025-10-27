@@ -4,6 +4,9 @@
 	import type { WorkLog } from '../../../models/workLog';
 	import { validateTimeRange, validateDescription } from '$lib/utils/validation';
 	import { toDatetimeLocal } from '$lib/utils/timeFormat';
+	import DateTimeField from './DateTimeField.svelte';
+	import DescriptionField from './DescriptionField.svelte';
+	import ErrorAlert from './ErrorAlert.svelte';
 
 	type Props = {
 		workLog: WorkLog;
@@ -181,75 +184,42 @@
 
 			<div class="space-y-4">
 				<!-- 開始時刻 -->
-				<div class="form-control">
-					<label class="label" for="startedAt">
-						<span class="label-text">開始時刻</span>
-					</label>
-					<input
-						type="datetime-local"
-						id="startedAt"
-						name="startedAt"
-						class="input-bordered input"
-						bind:value={startedAt}
-						required
-						disabled={isSubmitting}
-					/>
-				</div>
+				<DateTimeField
+					label="開始時刻"
+					id="startedAt"
+					name="startedAt"
+					bind:value={startedAt}
+					required
+					disabled={isSubmitting}
+				/>
 
 				<!-- 終了時刻 -->
-				<div class="form-control">
-					<label class="label" for="endedAt">
-						<span class="label-text">終了時刻</span>
-					</label>
-					<input
-						type="datetime-local"
-						id="endedAt"
-						name="endedAt"
-						class="input-bordered input"
-						bind:value={endedAt}
-						required
-						disabled={isSubmitting}
-					/>
-				</div>
+				<DateTimeField
+					label="終了時刻"
+					id="endedAt"
+					name="endedAt"
+					bind:value={endedAt}
+					required
+					disabled={isSubmitting}
+				/>
 
 				<!-- 時刻エラー -->
-				{#if errors.time}
-					<div class="alert alert-error">
-						<span>{errors.time}</span>
-					</div>
-				{/if}
+				<ErrorAlert message={errors.time} />
 
 				<!-- 作業内容 -->
-				<div class="form-control">
-					<label class="label" for="description">
-						<span class="label-text">作業内容</span>
-					</label>
-					<textarea
-						id="description"
-						name="description"
-						class="textarea-bordered textarea min-h-32"
-						bind:value={description}
-						disabled={isSubmitting}
-						aria-describedby="description-count"
-					></textarea>
-					<div class="label">
-						<span id="description-count" class="label-text-alt">{description.length} / 10,000</span>
-					</div>
-				</div>
+				<DescriptionField
+					label="作業内容"
+					id="description"
+					name="description"
+					bind:value={description}
+					disabled={isSubmitting}
+				/>
 
 				<!-- 作業内容エラー -->
-				{#if errors.description}
-					<div class="alert alert-error">
-						<span>{errors.description}</span>
-					</div>
-				{/if}
+				<ErrorAlert message={errors.description} />
 
 				<!-- 全般エラー -->
-				{#if errors.general}
-					<div class="alert alert-error">
-						<span>{errors.general}</span>
-					</div>
-				{/if}
+				<ErrorAlert message={errors.general} />
 			</div>
 
 			<!-- アクション -->

@@ -23,6 +23,7 @@ export const workLogs = pgTable(
 			.references(() => users.id),
 		startedAt: timestamp('started_at', { withTimezone: true, mode: 'date' }).notNull(),
 		endedAt: timestamp('ended_at', { withTimezone: true, mode: 'date' }),
+		description: text('description').notNull().default(''),
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow()
 	},

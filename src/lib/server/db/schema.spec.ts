@@ -38,10 +38,49 @@ describe('Database Schema - Users Table', () => {
 	});
 });
 
-describe('Database Schema - WorkLogs Foreign Key', () => {
-	it('work_logsテーブルのuserIdがusersテーブルへの参照を持つ', () => {
+describe('Database Schema - WorkLogs Table', () => {
+	it('work_logsテーブルが正しい名前で定義されている', () => {
+		expect(getTableName(workLogs)).toBe('work_logs');
+	});
+
+	it('work_logsテーブルが必要なカラムを持っている', () => {
+		const columns = getTableColumns(workLogs);
+
+		expect(columns.id).toBeDefined();
+		expect(columns.userId).toBeDefined();
+		expect(columns.startedAt).toBeDefined();
+		expect(columns.endedAt).toBeDefined();
+		expect(columns.description).toBeDefined();
+		expect(columns.createdAt).toBeDefined();
+		expect(columns.updatedAt).toBeDefined();
+	});
+
+	it('idカラムがUUID型のプライマリーキーである', () => {
+		const columns = getTableColumns(workLogs);
+		expect(columns.id.primary).toBe(true);
+		expect(columns.id.dataType).toBe('string');
+	});
+
+	it('userIdカラムがNOT NULLでusersテーブルへの参照を持つ', () => {
 		const columns = getTableColumns(workLogs);
 		expect(columns.userId).toBeDefined();
 		expect(columns.userId.notNull).toBe(true);
+	});
+
+	it('startedAtカラムがNOT NULLである', () => {
+		const columns = getTableColumns(workLogs);
+		expect(columns.startedAt.notNull).toBe(true);
+	});
+
+	it('endedAtカラムがNULL許可である', () => {
+		const columns = getTableColumns(workLogs);
+		expect(columns.endedAt.notNull).toBe(false);
+	});
+
+	it('descriptionカラムがNOT NULLでデフォルト値を持つ', () => {
+		const columns = getTableColumns(workLogs);
+		expect(columns.description).toBeDefined();
+		expect(columns.description.notNull).toBe(true);
+		expect(columns.description.hasDefault).toBe(true);
 	});
 });

@@ -355,4 +355,149 @@ describe('WorkLog ドメインモデル', () => {
 			expect(obj).toEqual(data);
 		});
 	});
+
+	// F-004: 編集機能のテスト
+	describe('WorkLog#update()', () => {
+		it('TC1: 正常系 - 各フィールドが正しく更新される', () => {
+			const original = WorkLog.from({
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: new Date('2025-10-20T13:00:00.000Z'),
+				description: '元の作業内容',
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			});
+
+			const newStartedAt = new Date('2025-10-20T11:00:00.000Z');
+			const newEndedAt = new Date('2025-10-20T14:00:00.000Z');
+			const newDescription = '更新された作業内容';
+
+			const updated = original.update({
+				startedAt: newStartedAt,
+				endedAt: newEndedAt,
+				description: newDescription
+			});
+
+			// 各フィールドが更新されている
+			expect(updated.startedAt).toEqual(newStartedAt);
+			expect(updated.endedAt).toEqual(newEndedAt);
+			expect(updated.description).toBe(newDescription);
+
+			// 元のインスタンスは変更されていない（イミュータブル）
+			expect(original.startedAt).toEqual(new Date('2025-10-20T12:00:00.000Z'));
+			expect(original.endedAt).toEqual(new Date('2025-10-20T13:00:00.000Z'));
+			expect(original.description).toBe('元の作業内容');
+
+			// updatedAtが更新されている
+			expect(updated.updatedAt.getTime()).toBeGreaterThan(original.updatedAt.getTime());
+		});
+
+		it('TC2: 正常系 - 部分更新（一部のフィールドのみ更新）', () => {
+			const original = WorkLog.from({
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: new Date('2025-10-20T13:00:00.000Z'),
+				description: '元の作業内容',
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			});
+
+			const newDescription = '更新された作業内容';
+			const updated = original.update({ description: newDescription });
+
+			// 指定したフィールドのみ更新
+			expect(updated.description).toBe(newDescription);
+
+			// その他のフィールドは元の値を保持
+			expect(updated.startedAt).toEqual(original.startedAt);
+			expect(updated.endedAt).toEqual(original.endedAt);
+			expect(updated.id).toBe(original.id);
+			expect(updated.userId).toBe(original.userId);
+		});
+	});
+
+	describe('WorkLog#validateTimeRange()', () => {
+		it('TC3: 正常系 - startedAt < endedAt の場合、エラーをスローしない', () => {
+			const workLog = WorkLog.from({
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: new Date('2025-10-20T13:00:00.000Z'),
+				description: '',
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			});
+
+			expect(() => workLog.validateTimeRange()).not.toThrow();
+		});
+
+		it('TC4: 異常系 - startedAt >= endedAt の場合、エラーをスロー', () => {
+			// 正常なWorkLogを作成してから、update()で不正な状態にする
+			const workLog = WorkLog.from({
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: new Date('2025-10-20T13:00:00.000Z'),
+				description: '',
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			});
+
+			// update()で不正な時刻範囲にする（同じ時刻）
+			const invalidWorkLog = workLog.update({
+				startedAt: new Date('2025-10-20T13:00:00.000Z'),
+				endedAt: new Date('2025-10-20T13:00:00.000Z')
+			});
+
+			expect(() => invalidWorkLog.validateTimeRange()).toThrow(
+				'開始時刻は終了時刻より前である必要があります'
+			);
+		});
+
+		it('TC5: 正常系 - endedAt が null の場合、検証をスキップ', () => {
+			const workLog = WorkLog.from({
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: null,
+				description: '',
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			});
+
+			expect(() => workLog.validateTimeRange()).not.toThrow();
+		});
+	});
+
+	describe('WorkLog#isActive()', () => {
+		it('TC6: 進行中の場合 - endedAt === null の場合、true を返す', () => {
+			const workLog = WorkLog.from({
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: null,
+				description: '',
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			});
+
+			expect(workLog.isActive()).toBe(true);
+		});
+
+		it('TC7: 完了した場合 - endedAt に値がある場合、false を返す', () => {
+			const workLog = WorkLog.from({
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: new Date('2025-10-20T13:00:00.000Z'),
+				description: '',
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			});
+
+			expect(workLog.isActive()).toBe(false);
+		});
+	});
 });

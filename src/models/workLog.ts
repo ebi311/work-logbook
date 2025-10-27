@@ -104,6 +104,47 @@ export class WorkLog {
 	}
 
 	/**
+	 * 作業記録を更新した新しいインスタンスを返す（イミュータブル）
+	 * F-004: 編集機能のために追加
+	 * @param params - 更新するフィールド
+	 * @returns 更新された新しいWorkLogインスタンス
+	 */
+	update(params: {
+		startedAt?: Date;
+		endedAt?: Date | null;
+		description?: string;
+	}): WorkLog {
+		const updatedData = {
+			id: this.id,
+			userId: this.userId,
+			startedAt: params.startedAt ?? this.startedAt,
+			endedAt: params.endedAt !== undefined ? params.endedAt : this.endedAt,
+			description: params.description ?? this.description,
+			createdAt: this.createdAt,
+			updatedAt: new Date() // 現在時刻で更新
+		};
+
+		return new WorkLog(updatedData);
+	}
+
+	/**
+	 * 開始時刻と終了時刻の整合性を検証
+	 * F-004: 編集機能のために追加
+	 * @throws Error - startedAt >= endedAt の場合
+	 */
+	validateTimeRange(): void {
+		// endedAt が null の場合は検証をスキップ（進行中の作業）
+		if (this.endedAt === null) {
+			return;
+		}
+
+		// startedAt < endedAt であることを確認
+		if (this.startedAt >= this.endedAt) {
+			throw new Error('開始時刻は終了時刻より前である必要があります');
+		}
+	}
+
+	/**
 	 * プレーンオブジェクトに変換
 	 * @returns WorkLogのプレーンオブジェクト表現
 	 */

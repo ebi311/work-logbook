@@ -17,9 +17,18 @@
 
 	// アイテムのクラス
 	let itemClass = $derived((item: { endedAt: string | null }) =>
-		classNames('grid-item', 'transition-colors', 'duration-300', 'rounded', 'p-3', {
-			'bg-accent text-accent-content': item.endedAt === null
-		})
+		classNames(
+			'grid-item',
+			'transition-colors',
+			'duration-300',
+			'rounded',
+			'p-3',
+			'border-b',
+			'border-base-content/10',
+			{
+				'bg-accent text-accent-content': item.endedAt === null
+			}
+		)
 	);
 </script>
 
@@ -29,7 +38,7 @@
 	{:else}
 		<!-- ヘッダー -->
 		<div
-			class="grid grid-cols-[6em_1fr_1fr_1fr] gap-2 border-b border-base-300 px-3 py-2 text-sm font-semibold"
+			class="grid grid-cols-[6em_1fr_1fr_1fr] gap-2 border-b-2 border-base-content/10 px-3 py-2 text-sm font-semibold"
 		>
 			<div>日付</div>
 			<div class="text-right">開始</div>

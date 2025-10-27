@@ -54,9 +54,9 @@ ALTER TABLE work_logs
 ADD COLUMN description TEXT NOT NULL DEFAULT '';
 ```
 
-| カラム名    | 型   | NULL許可 | デフォルト | 説明                       |
-| ----------- | ---- | -------- | ---------- | -------------------------- |
-| description | TEXT | NO       | ''         | 作業内容（Markdown形式）   |
+| カラム名    | 型   | NULL許可 | デフォルト | 説明                     |
+| ----------- | ---- | -------- | ---------- | ------------------------ |
+| description | TEXT | NO       | ''         | 作業内容（Markdown形式） |
 
 ### ドメインモデル拡張
 
@@ -64,12 +64,13 @@ ADD COLUMN description TEXT NOT NULL DEFAULT '';
 
 ```typescript
 export class WorkLog {
-  // ... 既存のプロパティ
-  readonly description: string;
+	// ... 既存のプロパティ
+	readonly description: string;
 }
 ```
 
 バリデーション:
+
 - 型: `string`（空文字列を許可、nullは不可）
 - 最大長: 10,000文字（データベース制約は設けない）
 - デフォルト値: 空文字列 `''`
@@ -94,7 +95,7 @@ export class WorkLog {
   - リスト: `- 項目`, `1. 番号付き`
   - 太字: `**太字**`
   - イタリック: `*イタリック*`
-  - コードブロック: ` ```言語 ` 
+  - コードブロック: ` ```言語 `
   - インラインコード: `` `コード` ``
 
 #### 3. プレビュー機能（オプション）
@@ -105,11 +106,11 @@ export class WorkLog {
 
 ### 状態別の表示
 
-| 状態       | 入力フィールド | 編集可否 | 保存タイミング             |
-| ---------- | -------------- | -------- | -------------------------- |
-| 停止中     | 表示           | 可能     | 作業開始時に保存           |
-| 作業中     | 表示           | 可能     | 作業終了時に保存           |
-| 一覧表示時 | 非表示         | 不可     | レンダリング済みを表示     |
+| 状態       | 入力フィールド | 編集可否 | 保存タイミング         |
+| ---------- | -------------- | -------- | ---------------------- |
+| 停止中     | 表示           | 可能     | 作業開始時に保存       |
+| 作業中     | 表示           | 可能     | 作業終了時に保存       |
+| 一覧表示時 | 非表示         | 不可     | レンダリング済みを表示 |
 
 ## インタラクション仕様
 
@@ -160,13 +161,15 @@ export class WorkLog {
 
 ```typescript
 return {
-  active: activeWorkLog ? {
-    id: activeWorkLog.id,
-    startedAt: activeWorkLog.startedAt.toISOString(),
-    endedAt: null,
-    description: activeWorkLog.description // 追加
-  } : undefined,
-  // ... その他
+	active: activeWorkLog
+		? {
+				id: activeWorkLog.id,
+				startedAt: activeWorkLog.startedAt.toISOString(),
+				endedAt: null,
+				description: activeWorkLog.description // 追加
+			}
+		: undefined
+	// ... その他
 };
 ```
 
@@ -174,25 +177,27 @@ return {
 
 ```typescript
 start: async ({ request, locals }) => {
-  const formData = await request.formData();
-  const description = formData.get('description') as string | null;
-  
-  // デフォルト値として空文字列を使用
-  const sanitizedDescription = description?.trim() || '';
-  
-  // バリデーション
-  if (sanitizedDescription.length > 10000) {
-    return fail(400, { reason: 'DESCRIPTION_TOO_LONG' });
-  }
-  
-  // WorkLog 作成時に description を含める
-  const workLog = await startWorkLog(userId, sanitizedDescription);
-  
-  return {
-    workLog: { /* ... description を含む */ },
-    serverNow: new Date().toISOString()
-  };
-}
+	const formData = await request.formData();
+	const description = formData.get('description') as string | null;
+
+	// デフォルト値として空文字列を使用
+	const sanitizedDescription = description?.trim() || '';
+
+	// バリデーション
+	if (sanitizedDescription.length > 10000) {
+		return fail(400, { reason: 'DESCRIPTION_TOO_LONG' });
+	}
+
+	// WorkLog 作成時に description を含める
+	const workLog = await startWorkLog(userId, sanitizedDescription);
+
+	return {
+		workLog: {
+			/* ... description を含む */
+		},
+		serverNow: new Date().toISOString()
+	};
+};
 ```
 
 ### actions.stop の拡張
@@ -201,18 +206,18 @@ start: async ({ request, locals }) => {
 stop: async ({ request, locals }) => {
   const formData = await request.formData();
   const description = formData.get('description') as string | null;
-  
+
   // デフォルト値として空文字列を使用
   const sanitizedDescription = description?.trim() || '';
-  
+
   // バリデーション
   if (sanitizedDescription.length > 10000) {
     return fail(400, { reason: 'DESCRIPTION_TOO_LONG' });
   }
-  
+
   // WorkLog 終了時に description を更新
   const workLog = await stopWorkLog(userId, sanitizedDescription);
-  
+
   return {
     workLog: { /* ... description を含む */ },
     serverNow: new Date().toISOString(),
@@ -231,6 +236,7 @@ stop: async ({ request, locals }) => {
 - **markdown-it**: 拡張性が高い、プラグインが豊富
 
 セキュリティ対策:
+
 - **DOMPurify** または **marked** の sanitize オプションを使用
 - XSS攻撃を防ぐため、HTMLタグをエスケープ
 
@@ -238,69 +244,69 @@ stop: async ({ request, locals }) => {
 
 ```svelte
 <script lang="ts">
-  import { marked } from 'marked';
-  import DOMPurify from 'isomorphic-dompurify';
-  
-  type Props = {
-    description: string;
-  };
-  
-  let { description }: Props = $props();
-  
-  const renderMarkdown = (md: string): string => {
-    if (md === '') return '';
-    const html = marked.parse(md);
-    return DOMPurify.sanitize(html);
-  };
+	import { marked } from 'marked';
+	import DOMPurify from 'isomorphic-dompurify';
+
+	type Props = {
+		description: string;
+	};
+
+	let { description }: Props = $props();
+
+	const renderMarkdown = (md: string): string => {
+		if (md === '') return '';
+		const html = marked.parse(md);
+		return DOMPurify.sanitize(html);
+	};
 </script>
 
 <div class="markdown-content">
-  {@html renderMarkdown(description)}
+	{@html renderMarkdown(description)}
 </div>
 
 <style>
-  .markdown-content {
-    /* Markdownスタイル定義 */
-    font-size: 0.875rem;
-    line-height: 1.6;
-  }
-  
-  .markdown-content :global(h1) {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-  }
-  
-  .markdown-content :global(h2) {
-    font-size: 1.25rem;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-  }
-  
-  .markdown-content :global(ul) {
-    list-style: disc;
-    margin-left: 1.5rem;
-  }
-  
-  .markdown-content :global(code) {
-    background-color: #f3f4f6;
-    padding: 0.125rem 0.25rem;
-    border-radius: 0.25rem;
-    font-family: monospace;
-  }
-  
-  .markdown-content :global(pre) {
-    background-color: #1f2937;
-    color: #f9fafb;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    overflow-x: auto;
-  }
-  
-  .markdown-content :global(pre code) {
-    background-color: transparent;
-    padding: 0;
-  }
+	.markdown-content {
+		/* Markdownスタイル定義 */
+		font-size: 0.875rem;
+		line-height: 1.6;
+	}
+
+	.markdown-content :global(h1) {
+		font-size: 1.5rem;
+		font-weight: bold;
+		margin-bottom: 0.5rem;
+	}
+
+	.markdown-content :global(h2) {
+		font-size: 1.25rem;
+		font-weight: bold;
+		margin-bottom: 0.5rem;
+	}
+
+	.markdown-content :global(ul) {
+		list-style: disc;
+		margin-left: 1.5rem;
+	}
+
+	.markdown-content :global(code) {
+		background-color: #f3f4f6;
+		padding: 0.125rem 0.25rem;
+		border-radius: 0.25rem;
+		font-family: monospace;
+	}
+
+	.markdown-content :global(pre) {
+		background-color: #1f2937;
+		color: #f9fafb;
+		padding: 1rem;
+		border-radius: 0.5rem;
+		overflow-x: auto;
+	}
+
+	.markdown-content :global(pre code) {
+		background-color: transparent;
+		padding: 0;
+	}
 </style>
 ```
 

@@ -24,36 +24,41 @@
 </script>
 
 <div class="overflow-x-auto">
-	<table class="table-compact table w-full table-zebra" aria-label="作業履歴一覧">
+	<table class="table-compact table w-full" aria-label="作業履歴一覧">
 		<thead>
 			<tr>
 				<th scope="col">日付</th>
-				<th scope="col" class="text-right">開始</th>
-				<th scope="col" class="text-right">終了</th>
-				<th scope="col" class="text-right">作業時間</th>
-				<th scope="col">作業内容</th>
+				<th scope="col">開始</th>
+				<th scope="col">終了</th>
+				<th scope="col">作業時間</th>
 			</tr>
 		</thead>
 		<tbody>
 			{#if items.length === 0}
 				<tr>
-					<td colspan="5" class="text-center text-base-content/60">データがありません</td>
+					<td colspan="4" class="text-center text-base-content/60">データがありません</td>
 				</tr>
 			{:else}
 				{#each items as item (item.id)}
 					{@const isActive = item.endedAt === null}
 					{@const duration = calculateDuration(item.startedAt, item.endedAt, serverNow)}
-					<tr data-active={isActive} class={rowClass(item)} transition:fade>
-						<td>{formatDate(item.startedAt)}</td>
-						<td class="text-right">{formatTime(item.startedAt)}</td>
-						<td class="text-right">{item.endedAt ? formatTime(item.endedAt) : '—'}</td>
-						<td class="text-right">{duration !== null ? formatDuration(duration) : '—'}</td>
-						<td>
-							{#if item.description}
-								<div class="max-w-md truncate text-sm">{item.description}</div>
-							{:else}
-								<span class="text-base-content/40">—</span>
-							{/if}
+					<!-- 1行目: 日付・時刻・作業時間 -->
+					<tr
+						data-active={isActive}
+						class={classNames('border-b-0', rowClass(item))}
+						transition:fade
+					>
+						<td class="pb-0" rowspan="2">{formatDate(item.startedAt)}</td>
+						<td class="pb-0">{formatTime(item.startedAt)}</td>
+						<td class="pb-0">{item.endedAt ? formatTime(item.endedAt) : '—'}</td>
+						<td class="pb-0">{duration !== null ? formatDuration(duration) : '—'}</td>
+					</tr>
+					<!-- 2行目: 作業内容 -->
+					<tr data-active={isActive} class={classNames('border-t-0', rowClass(item))}>
+						<td colspan="3">
+							<div class="line-clamp-2 w-full px-2 text-sm whitespace-nowrap text-base-content/80">
+								{item.description}
+							</div>
 						</td>
 					</tr>
 				{/each}

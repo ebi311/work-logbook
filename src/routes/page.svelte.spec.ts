@@ -85,7 +85,8 @@ describe('/+page.svelte', () => {
 		const active = {
 			id: 'test-work-log-id',
 			startedAt: '2025-10-22T09:30:00.000Z', // 30分前
-			endedAt: null
+			endedAt: null,
+			description: 'テスト作業中'
 		};
 
 		it('「記録中」のステータスが表示される', () => {
@@ -172,7 +173,8 @@ describe('/+page.svelte', () => {
 				const newActive = {
 					id: 'new-work-log-id',
 					startedAt: newServerNow,
-					endedAt: null
+					endedAt: null,
+					description: 'テスト作業中'
 				};
 
 				rerender({
@@ -220,7 +222,8 @@ describe('/+page.svelte', () => {
 				const existingActive = {
 					id: 'existing-work-log-id',
 					startedAt: '2025-10-22T09:00:00.000Z',
-					endedAt: null
+					endedAt: null,
+					description: 'テスト作業中'
 				};
 
 				rerender({
@@ -255,7 +258,8 @@ describe('/+page.svelte', () => {
 				const active = {
 					id: 'test-work-log-id',
 					startedAt: '2025-10-22T09:30:00.000Z',
-					endedAt: null
+					endedAt: null,
+					description: 'テスト作業中'
 				};
 
 				const { rerender } = render(Page, {
@@ -277,7 +281,8 @@ describe('/+page.svelte', () => {
 				const stoppedWorkLog = {
 					id: active.id,
 					startedAt: active.startedAt,
-					endedAt: newServerNow
+					endedAt: newServerNow,
+					description: active.description
 				};
 
 				rerender({
@@ -312,7 +317,8 @@ describe('/+page.svelte', () => {
 				const active = {
 					id: 'test-work-log-id',
 					startedAt: '2025-10-22T09:30:00.000Z',
-					endedAt: null
+					endedAt: null,
+					description: 'テスト作業中'
 				};
 
 				const { rerender } = render(Page, {
@@ -373,7 +379,8 @@ describe('/+page.svelte', () => {
 			const newActive = {
 				id: 'new-id',
 				startedAt: '2025-10-22T10:00:00.000Z',
-				endedAt: null
+				endedAt: null,
+				description: 'テスト作業中'
 			};
 			const newServerNow = '2025-10-22T10:00:00.000Z';
 
@@ -457,7 +464,8 @@ describe('/+page.svelte', () => {
 							active: {
 								id: 'test-id',
 								startedAt: '2025-10-22T10:00:00.000Z',
-								endedAt: null
+								endedAt: null,
+								description: 'テスト作業中'
 							},
 							serverNow,
 							listData: createDefaultListData()
@@ -611,6 +619,7 @@ describe('/+page.svelte', () => {
 					startedAt: string;
 					endedAt: string | null;
 					durationSec: number | null;
+					description: string;
 				}>;
 				page: number;
 				size: number;
@@ -642,13 +651,15 @@ describe('/+page.svelte', () => {
 						id: '1',
 						startedAt: '2025-10-25T09:00:00.000Z',
 						endedAt: '2025-10-25T10:30:00.000Z',
-						durationSec: 5400
+						durationSec: 5400,
+						description: 'テスト作業内容1'
 					},
 					{
 						id: '2',
 						startedAt: '2025-10-25T11:00:00.000Z',
 						endedAt: null, // 進行中
-						durationSec: null
+						durationSec: null,
+						description: 'テスト作業内容2'
 					}
 				],
 				page: 1,
@@ -686,7 +697,8 @@ describe('/+page.svelte', () => {
 						id: '1',
 						startedAt: '2025-10-25T09:00:00.000Z',
 						endedAt: '2025-10-25T10:30:00.000Z',
-						durationSec: 5400
+						durationSec: 5400,
+						description: 'テスト作業内容1'
 					}
 				],
 				page: 1,

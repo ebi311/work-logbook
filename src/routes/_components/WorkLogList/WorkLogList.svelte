@@ -3,6 +3,7 @@
 	import classNames from 'classnames';
 	import { fade } from 'svelte/transition';
 	import WorkLogDetailDialog from '../WorkLogDetailDialog/WorkLogDetailDialog.svelte';
+	import { createEventDispatcher } from 'svelte';
 
 	type Props = {
 		items: Array<{
@@ -16,6 +17,11 @@
 
 	let { items, serverNow }: Props = $props();
 
+	// 親へイベントを通知
+	const dispatch = createEventDispatcher<{
+		edit: { item: Props['items'][number] };
+	}>();
+
 	// 選択されたアイテム
 	let selectedItem: (typeof items)[0] | null = $state(null);
 	let selectedDuration: number | null = $state(null);
@@ -24,6 +30,11 @@
 	const handleItemClick = (item: (typeof items)[0]) => {
 		selectedItem = item;
 		selectedDuration = calculateDuration(item.startedAt, item.endedAt, serverNow);
+	};
+
+	// 編集ボタン
+	const handleEditClick = (item: (typeof items)[0]) => {
+		dispatch('edit', { item });
 	};
 
 	// ダイアログを閉じる
@@ -92,11 +103,28 @@
 						<div class="text-right">{item.endedAt ? formatTime(item.endedAt) : '—'}</div>
 						<div class="text-right">{duration !== null ? formatDuration(duration) : '—'}</div>
 						<!-- 2行目: 作業内容 -->
-						<div class="col-span-3 mt-2 text-sm text-base-content/80">
+						<div
+							class="col-span-3 mt-2 flex items-start justify-between gap-2 text-sm text-base-content/80"
+						>
 							{#if item.description}
 								<div class="line-clamp-2">{item.description}</div>
 							{:else}
 								<span class="text-base-content/40">—</span>
+							{/if}
+
+							{#if !isActive}
+								<!-- 完了済みのみ 編集ボタン -->
+								<button
+									type="button"
+									class="btn btn-ghost btn-xs"
+									onclick={(e) => {
+										e.stopPropagation();
+										handleEditClick(item);
+									}}
+									aria-label="編集"
+								>
+									編集
+								</button>
 							{/if}
 						</div>
 					</div>

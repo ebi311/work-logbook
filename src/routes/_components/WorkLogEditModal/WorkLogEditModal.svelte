@@ -8,8 +8,16 @@
 	import DescriptionField from './DescriptionField.svelte';
 	import ErrorAlert from './ErrorAlert.svelte';
 
+	// 親からは最小限のフィールドのみ受け取れるようにする（構造的部分型）
+	type EditableWorkLog = {
+		id: string;
+		startedAt: Date;
+		endedAt: Date | null;
+		description: string;
+	};
+
 	type Props = {
-		workLog: WorkLog;
+		workLog: EditableWorkLog;
 		open: boolean;
 		onclose?: () => void;
 		onupdated?: (workLog: WorkLog) => void;

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData, ActionData } from './$types';
+	import type { WorkLog } from '../models/workLog';
 	import WorkLogStatus from './_components/WorkLogStatus/WorkLogStatus.svelte';
 	import WorkLogToggleButton from './_components/WorkLogToggleButton/WorkLogToggleButton.svelte';
 	import KeyboardShortcutHelp from './_components/KeyboardShortcutHelp/KeyboardShortcutHelp.svelte';
@@ -9,6 +10,7 @@
 	import Pagination from './_components/Pagination/Pagination.svelte';
 	import { enhance } from '$app/forms';
 	import { toast } from '@zerodevx/svelte-toast';
+	import WorkLogEditModal from './_components/WorkLogEditModal/WorkLogEditModal.svelte';
 
 	type Props = {
 		data: PageData;
@@ -116,7 +118,11 @@
 			if (form.workLog.endedAt === null) {
 				handleStartSuccess(form);
 			} else {
-				handleStopSuccess(form);
+				// durationSec が存在するのは stop 成功時
+				if ('durationSec' in form) {
+					handleStopSuccess(form);
+				}
+				// update 成功時は、モーダルから onupdated コールバックで処理される
 			}
 			return;
 		}
@@ -169,6 +175,84 @@
 			window.removeEventListener('keydown', handleKeyDown);
 		};
 	});
+
+	// ===== 作業一覧（編集反映用のローカル状態） =====
+	type ListItem = {
+		id: string;
+		startedAt: string;
+		endedAt: string | null;
+		description: string;
+	};
+	type ListData = {
+		items: ListItem[];
+		page: number;
+		size: number;
+		hasNext: boolean;
+		monthlyTotalSec: number;
+	};
+
+	let listDataPromise = $state<Promise<ListData>>(data.listData as Promise<ListData>);
+	let lastListData: ListData | null = $state(null);
+
+	$effect(() => {
+		// data.listData が変わったらローカルにも反映
+		listDataPromise = data.listData as Promise<ListData>;
+		listDataPromise
+			.then((ld) => (lastListData = ld))
+			.catch(() => {
+				// エラーは {#await} ブロックで処理されるため、ここでは無視
+			});
+	});
+
+	// ===== 編集モーダルの状態 =====
+	let editOpen = $state(false);
+	let editTarget: {
+		id: string;
+		startedAt: Date;
+		endedAt: Date | null;
+		description: string;
+	} | null = $state(null);
+
+	const openEditModal = (item: ListItem) => {
+		if (item.endedAt === null) return; // 進行中は編集不可
+		editTarget = {
+			id: item.id,
+			startedAt: new Date(item.startedAt),
+			endedAt: item.endedAt ? new Date(item.endedAt) : null,
+			description: item.description
+		};
+		editOpen = true;
+	};
+
+	const handleEditClose = () => {
+		editOpen = false;
+		editTarget = null;
+	};
+
+	const handleEditUpdate = (workLog: WorkLog) => {
+		// モーダル側で成功したら、一覧を更新
+		editOpen = false;
+		editTarget = null;
+		if (lastListData) {
+			const newItems = lastListData.items.map((i) =>
+				i.id === workLog.id
+					? {
+							...i,
+							startedAt: workLog.startedAt.toISOString(),
+							endedAt: workLog.endedAt ? workLog.endedAt.toISOString() : null,
+							description: workLog.description
+						}
+					: i
+			);
+			lastListData = { ...lastListData, items: newItems };
+			listDataPromise = Promise.resolve(lastListData);
+		}
+		toast.push('作業記録を更新しました', {
+			theme: {
+				'--toastBarBackground': 'green'
+			}
+		});
+	};
 </script>
 
 <div class="mx-auto prose h-full w-xl bg-base-300 py-16">
@@ -219,7 +303,7 @@
 		<div class="card-body">
 			<h2 class="card-title">作業履歴</h2>
 
-			{#await data.listData}
+			{#await listDataPromise}
 				<!-- ローディング中 -->
 				<WorkLogListSkeleton rows={5} />
 			{:then listData}
@@ -228,7 +312,11 @@
 					<Pagination currentPage={listData.page} hasNext={listData.hasNext} size={listData.size} />
 				</div>
 				<!-- データ表示 -->
-				<WorkLogList items={listData.items} serverNow={currentServerNow} />
+				<WorkLogList
+					items={listData.items}
+					serverNow={currentServerNow}
+					on:edit={(e) => openEditModal(e.detail.item)}
+				/>
 
 				<!-- フッター: 月次合計とページネーション -->
 			{:catch error}
@@ -242,6 +330,16 @@
 
 	<!-- キーボードショートカットヘルプ -->
 	<KeyboardShortcutHelp />
+
+	<!-- 編集モーダル -->
+	{#if editTarget}
+		<WorkLogEditModal
+			workLog={editTarget}
+			bind:open={editOpen}
+			onclose={handleEditClose}
+			onupdated={handleEditUpdate}
+		/>
+	{/if}
 </div>
 
 <style>

@@ -1,11 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { render, screen, waitFor } from '@testing-library/svelte';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import Page from './+page.svelte';
-import { toast } from '@zerodevx/svelte-toast';
-
-// SvelteKit の use:enhance によるフォーム送信処理が JSDOM 環境で URL を必要としエラーになるため、
-// テストでは $app/forms の enhance を no-op にモックして submit を preventDefault する
+// モジュールのモックは対象のインポートより前に宣言する必要がある
 vi.mock('$app/forms', () => {
 	return {
 		enhance: (form: HTMLFormElement | undefined) => {
@@ -30,6 +26,11 @@ vi.mock('@zerodevx/svelte-toast', () => {
 		}
 	};
 });
+
+import Page from './+page.svelte';
+import { toast } from '@zerodevx/svelte-toast';
+
+// 上記に移動
 
 describe('/+page.svelte', () => {
 	const serverNow = '2025-10-22T10:00:00.000Z';
@@ -797,6 +798,146 @@ describe('/+page.svelte', () => {
 			await waitFor(() => {
 				expect(screen.getByText('データがありません')).toBeInTheDocument();
 			});
+		});
+	});
+
+	describe('編集ボタンと編集フロー', () => {
+		beforeEach(() => {
+			// dialog のメソッドをモック（JSDOMでは未実装のため）
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(HTMLDialogElement.prototype as any).showModal = vi.fn();
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(HTMLDialogElement.prototype as any).close = vi.fn();
+		});
+
+		it('完了した作業にのみ「編集」ボタンが表示される', async () => {
+			const listData = Promise.resolve({
+				items: [
+					{
+						id: '1',
+						startedAt: '2025-10-25T09:00:00.000Z',
+						endedAt: '2025-10-25T10:30:00.000Z',
+						durationSec: 5400,
+						description: '完了済み'
+					},
+					{
+						id: '2',
+						startedAt: '2025-10-25T11:00:00.000Z',
+						endedAt: null,
+						durationSec: null,
+						description: '進行中'
+					}
+				],
+				page: 1,
+				size: 10,
+				hasNext: false,
+				monthlyTotalSec: 5400
+			});
+
+			render(Page, {
+				props: {
+					data: {
+						active: undefined,
+						serverNow,
+						listData
+					}
+				}
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('作業履歴')).toBeInTheDocument();
+			});
+
+			const editButtons = screen.getAllByRole('button', { name: '編集' });
+			expect(editButtons.length).toBe(1);
+		});
+
+		it('「編集」ボタンをクリックで編集モーダルが開く', async () => {
+			const listData = Promise.resolve({
+				items: [
+					{
+						id: '1',
+						startedAt: '2025-10-25T09:00:00.000Z',
+						endedAt: '2025-10-25T10:30:00.000Z',
+						durationSec: 5400,
+						description: '編集対象'
+					}
+				],
+				page: 1,
+				size: 10,
+				hasNext: false,
+				monthlyTotalSec: 5400
+			});
+
+			render(Page, {
+				props: {
+					data: {
+						active: undefined,
+						serverNow,
+						listData
+					}
+				}
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('作業履歴')).toBeInTheDocument();
+			});
+
+			const editButton = screen.getByRole('button', { name: '編集' });
+			editButton.click();
+
+			// モーダルのタイトルが表示される
+			await waitFor(() => {
+				expect(screen.getByText('作業記録の編集')).toBeInTheDocument();
+			});
+		});
+
+		it('更新機能の統合テスト: モーダルが表示され、編集ボタンが存在する', async () => {
+			const initialList = Promise.resolve({
+				items: [
+					{
+						id: '1',
+						startedAt: '2025-10-25T09:00:00.000Z',
+						endedAt: '2025-10-25T10:30:00.000Z',
+						durationSec: 5400,
+						description: '旧い説明'
+					}
+				],
+				page: 1,
+				size: 10,
+				hasNext: false,
+				monthlyTotalSec: 5400
+			});
+
+			render(Page, {
+				props: {
+					data: {
+						active: undefined,
+						serverNow,
+						listData: initialList
+					}
+				}
+			});
+
+			// 初期データの読み込みを待つ
+			await screen.findByText('旧い説明', {}, { timeout: 3000 });
+
+			// 編集ボタンをクリックしてモーダルを開く
+			const editButton = screen.getByRole('button', { name: '編集' });
+			editButton.click();
+
+			// モーダルが開くことを確認
+			await waitFor(() => {
+				expect(screen.getByText('作業記録の編集')).toBeInTheDocument();
+			});
+
+			// フォーム要素が存在することを確認
+			expect(screen.getByLabelText('開始時刻')).toBeInTheDocument();
+			expect(screen.getByLabelText('終了時刻')).toBeInTheDocument();
+			expect(screen.getByLabelText('作業内容')).toBeInTheDocument();
+			// ボタンはaria-labelで取得
+			expect(screen.getByLabelText('保存')).toBeInTheDocument();
+			expect(screen.getByLabelText('キャンセル')).toBeInTheDocument();
 		});
 	});
 });

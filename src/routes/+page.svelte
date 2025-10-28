@@ -11,6 +11,8 @@
 	import { enhance } from '$app/forms';
 	import { toast } from '@zerodevx/svelte-toast';
 	import WorkLogEditModal from './_components/WorkLogEditModal/WorkLogEditModal.svelte';
+	import { invalidate, invalidateAll, refreshAll } from '$app/navigation';
+	import { page } from '$app/state';
 
 	type Props = {
 		data: PageData;
@@ -191,32 +193,7 @@
 		monthlyTotalSec: number;
 	};
 
-	let listDataPromise = $state<Promise<ListData>>(data.listData as Promise<ListData>);
-	let lastListData: ListData | null = $state(null);
-	let isLocalUpdate = $state(false); // ローカル更新中かどうかのフラグ
-	let lastDataListDataRef = $state(data.listData); // data.listData の参照を保存
-
-	$effect(() => {
-		// ローカル更新中は data.listData の変更を無視
-		if (isLocalUpdate) {
-			isLocalUpdate = false;
-			lastDataListDataRef = data.listData; // 参照を更新
-			return;
-		}
-
-		// data.listData の参照が変わった場合のみ更新
-		if (lastDataListDataRef !== data.listData) {
-			lastDataListDataRef = data.listData;
-			listDataPromise = data.listData as Promise<ListData>;
-			listDataPromise
-				.then((ld) => {
-					lastListData = ld;
-				})
-				.catch(() => {
-					// エラーは {#await} ブロックで処理されるため、ここでは無視
-				});
-		}
-	});
+	let listDataPromise = $derived<Promise<ListData>>(data.listData as Promise<ListData>);
 
 	// ===== 編集モーダルの状態 =====
 	let editOpen = $state(false);
@@ -243,62 +220,9 @@
 		editTarget = null;
 	};
 
-	const handleEditUpdate = async (workLog: WorkLog) => {
-		// モーダル側で成功したら、一覧を更新
-		editOpen = false;
-		editTarget = null;
-
-		// lastListData が null の場合は listDataPromise から取得
-		const currentListData = lastListData || (await listDataPromise);
-
-		// サーバーアクションから返される workLog は文字列型なので、ISO文字列として扱う
-		const startedAtStr =
-			typeof workLog.startedAt === 'string' ? workLog.startedAt : workLog.startedAt.toISOString();
-		const endedAtStr = workLog.endedAt
-			? typeof workLog.endedAt === 'string'
-				? workLog.endedAt
-				: workLog.endedAt.toISOString()
-			: null;
-
-		const newItems = currentListData.items.map((i) =>
-			i.id === workLog.id
-				? {
-						...i,
-						startedAt: startedAtStr,
-						endedAt: endedAtStr,
-						description: workLog.description
-					}
-				: i
-		);
-
-		// 月次合計を再計算
-		const monthlyTotalSec = newItems.reduce((sum, item) => {
-			if (item.endedAt) {
-				const start = new Date(item.startedAt);
-				const end = new Date(item.endedAt);
-				const durationSec = Math.floor((end.getTime() - start.getTime()) / 1000);
-				return sum + durationSec;
-			}
-			return sum;
-		}, 0);
-
-		// 新しいオブジェクトを作成してリアクティビティをトリガー
-		const updatedListData: ListData = {
-			...currentListData,
-			items: newItems,
-			monthlyTotalSec
-		};
-
-		// ローカル更新フラグを立てる
-		isLocalUpdate = true;
-		lastListData = updatedListData;
-		listDataPromise = Promise.resolve(updatedListData);
-
-		toast.push('作業記録を更新しました', {
-			theme: {
-				'--toastBarBackground': 'green'
-			}
-		});
+	const handleEditUpdate = async () => {
+		console.log('handleEditUpdate called');
+		await refreshAll();
 	};
 </script>
 

@@ -40,6 +40,8 @@ const fetchListData = async (
 		month?: string;
 	}
 ) => {
+	// テスト用の遅延（3秒）
+	await new Promise<void>((resolve) => setTimeout(() => resolve(), 3000));
 	// 並列で取得
 	const monthForAggregate = normalized.month ?? new Date().toISOString().slice(0, 7);
 

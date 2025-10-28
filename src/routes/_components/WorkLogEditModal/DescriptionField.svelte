@@ -21,7 +21,6 @@
 </script>
 
 <fieldset class="fieldset w-full rounded-box border border-base-300 p-4">
-	<legend class="fieldset-legend">{label}</legend>
 	<label class="label" for={id}>{label}</label>
 	<textarea
 		{id}

@@ -9,10 +9,10 @@
 	import MonthlyTotal from './_components/MonthlyTotal/MonthlyTotal.svelte';
 	import Pagination from './_components/Pagination/Pagination.svelte';
 	import { enhance } from '$app/forms';
-	import { toast } from '@zerodevx/svelte-toast';
 	import WorkLogEditModal from './_components/WorkLogEditModal/WorkLogEditModal.svelte';
 	import { invalidate, invalidateAll, refreshAll } from '$app/navigation';
 	import { page } from '$app/state';
+	import { toastSuccess, toastError } from '$lib/utils/toast';
 
 	type Props = {
 		data: PageData;
@@ -46,12 +46,7 @@
 		if ('serverNow' in form) {
 			currentServerNow = form.serverNow;
 		}
-		// showMessage('作業を開始しました', 'success');
-		toast.push('作業を開始しました', {
-			theme: {
-				'--toastBarBackground': 'green'
-			}
-		});
+		toastSuccess('作業を開始しました');
 	};
 
 	// 作業終了成功時の処理
@@ -65,12 +60,7 @@
 		if ('serverNow' in form) {
 			currentServerNow = form.serverNow;
 		}
-		// showMessage(`作業を終了しました（${duration}分）`, 'success');
-		toast.push(`作業を終了しました（${duration}分）`, {
-			theme: {
-				'--toastBarBackground': 'green'
-			}
-		});
+		toastSuccess(`作業を終了しました(${duration}分)`);
 	};
 
 	// エラー処理ハンドラーマップ
@@ -81,12 +71,7 @@
 				currentActive = form.active;
 				currentServerNow = form.serverNow;
 			}
-			// showMessage('既に作業が進行中です', 'error');
-			toast.push('既に作業が進行中です', {
-				theme: {
-					'--toastBarBackground': 'red'
-				}
-			});
+			toastError('既に作業が進行中です');
 		},
 		NO_ACTIVE: (form) => {
 			// 404エラー: 進行中の作業がない
@@ -94,12 +79,7 @@
 			if ('serverNow' in form) {
 				currentServerNow = form.serverNow;
 			}
-			// showMessage('進行中の作業がありません', 'error');
-			toast.push('進行中の作業がありません', {
-				theme: {
-					'--toastBarBackground': 'red'
-				}
-			});
+			toastError('進行中の作業がありません');
 		}
 	};
 
@@ -250,35 +230,16 @@
 
 			if (result.type === 'success') {
 				// 削除成功
-				toast.push('作業記録を削除しました', {
-					theme: {
-						'--toastBackground': 'oklch(var(--su))',
-						'--toastColor': 'oklch(var(--suc))',
-						'--toastBarBackground': 'oklch(var(--suc))'
-					}
-				});
+				toastSuccess('作業記録を削除しました');
 				// データを再取得
 				await refreshAll();
 			} else {
 				// 削除失敗
-				const errorMessage = '削除に失敗しました';
-				toast.push(errorMessage, {
-					theme: {
-						'--toastBackground': 'oklch(var(--er))',
-						'--toastColor': 'oklch(var(--erc))',
-						'--toastBarBackground': 'oklch(var(--erc))'
-					}
-				});
+				toastError('削除に失敗しました');
 			}
 		} catch (error) {
 			console.error('Delete error:', error);
-			toast.push('削除中にエラーが発生しました', {
-				theme: {
-					'--toastBackground': 'oklch(var(--er))',
-					'--toastColor': 'oklch(var(--erc))',
-					'--toastBarBackground': 'oklch(var(--erc))'
-				}
-			});
+			toastError('削除中にエラーが発生しました');
 		}
 	};
 </script>

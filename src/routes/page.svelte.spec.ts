@@ -215,7 +215,9 @@ describe('/+page.svelte', () => {
 				await waitFor(() => {
 					expect(vi.mocked(toast.push)).toHaveBeenCalledWith('作業を開始しました', {
 						theme: {
-							'--toastBarBackground': 'green'
+							'--toastBackground': 'oklch(var(--su))',
+							'--toastColor': 'oklch(var(--suc))',
+							'--toastBarBackground': 'oklch(var(--suc))'
 						}
 					});
 				});
@@ -262,7 +264,9 @@ describe('/+page.svelte', () => {
 				await waitFor(() => {
 					expect(vi.mocked(toast.push)).toHaveBeenCalledWith('既に作業が進行中です', {
 						theme: {
-							'--toastBarBackground': 'red'
+							'--toastBackground': 'oklch(var(--er))',
+							'--toastColor': 'oklch(var(--erc))',
+							'--toastBarBackground': 'oklch(var(--erc))'
 						}
 					});
 				});
@@ -330,9 +334,11 @@ describe('/+page.svelte', () => {
 
 				// 成功メッセージが表示される（経過時間付き）
 				await waitFor(() => {
-					expect(vi.mocked(toast.push)).toHaveBeenCalledWith('作業を終了しました（60分）', {
+					expect(vi.mocked(toast.push)).toHaveBeenCalledWith('作業を終了しました(60分)', {
 						theme: {
-							'--toastBarBackground': 'green'
+							'--toastBackground': 'oklch(var(--su))',
+							'--toastColor': 'oklch(var(--suc))',
+							'--toastBarBackground': 'oklch(var(--suc))'
 						}
 					});
 				});
@@ -378,7 +384,9 @@ describe('/+page.svelte', () => {
 				await waitFor(() => {
 					expect(vi.mocked(toast.push)).toHaveBeenCalledWith('進行中の作業がありません', {
 						theme: {
-							'--toastBarBackground': 'red'
+							'--toastBackground': 'oklch(var(--er))',
+							'--toastColor': 'oklch(var(--erc))',
+							'--toastBarBackground': 'oklch(var(--erc))'
 						}
 					});
 				});

@@ -7,7 +7,8 @@ import {
 	listWorkLogs,
 	aggregateMonthlyWorkLogDuration,
 	getWorkLogById,
-	updateWorkLog
+	updateWorkLog,
+	deleteWorkLog
 } from '$lib/server/db/workLogs';
 import { normalizeWorkLogQuery } from '$lib/utils/queryNormalizer';
 import { validateTimeRange, validateDescription } from '$lib/utils/validation';
@@ -440,6 +441,84 @@ const handleUpdateAction = async ({ locals, request }: RequestEvent) => {
 	}
 };
 
+/**
+ * F-004: 作業記録の削除
+ */
+
+type DeleteActionSuccess = {
+	ok: true;
+	deletedId: string;
+	serverNow: string;
+};
+
+type DeleteActionFailure = {
+	ok: false;
+	reason: 'NOT_FOUND' | 'FORBIDDEN';
+	message: string;
+	serverNow: string;
+};
+
+/**
+ * 作業記録削除アクションの実装
+ */
+const handleDeleteAction = async ({ locals, request }: RequestEvent) => {
+	if (!locals.user) {
+		throw error(401, 'Unauthorized');
+	}
+
+	const userId = locals.user.id;
+	const serverNow = new Date();
+
+	try {
+		// FormDataから取得
+		const formData = await request.formData();
+		const id = formData.get('id') as string;
+
+		// 作業記録を取得
+		const workLog = await getWorkLogById(id);
+
+		if (!workLog) {
+			return fail(404, {
+				ok: false,
+				reason: 'NOT_FOUND',
+				message: '作業記録が見つかりません',
+				serverNow: serverNow.toISOString()
+			} satisfies DeleteActionFailure);
+		}
+
+		// 権限チェック
+		if (workLog.userId !== userId) {
+			return fail(403, {
+				ok: false,
+				reason: 'FORBIDDEN',
+				message: 'この操作を実行する権限がありません',
+				serverNow: serverNow.toISOString()
+			} satisfies DeleteActionFailure);
+		}
+
+		// データベースから削除
+		const deleted = await deleteWorkLog(id, userId);
+
+		if (!deleted) {
+			return fail(404, {
+				ok: false,
+				reason: 'NOT_FOUND',
+				message: '作業記録が見つかりません',
+				serverNow: serverNow.toISOString()
+			} satisfies DeleteActionFailure);
+		}
+
+		return {
+			ok: true,
+			deletedId: id,
+			serverNow: serverNow.toISOString()
+		} satisfies DeleteActionSuccess;
+	} catch (err) {
+		console.error('Failed to delete work log:', err);
+		throw error(500, 'Internal Server Error');
+	}
+};
+
 export const actions: Actions = {
 	start: async (event) => {
 		try {
@@ -464,6 +543,15 @@ export const actions: Actions = {
 			return await handleUpdateAction(event);
 		} catch (err) {
 			console.error('Failed to update work log:', err);
+			throw error(500, 'Internal Server Error');
+		}
+	},
+
+	delete: async (event) => {
+		try {
+			return await handleDeleteAction(event);
+		} catch (err) {
+			console.error('Failed to delete work log:', err);
 			throw error(500, 'Internal Server Error');
 		}
 	}

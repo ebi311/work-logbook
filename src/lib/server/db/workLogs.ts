@@ -242,3 +242,19 @@ export const updateWorkLog = async (
 
 	return toWorkLog(result[0]);
 };
+
+/**
+ * 作業記録を削除
+ * F-004: 削除機能のために追加
+ * @param id - 作業記録ID
+ * @param userId - ユーザーID（権限チェック用）
+ * @returns 削除成功時は true、レコードが見つからない場合は false
+ */
+export const deleteWorkLog = async (id: string, userId: string): Promise<boolean> => {
+	const result = await db
+		.delete(workLogs)
+		.where(and(eq(workLogs.id, id), eq(workLogs.userId, userId)))
+		.returning();
+
+	return result.length > 0;
+};

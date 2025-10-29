@@ -6,7 +6,6 @@
 		value: string;
 		disabled?: boolean;
 		required?: boolean;
-		onchange?: (value: string) => void;
 	};
 
 	let {

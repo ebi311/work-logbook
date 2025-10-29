@@ -142,6 +142,45 @@
 		}
 	};
 
+	// フォーム送信ハンドラー
+	const handleFormSubmit = ({ formData }: { formData: FormData }) => {
+		isSubmitting = true;
+
+		// datetime-local の値をローカルタイムゾーン付きISO文字列に変換
+		const startedAtLocal = formData.get('startedAt') as string;
+		const endedAtLocal = formData.get('endedAt') as string;
+
+		if (startedAtLocal) {
+			const startDate = new Date(startedAtLocal);
+			formData.set('startedAt', startDate.toISOString());
+		}
+
+		if (endedAtLocal) {
+			const endDate = new Date(endedAtLocal);
+			formData.set('endedAt', endDate.toISOString());
+		}
+
+		return async ({ result }: { result: any }) => {
+			isSubmitting = false;
+
+			if (result.type === 'success' && result.data) {
+				const data = result.data as { ok?: boolean; workLog?: WorkLog };
+				if (data.ok && data.workLog) {
+					// 成功時
+					open = false;
+					onupdated?.(data.workLog);
+					onclose?.();
+				}
+			} else if (result.type === 'failure' && result.data) {
+				// サーバーサイドエラー
+				const data = result.data as { errors?: Record<string, string> };
+				if (data.errors) {
+					errors = data.errors;
+				}
+			}
+		};
+	};
+
 	// フォーム送信
 	onMount(() => {
 		document.addEventListener('keydown', handleKeyDown);
@@ -162,31 +201,7 @@
 		</div>
 
 		<!-- フォーム -->
-		<form
-			method="post"
-			action="?/update"
-			use:enhance={() => {
-				isSubmitting = true;
-				return async ({ result }) => {
-					isSubmitting = false;
-					if (result.type === 'success' && result.data) {
-						const data = result.data as { ok?: boolean; workLog?: WorkLog };
-						if (data.ok && data.workLog) {
-							// 成功時
-							open = false;
-							onupdated?.(data.workLog);
-							onclose?.();
-						}
-					} else if (result.type === 'failure' && result.data) {
-						// サーバーサイドエラー
-						const data = result.data as { errors?: Record<string, string> };
-						if (data.errors) {
-							errors = data.errors;
-						}
-					}
-				};
-			}}
-		>
+		<form method="post" action="?/update" use:enhance={handleFormSubmit}>
 			<!-- hidden input for id -->
 			<input type="hidden" name="id" value={workLog?.id ?? ''} />
 

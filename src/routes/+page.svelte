@@ -226,9 +226,60 @@
 	};
 
 	// F-004: 削除処理
-	const handleDeleteClick = (item: ListItem) => {
-		// TODO: 削除確認と削除処理を実装
-		console.log('Delete clicked:', item);
+	const handleDeleteClick = async (item: ListItem) => {
+		// ブラウザ標準の確認ダイアログ
+		const confirmed = window.confirm(
+			'この作業記録を削除してもよろしいですか？\n\nこの操作は取り消せません。'
+		);
+
+		if (!confirmed) {
+			return; // キャンセルされた場合は何もしない
+		}
+
+		// 削除アクションを実行
+		const formData = new FormData();
+		formData.set('id', item.id);
+
+		try {
+			const response = await fetch('?/delete', {
+				method: 'POST',
+				body: formData
+			});
+
+			const result = await response.json();
+
+			if (result.type === 'success') {
+				// 削除成功
+				toast.push('作業記録を削除しました', {
+					theme: {
+						'--toastBackground': 'oklch(var(--su))',
+						'--toastColor': 'oklch(var(--suc))',
+						'--toastBarBackground': 'oklch(var(--suc))'
+					}
+				});
+				// データを再取得
+				await refreshAll();
+			} else {
+				// 削除失敗
+				const errorMessage = '削除に失敗しました';
+				toast.push(errorMessage, {
+					theme: {
+						'--toastBackground': 'oklch(var(--er))',
+						'--toastColor': 'oklch(var(--erc))',
+						'--toastBarBackground': 'oklch(var(--erc))'
+					}
+				});
+			}
+		} catch (error) {
+			console.error('Delete error:', error);
+			toast.push('削除中にエラーが発生しました', {
+				theme: {
+					'--toastBackground': 'oklch(var(--er))',
+					'--toastColor': 'oklch(var(--erc))',
+					'--toastBarBackground': 'oklch(var(--erc))'
+				}
+			});
+		}
 	};
 </script>
 

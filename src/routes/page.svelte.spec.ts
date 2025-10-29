@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { render, screen, waitFor } from '@testing-library/svelte';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // モジュールのモックは対象のインポートより前に宣言する必要がある
 vi.mock('$app/forms', () => {
 	return {
@@ -938,6 +938,204 @@ describe('/+page.svelte', () => {
 			// ボタンはaria-labelで取得
 			expect(screen.getByLabelText('保存')).toBeInTheDocument();
 			expect(screen.getByLabelText('キャンセル')).toBeInTheDocument();
+		});
+	});
+
+	describe('削除ボタンと削除フロー', () => {
+		beforeEach(() => {
+			// window.confirm のモック
+			vi.spyOn(window, 'confirm').mockReturnValue(true);
+			// fetch のモック
+			global.fetch = vi.fn();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it('完了した作業にのみ「削除」ボタンが表示される', async () => {
+			const listData = Promise.resolve({
+				items: [
+					{
+						id: '1',
+						startedAt: '2025-10-25T09:00:00.000Z',
+						endedAt: '2025-10-25T10:30:00.000Z',
+						durationSec: 5400,
+						description: '完了済み'
+					},
+					{
+						id: '2',
+						startedAt: '2025-10-25T11:00:00.000Z',
+						endedAt: null,
+						durationSec: null,
+						description: '進行中'
+					}
+				],
+				page: 1,
+				size: 10,
+				hasNext: false,
+				monthlyTotalSec: 5400
+			});
+
+			render(Page, {
+				props: {
+					data: {
+						active: undefined,
+						serverNow,
+						listData
+					}
+				}
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('作業履歴')).toBeInTheDocument();
+			});
+
+			const deleteButtons = screen.getAllByRole('button', { name: '削除' });
+			expect(deleteButtons.length).toBe(1);
+		});
+
+		it('「削除」ボタンをクリックで確認ダイアログが表示される', async () => {
+			const listData = Promise.resolve({
+				items: [
+					{
+						id: '1',
+						startedAt: '2025-10-25T09:00:00.000Z',
+						endedAt: '2025-10-25T10:30:00.000Z',
+						durationSec: 5400,
+						description: '削除対象'
+					}
+				],
+				page: 1,
+				size: 10,
+				hasNext: false,
+				monthlyTotalSec: 5400
+			});
+
+			render(Page, {
+				props: {
+					data: {
+						active: undefined,
+						serverNow,
+						listData
+					}
+				}
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('作業履歴')).toBeInTheDocument();
+			});
+
+			const deleteButton = screen.getByRole('button', { name: '削除' });
+			deleteButton.click();
+
+			// window.confirm が呼ばれたことを確認
+			await waitFor(() => {
+				expect(window.confirm).toHaveBeenCalledWith(
+					'この作業記録を削除してもよろしいですか？\n\nこの操作は取り消せません。'
+				);
+			});
+		});
+
+		it('削除確認でキャンセルした場合、削除処理は実行されない', async () => {
+			// window.confirm を false に設定
+			vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+			const listData = Promise.resolve({
+				items: [
+					{
+						id: '1',
+						startedAt: '2025-10-25T09:00:00.000Z',
+						endedAt: '2025-10-25T10:30:00.000Z',
+						durationSec: 5400,
+						description: '削除対象'
+					}
+				],
+				page: 1,
+				size: 10,
+				hasNext: false,
+				monthlyTotalSec: 5400
+			});
+
+			render(Page, {
+				props: {
+					data: {
+						active: undefined,
+						serverNow,
+						listData
+					}
+				}
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('作業履歴')).toBeInTheDocument();
+			});
+
+			const deleteButton = screen.getByRole('button', { name: '削除' });
+			deleteButton.click();
+
+			// fetch が呼ばれていないことを確認
+			await waitFor(() => {
+				expect(global.fetch).not.toHaveBeenCalled();
+			});
+		});
+
+		it('削除確認でOKした場合、削除処理が実行される', async () => {
+			// fetch のモックレスポンス
+			(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+				json: async () => ({
+					type: 'success',
+					data: {
+						ok: true,
+						deletedId: '1',
+						serverNow: '2025-10-25T12:00:00.000Z'
+					}
+				})
+			});
+
+			const listData = Promise.resolve({
+				items: [
+					{
+						id: '1',
+						startedAt: '2025-10-25T09:00:00.000Z',
+						endedAt: '2025-10-25T10:30:00.000Z',
+						durationSec: 5400,
+						description: '削除対象'
+					}
+				],
+				page: 1,
+				size: 10,
+				hasNext: false,
+				monthlyTotalSec: 5400
+			});
+
+			render(Page, {
+				props: {
+					data: {
+						active: undefined,
+						serverNow,
+						listData
+					}
+				}
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('作業履歴')).toBeInTheDocument();
+			});
+
+			const deleteButton = screen.getByRole('button', { name: '削除' });
+			deleteButton.click();
+
+			// fetch が呼ばれたことを確認
+			await waitFor(() => {
+				expect(global.fetch).toHaveBeenCalledWith(
+					'?/delete',
+					expect.objectContaining({
+						method: 'POST',
+						body: expect.any(FormData)
+					})
+				);
+			});
 		});
 	});
 });

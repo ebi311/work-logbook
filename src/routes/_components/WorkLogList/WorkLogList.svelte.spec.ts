@@ -251,4 +251,85 @@ describe('WorkLogList', () => {
 			expect(button).toHaveClass('cursor-pointer');
 		});
 	});
+
+	describe('ボタン表示', () => {
+		it('完了した作業には編集ボタンと削除ボタンが表示される', () => {
+			const items = [
+				{
+					id: '1',
+					startedAt: '2025-10-25T09:00:00.000Z',
+					endedAt: '2025-10-25T10:30:00.000Z',
+					description: 'テスト作業'
+				}
+			];
+
+			render(WorkLogList, {
+				props: {
+					items,
+					serverNow
+				}
+			});
+
+			const editButton = screen.getByLabelText('編集');
+			const deleteButton = screen.getByLabelText('削除');
+
+			expect(editButton).toBeInTheDocument();
+			expect(deleteButton).toBeInTheDocument();
+			expect(deleteButton).toHaveClass('btn-error');
+		});
+
+		it('進行中の作業には編集ボタンと削除ボタンが表示されない', () => {
+			const items = [
+				{
+					id: '1',
+					startedAt: '2025-10-25T09:00:00.000Z',
+					endedAt: null,
+					description: 'テスト作業'
+				}
+			];
+
+			render(WorkLogList, {
+				props: {
+					items,
+					serverNow
+				}
+			});
+
+			const editButton = screen.queryByLabelText('編集');
+			const deleteButton = screen.queryByLabelText('削除');
+
+			expect(editButton).not.toBeInTheDocument();
+			expect(deleteButton).not.toBeInTheDocument();
+		});
+
+		it('複数の完了した作業がある場合、それぞれに編集ボタンと削除ボタンが表示される', () => {
+			const items = [
+				{
+					id: '1',
+					startedAt: '2025-10-25T09:00:00.000Z',
+					endedAt: '2025-10-25T10:30:00.000Z',
+					description: 'テスト作業1'
+				},
+				{
+					id: '2',
+					startedAt: '2025-10-25T11:00:00.000Z',
+					endedAt: '2025-10-25T12:00:00.000Z',
+					description: 'テスト作業2'
+				}
+			];
+
+			render(WorkLogList, {
+				props: {
+					items,
+					serverNow
+				}
+			});
+
+			const editButtons = screen.getAllByLabelText('編集');
+			const deleteButtons = screen.getAllByLabelText('削除');
+
+			expect(editButtons).toHaveLength(2);
+			expect(deleteButtons).toHaveLength(2);
+		});
+	});
 });

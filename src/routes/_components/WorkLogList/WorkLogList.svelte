@@ -3,7 +3,6 @@
 	import classNames from 'classnames';
 	import { fade } from 'svelte/transition';
 	import WorkLogDetailDialog from '../WorkLogDetailDialog/WorkLogDetailDialog.svelte';
-	import { createEventDispatcher } from 'svelte';
 
 	type Props = {
 		items: Array<{
@@ -13,14 +12,11 @@
 			description: string; // 作業内容
 		}>;
 		serverNow: string; // ISO（進行中の作業時間計算用）
+		onedit?: (item: Props['items'][number]) => void;
+		ondelete?: (item: Props['items'][number]) => void;
 	};
 
-	let { items, serverNow }: Props = $props();
-
-	// 親へイベントを通知
-	const dispatch = createEventDispatcher<{
-		edit: { item: Props['items'][number] };
-	}>();
+	let { items, serverNow, onedit, ondelete }: Props = $props();
 
 	// 選択されたアイテム
 	let selectedItem: (typeof items)[0] | null = $state(null);
@@ -34,7 +30,12 @@
 
 	// 編集ボタン
 	const handleEditClick = (item: (typeof items)[0]) => {
-		dispatch('edit', { item });
+		onedit?.(item);
+	};
+
+	// 削除ボタン
+	const handleDeleteClick = (item: (typeof items)[0]) => {
+		ondelete?.(item);
 	};
 
 	// ダイアログを閉じる
@@ -101,7 +102,7 @@
 						<div class="text-right">{formatTime(item.startedAt)}</div>
 						<div class="text-right">{item.endedAt ? formatTime(item.endedAt) : '—'}</div>
 						<div class="text-right">{duration !== null ? formatDuration(duration) : '—'}</div>
-						<div class="row-span-2 flex flex-row items-center justify-center">
+						<div class="row-span-2 flex flex-col items-center justify-center gap-1">
 							{#if !isActive}
 								<!-- 完了済みのみ 編集ボタン -->
 								<button
@@ -114,6 +115,18 @@
 									aria-label="編集"
 								>
 									✏️
+								</button>
+								<!-- 完了済みのみ 削除ボタン -->
+								<button
+									type="button"
+									class="btn btn-ghost btn-xs btn-error"
+									onclick={(e) => {
+										e.stopPropagation();
+										handleDeleteClick(item);
+									}}
+									aria-label="削除"
+								>
+									🗑️
 								</button>
 							{/if}
 						</div>

@@ -19,7 +19,7 @@
 	<!-- スケルトン行 -->
 	<div class="space-y-2 py-2">
 		{#each Array(rows) as _, i (i)}
-			<div class="rounded border-b border-base-content/10 p-3">
+			<div class="rounded border-b border-base-content/10 p-3" role="row">
 				<div class="worklog-header-grid">
 					<div class="row-span-2">
 						<div class="h-4 w-full skeleton"></div>

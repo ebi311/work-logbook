@@ -22,6 +22,27 @@
 <script lang="ts">
 	const serverNow = '2025-10-25T12:00:00.000Z';
 
+	// コールバック関数（Storybook用）
+	const handleEdit = (item: {
+		id: string;
+		startedAt: string;
+		endedAt: string | null;
+		description: string;
+	}) => {
+		console.log('Edit clicked:', item);
+		alert(`編集: ${item.description}`);
+	};
+
+	const handleDelete = (item: {
+		id: string;
+		startedAt: string;
+		endedAt: string | null;
+		description: string;
+	}) => {
+		console.log('Delete clicked:', item);
+		alert(`削除: ${item.description}`);
+	};
+
 	// 終了済み作業のサンプルデータ
 	const completedItems = [
 		{
@@ -70,16 +91,25 @@
 </script>
 
 <!-- デフォルト: 終了済み作業のみ -->
-<Story name="Default" args={{ items: completedItems, serverNow }} />
+<Story
+	name="Default"
+	args={{ items: completedItems, serverNow, onedit: handleEdit, ondelete: handleDelete }}
+/>
 
 <!-- 空のリスト -->
 <Story name="Empty" args={{ items: [], serverNow }} />
 
 <!-- 進行中の作業を含む -->
-<Story name="WithActiveWork" args={{ items: mixedItems, serverNow }} />
+<Story
+	name="WithActiveWork"
+	args={{ items: mixedItems, serverNow, onedit: handleEdit, ondelete: handleDelete }}
+/>
 
 <!-- 多数の作業 -->
-<Story name="ManyItems" args={{ items: manyItems, serverNow }} />
+<Story
+	name="ManyItems"
+	args={{ items: manyItems, serverNow, onedit: handleEdit, ondelete: handleDelete }}
+/>
 
 <!-- 1件のみ（終了済み） -->
 <Story
@@ -93,7 +123,9 @@
 				description: 'テスト実装とドキュメント作成'
 			}
 		],
-		serverNow
+		serverNow,
+		onedit: handleEdit,
+		ondelete: handleDelete
 	}}
 />
 

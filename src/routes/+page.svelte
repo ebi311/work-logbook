@@ -117,7 +117,7 @@
 		if ('ok' in form && form.ok) {
 			if (!('workLog' in form)) return;
 
-			if (form.workLog.endedAt === null) {
+			if (form.workLog?.endedAt === null) {
 				handleStartSuccess(form);
 			} else {
 				// durationSec が存在するのは stop 成功時
@@ -224,6 +224,12 @@
 		console.log('handleEditUpdate called');
 		await refreshAll();
 	};
+
+	// F-004: 削除処理
+	const handleDeleteClick = (item: ListItem) => {
+		// TODO: 削除確認と削除処理を実装
+		console.log('Delete clicked:', item);
+	};
 </script>
 
 <div class="mx-auto prose h-full w-xl bg-base-300 py-16">
@@ -286,7 +292,8 @@
 				<WorkLogList
 					items={listData.items}
 					serverNow={currentServerNow}
-					on:edit={(e) => openEditModal(e.detail.item)}
+					onedit={(item) => openEditModal(item)}
+					ondelete={(item) => handleDeleteClick(item)}
 				/>
 
 				<!-- フッター: 月次合計とページネーション -->

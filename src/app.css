@@ -4,3 +4,8 @@
 /* Material Symbols */
 @import '@material-symbols/font-400/outlined.css';
 @import '@material-symbols/font-400/rounded.css';
+
+/* WorkLogList 共通グリッドレイアウト */
+.worklog-header-grid {
+	@apply grid grid-cols-[6em_1fr_1fr_1fr_2em] gap-2 px-3 py-2 text-sm;
+}

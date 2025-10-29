@@ -54,7 +54,7 @@
 			'border-b',
 			'border-base-content/10',
 			'cursor-pointer',
-			'hover:bg-base-200',
+			'hover:bg-accent/10',
 			{
 				'bg-accent text-accent-content hover:bg-accent/90': item.endedAt === null
 			}
@@ -67,13 +67,12 @@
 		<div class="py-8 text-center text-base-content/60">データがありません</div>
 	{:else}
 		<!-- ヘッダー -->
-		<div
-			class="grid grid-cols-[6em_1fr_1fr_1fr] gap-2 border-b-2 border-base-content/10 px-3 py-2 text-sm font-semibold"
-		>
+		<div class="worklog-header-grid border-b-2 border-base-content/20 font-semibold">
 			<div>日付</div>
 			<div class="text-right">開始</div>
 			<div class="text-right">終了</div>
 			<div class="text-right">作業時間</div>
+			<div></div>
 		</div>
 
 		<!-- データ行 -->
@@ -97,21 +96,12 @@
 					aria-label={`${formatDate(item.startedAt)}の作業詳細を表示`}
 				>
 					<!-- 1行目: 日付・時刻・作業時間 -->
-					<div class="grid grid-cols-[6em_1fr_1fr_1fr] gap-2 text-sm">
+					<div class="worklog-header-grid">
 						<div class="row-span-2">{formatDate(item.startedAt)}</div>
 						<div class="text-right">{formatTime(item.startedAt)}</div>
 						<div class="text-right">{item.endedAt ? formatTime(item.endedAt) : '—'}</div>
 						<div class="text-right">{duration !== null ? formatDuration(duration) : '—'}</div>
-						<!-- 2行目: 作業内容 -->
-						<div
-							class="col-span-3 mt-2 flex items-start justify-between gap-2 text-sm text-base-content/80"
-						>
-							{#if item.description}
-								<div class="line-clamp-2">{item.description}</div>
-							{:else}
-								<span class="text-base-content/40">—</span>
-							{/if}
-
+						<div class="row-span-2 flex flex-row items-center justify-center">
 							{#if !isActive}
 								<!-- 完了済みのみ 編集ボタン -->
 								<button
@@ -123,8 +113,16 @@
 									}}
 									aria-label="編集"
 								>
-									編集
+									✏️
 								</button>
+							{/if}
+						</div>
+						<!-- 2行目: 作業内容 -->
+						<div class="col-span-3 mt-2 flex items-start justify-between gap-2 text-sm">
+							{#if item.description}
+								<div class="line-clamp-2">{item.description}</div>
+							{:else}
+								<span class="text-base-content/40">—</span>
 							{/if}
 						</div>
 					</div>

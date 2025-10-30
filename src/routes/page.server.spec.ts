@@ -76,6 +76,7 @@ describe('Server Actions: load', () => {
 				startedAt: startedAt.toISOString(),
 				endedAt: null,
 				description: '',
+				tags: [],
 			});
 			expect(result?.serverNow).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
 			expect(getActiveWorkLog).toHaveBeenCalledWith(testUserId);

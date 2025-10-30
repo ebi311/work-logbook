@@ -107,7 +107,11 @@ describe('WorkLog タグ関連関数', () => {
 
 			const result = await getUserTagSuggestions(mockUserId, '開', 5);
 
-			expect(result).toEqual(['開発', 'バグ修正', 'レビュー']);
+			expect(result).toEqual([
+				{ tag: '開発', count: 5 },
+				{ tag: 'バグ修正', count: 3 },
+				{ tag: 'レビュー', count: 2 },
+			]);
 		});
 
 		it('TC2: 正常系 - queryが空文字の場合は全てのタグを返す', async () => {
@@ -134,9 +138,11 @@ describe('WorkLog タグ関連関数', () => {
 
 			const result = await getUserTagSuggestions(mockUserId, '', 10);
 
-			expect(result).toEqual(['開発', 'バグ修正']);
+			expect(result).toEqual([
+				{ tag: '開発', count: 5 },
+				{ tag: 'バグ修正', count: 3 },
+			]);
 		});
-
 		it('TC3: 正常系 - 結果が0件の場合は空配列を返す', async () => {
 			const selectMock = {
 				from: vi.fn().mockReturnValue({

@@ -123,6 +123,7 @@ describe('Server Actions: start', () => {
 				startedAt: startedAt.toISOString(),
 				endedAt: null,
 				description: '',
+				tags: [],
 			});
 			expect(createWorkLog).not.toHaveBeenCalled();
 		});

@@ -301,13 +301,13 @@ export const getWorkLogTags = async (workLogId: string): Promise<string[]> => {
  * @param userId - ユーザーID
  * @param query - 検索クエリ（部分一致）
  * @param limit - 取得件数
- * @returns タグ配列
+ * @returns タグと使用回数のリスト
  */
 export const getUserTagSuggestions = async (
 	userId: string,
 	query: string,
 	limit: number
-): Promise<string[]> => {
+): Promise<{ tag: string; count: number }[]> => {
 	// work_log_tags を work_logs と JOIN して、そのユーザーが使用したタグのみを取得
 	// GROUP BY で重複を除外し、tag で部分一致検索、使用回数でソート
 	const conditions = [eq(workLogs.userId, userId)];
@@ -328,7 +328,7 @@ export const getUserTagSuggestions = async (
 		.orderBy(desc(sql`count`), workLogTags.tag)
 		.limit(limit);
 
-	return results.map((r) => r.tag);
+	return results.map((r) => ({ tag: r.tag, count: Number(r.count) }));
 };
 
 /**

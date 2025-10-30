@@ -40,11 +40,8 @@ export const handleStopAction = async ({ locals, request }: RequestEvent) => {
 	// FormDataから description と tags を取得
 	const formData = await request.formData();
 	const description = (formData.get('description') as string) || '';
-	const tagsString = (formData.get('tags') as string) || '';
-	const tags = tagsString
-		.split(/\s+/)
-		.map((t) => t.trim())
-		.filter((t) => t.length > 0);
+	// タグは複数の同名フィールドとして送信される
+	const tags = formData.getAll('tags').filter((t): t is string => typeof t === 'string');
 
 	// タグの正規化とバリデーション
 	let normalizedTags: string[] = [];

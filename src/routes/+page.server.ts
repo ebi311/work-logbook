@@ -93,6 +93,7 @@ type ActiveWorkLog = {
 	startedAt: string;
 	endedAt: null;
 	description: string;
+	tags: string[];
 };
 
 type WorkLogItem = {
@@ -115,7 +116,7 @@ type LoadData = {
 		monthlyTotalSec: number;
 	}>;
 	// F-003: タグ候補
-	tagSuggestions?: string[];
+	tagSuggestions: { tag: string; count: number }[];
 };
 
 export const load: ServerLoad = async ({ locals, url }) => {
@@ -153,7 +154,8 @@ export const load: ServerLoad = async ({ locals, url }) => {
 				id: activeWorkLog.id,
 				startedAt: activeWorkLog.startedAt.toISOString(),
 				endedAt: null,
-				description: activeWorkLog.description
+				description: activeWorkLog.description,
+				tags: activeWorkLog.tags || []
 			};
 		}
 		return response;

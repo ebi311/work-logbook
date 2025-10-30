@@ -8,6 +8,7 @@
 	import WorkLogListSkeleton from './_components/WorkLogList/WorkLogListSkeleton.svelte';
 	import MonthlyTotal from './_components/MonthlyTotal/MonthlyTotal.svelte';
 	import Pagination from './_components/Pagination/Pagination.svelte';
+	import TagInput from './_components/TagInput/TagInput.svelte';
 	import { enhance } from '$app/forms';
 	import WorkLogEditModal from './_components/WorkLogEditModal/WorkLogEditModal.svelte';
 	import { invalidate, invalidateAll, refreshAll } from '$app/navigation';
@@ -34,8 +35,10 @@
 
 	// 作業内容の入力値（currentActiveが変更されたら同期）
 	let description = $state('');
+	let tags = $state<string[]>([]);
 	$effect(() => {
 		description = currentActive?.description || '';
+		tags = currentActive?.tags || [];
 	});
 
 	// 作業開始成功時の処理
@@ -276,6 +279,15 @@
 						rows="3"
 						disabled={isSubmitting}
 					></textarea>
+				</div>
+
+				<!-- タグ入力フィールド -->
+				<div class="form-control flex w-full flex-col">
+					<TagInput bind:tags suggestions={data.tagSuggestions} placeholder="例: 開発 PJ-A" />
+					<!-- 隠しフィールドでタグを送信 -->
+					{#each tags as tag}
+						<input type="hidden" name="tags" value={tag} />
+					{/each}
 				</div>
 
 				<WorkLogToggleButton

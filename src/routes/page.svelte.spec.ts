@@ -50,6 +50,25 @@ describe('/+page.svelte', () => {
 			monthlyTotalSec: 0
 		});
 
+	// テストデータヘルパー: デフォルトのdataオブジェクトを生成
+	const createDefaultData = (overrides?: any) => ({
+		active: undefined,
+		serverNow,
+		listData: createDefaultListData(),
+		tagSuggestions: [],
+		...overrides
+	});
+
+	// テストデータヘルパー: activeWorkLogを生成
+	const createActiveWorkLog = (overrides?: any) => ({
+		id: 'test-id',
+		startedAt: serverNow,
+		endedAt: null,
+		description: 'テスト作業中',
+		tags: [],
+		...overrides
+	});
+
 	describe('停止中の状態', () => {
 		it('「停止中」のステータスが表示される', () => {
 			render(Page, {
@@ -189,23 +208,23 @@ describe('/+page.svelte', () => {
 					id: 'new-work-log-id',
 					startedAt: newServerNow,
 					endedAt: null,
-					description: 'テスト作業中'
+					description: 'テスト作業中',
+					tags: []
 				};
 
 				rerender({
 					data: {
 						active: undefined,
 						serverNow,
-						listData: createDefaultListData()
+						listData: createDefaultListData(),
+						tagSuggestions: []
 					},
 					form: {
 						ok: true,
 						workLog: newActive,
 						serverNow: newServerNow
 					}
-				});
-
-				// 新しい状態: 記録中（リアクティビティの更新を待つ）
+				}); // 新しい状態: 記録中（リアクティビティの更新を待つ）
 				await waitFor(() => {
 					expect(screen.getByText(/記録中/)).toBeInTheDocument();
 				});

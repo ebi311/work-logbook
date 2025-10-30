@@ -21,7 +21,9 @@ vi.mock('$lib/server/db/workLogs', () => ({
 	aggregateMonthlyWorkLogDuration: vi.fn(),
 	getWorkLogById: vi.fn(),
 	updateWorkLog: vi.fn(),
-	deleteWorkLog: vi.fn()
+	deleteWorkLog: vi.fn(),
+	saveWorkLogTags: vi.fn(),
+	getUserTagSuggestions: vi.fn()
 }));
 
 import { load, actions } from './+page.server';
@@ -33,7 +35,9 @@ import {
 	aggregateMonthlyWorkLogDuration,
 	getWorkLogById,
 	updateWorkLog,
-	deleteWorkLog
+	deleteWorkLog,
+	saveWorkLogTags,
+	getUserTagSuggestions
 } from '$lib/server/db/workLogs';
 import type { ServerLoadEvent } from '@sveltejs/kit';
 
@@ -63,6 +67,7 @@ describe('Server Actions: load', () => {
 			vi.mocked(getActiveWorkLog).mockResolvedValue(mockWorkLog);
 			vi.mocked(listWorkLogs).mockResolvedValue({ items: [], hasNext: false });
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(0);
+			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
 
 			// モック: locals と URL
 			const locals = {
@@ -104,6 +109,7 @@ describe('Server Actions: load', () => {
 			vi.mocked(getActiveWorkLog).mockResolvedValue(null);
 			vi.mocked(listWorkLogs).mockResolvedValue({ items: [], hasNext: false });
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(0);
+			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
 
 			// モック: locals と URL
 			const locals = {
@@ -229,7 +235,8 @@ describe('Server Actions: start', () => {
 				id: testWorkLogId,
 				startedAt: startedAt.toISOString(),
 				endedAt: null,
-				description: ''
+				description: '',
+				tags: []
 			});
 			expect(result?.serverNow).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
 			expect(createWorkLog).toHaveBeenCalledWith(testUserId, expect.any(Date), '');
@@ -410,6 +417,7 @@ describe('Server Actions: stop', () => {
 				getDuration: () => durationSec
 			} as WorkLog;
 			vi.mocked(stopWorkLog).mockResolvedValue(mockStoppedWorkLog);
+			vi.mocked(saveWorkLogTags).mockResolvedValue();
 
 			// モック: locals
 			const locals = {
@@ -438,7 +446,8 @@ describe('Server Actions: stop', () => {
 				id: testWorkLogId,
 				startedAt: startedAt.toISOString(),
 				endedAt: endedAt.toISOString(),
-				description: 'Updated description'
+				description: 'Updated description',
+				tags: []
 			});
 			expect(result?.serverNow).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
 			expect(stopWorkLog).toHaveBeenCalledWith(
@@ -629,6 +638,7 @@ describe('Server Actions: stop', () => {
 				getDuration: () => durationSec
 			} as WorkLog;
 			vi.mocked(stopWorkLog).mockResolvedValue(mockStoppedWorkLog);
+			vi.mocked(saveWorkLogTags).mockResolvedValue();
 
 			// モック: locals
 			const locals = {
@@ -687,6 +697,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 
 			// モック: 月次合計
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(7200); // 2時間
+			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
 
 			// モック: locals
 			const locals = {
@@ -728,6 +739,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 
 			// モック: 月次合計
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(3600); // 1時間
+			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
 
 			// モック: locals
 			const locals = {
@@ -766,6 +778,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 
 			// モック: 月次合計
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(0);
+			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
 
 			// モック: locals
 			const locals = {

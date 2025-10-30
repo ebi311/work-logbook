@@ -8,10 +8,13 @@ import {
 	aggregateMonthlyWorkLogDuration,
 	getWorkLogById,
 	updateWorkLog,
-	deleteWorkLog
+	deleteWorkLog,
+	saveWorkLogTags,
+	getUserTagSuggestions
 } from '$lib/server/db/workLogs';
 import { normalizeWorkLogQuery } from '$lib/utils/queryNormalizer';
 import { validateTimeRange, validateDescription } from '$lib/utils/validation';
+import { normalizeTags } from '../models/workLog';
 
 /**
  * URLからクエリパラメータをパース
@@ -115,6 +118,8 @@ type LoadData = {
 		hasNext: boolean;
 		monthlyTotalSec: number;
 	}>;
+	// F-003: タグ候補
+	tagSuggestions?: string[];
 };
 
 export const load: ServerLoad = async ({ locals, url }) => {
@@ -134,13 +139,17 @@ export const load: ServerLoad = async ({ locals, url }) => {
 		const activeWorkLog = await getActiveWorkLog(userId);
 		const serverNow = new Date().toISOString();
 
+		// F-003: タグ候補を取得（最大20件）
+		const tagSuggestions = await getUserTagSuggestions(userId, '', 20);
+
 		// 重いデータ: 一覧と月次合計（Promiseのまま返してストリーミング）
 		const listData = fetchListData(userId, normalized);
 
 		// レスポンス構築（軽量データ + Promise）
 		const response: LoadData = {
 			serverNow,
-			listData
+			listData,
+			tagSuggestions // F-003: タグ候補を追加
 		};
 
 		if (activeWorkLog) {
@@ -160,6 +169,7 @@ export const load: ServerLoad = async ({ locals, url }) => {
 
 /**
  * F-001: 作業開始
+ * F-003: タグ付き
  */
 
 type StartActionSuccess = {
@@ -169,6 +179,7 @@ type StartActionSuccess = {
 		startedAt: string;
 		endedAt: null;
 		description: string;
+		tags?: string[]; // F-003: オプショナルなタグ配列
 	};
 	serverNow: string;
 };
@@ -195,9 +206,27 @@ const handleStartAction = async ({ locals, request }: RequestEvent) => {
 	const userId = locals.user.id;
 	const serverNow = new Date();
 
-	// FormDataから description を取得
+	// FormDataから description と tags を取得
 	const formData = await request.formData();
 	const description = (formData.get('description') as string) || '';
+	const tagsString = (formData.get('tags') as string) || '';
+	const tags = tagsString
+		.split(/\s+/)
+		.map((t) => t.trim())
+		.filter((t) => t.length > 0);
+
+	// タグの正規化とバリデーション
+	let normalizedTags: string[] = [];
+	try {
+		normalizedTags = normalizeTags(tags);
+	} catch (err) {
+		return fail(400, {
+			ok: false,
+			reason: 'INVALID_TAGS',
+			message: err instanceof Error ? err.message : 'タグが無効です',
+			serverNow: serverNow.toISOString()
+		});
+	}
 
 	// 進行中の作業を確認
 	const activeWorkLog = await getActiveWorkLog(userId);
@@ -219,13 +248,19 @@ const handleStartAction = async ({ locals, request }: RequestEvent) => {
 	// 新規作業を開始
 	const workLog = await createWorkLog(userId, serverNow, description);
 
+	// タグを保存（F-003）
+	if (normalizedTags.length > 0) {
+		await saveWorkLogTags(workLog.id, normalizedTags);
+	}
+
 	return {
 		ok: true,
 		workLog: {
 			id: workLog.id,
 			startedAt: workLog.startedAt.toISOString(),
 			endedAt: null,
-			description: workLog.description
+			description: workLog.description,
+			tags: normalizedTags // F-003: タグを含める
 		},
 		serverNow: serverNow.toISOString()
 	} satisfies StartActionSuccess;
@@ -233,6 +268,7 @@ const handleStartAction = async ({ locals, request }: RequestEvent) => {
 
 /**
  * F-001: 作業終了
+ * F-003: タグ付き
  */
 
 type StopActionSuccess = {
@@ -242,6 +278,7 @@ type StopActionSuccess = {
 		startedAt: string;
 		endedAt: string;
 		description: string;
+		tags?: string[]; // F-003: オプショナルなタグ配列
 	};
 	serverNow: string;
 	durationSec: number;
@@ -263,9 +300,27 @@ const handleStopAction = async ({ locals, request }: RequestEvent) => {
 	const userId = locals.user.id;
 	const serverNow = new Date();
 
-	// FormDataから description を取得
+	// FormDataから description と tags を取得
 	const formData = await request.formData();
 	const description = (formData.get('description') as string) || '';
+	const tagsString = (formData.get('tags') as string) || '';
+	const tags = tagsString
+		.split(/\s+/)
+		.map((t) => t.trim())
+		.filter((t) => t.length > 0);
+
+	// タグの正規化とバリデーション
+	let normalizedTags: string[] = [];
+	try {
+		normalizedTags = normalizeTags(tags);
+	} catch (err) {
+		return fail(400, {
+			ok: false,
+			reason: 'INVALID_TAGS',
+			message: err instanceof Error ? err.message : 'タグが無効です',
+			serverNow: serverNow.toISOString()
+		});
+	}
 
 	// 進行中の作業を取得
 	const activeWorkLog = await getActiveWorkLog(userId);
@@ -289,6 +344,9 @@ const handleStopAction = async ({ locals, request }: RequestEvent) => {
 		} satisfies StopActionFailure);
 	}
 
+	// タグを保存（F-003）
+	await saveWorkLogTags(stoppedWorkLog.id, normalizedTags);
+
 	// 作業時間を計算
 	const durationSec = stoppedWorkLog.getDuration();
 
@@ -304,7 +362,8 @@ const handleStopAction = async ({ locals, request }: RequestEvent) => {
 			id: stoppedWorkLog.id,
 			startedAt: stoppedWorkLog.startedAt.toISOString(),
 			endedAt: stoppedWorkLog.endedAt!.toISOString(),
-			description: stoppedWorkLog.description
+			description: stoppedWorkLog.description,
+			tags: normalizedTags // F-003: タグを含める
 		},
 		serverNow: serverNow.toISOString(),
 		durationSec

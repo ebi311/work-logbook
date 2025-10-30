@@ -27,6 +27,7 @@ export type StartActionFailure = {
 		startedAt: string;
 		endedAt: null;
 		description: string;
+		tags: string[];
 	};
 	serverNow: string;
 };
@@ -72,7 +73,8 @@ export const handleStartAction = async ({ locals, request }: RequestEvent) => {
 				id: activeWorkLog.id,
 				startedAt: activeWorkLog.startedAt.toISOString(),
 				endedAt: null,
-				description: activeWorkLog.description
+				description: activeWorkLog.description,
+				tags: activeWorkLog.tags || []
 			},
 			serverNow: serverNow.toISOString()
 		} satisfies StartActionFailure);

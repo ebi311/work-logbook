@@ -56,6 +56,8 @@
 	const handleStopSuccess = (form: NonNullable<ActionData>) => {
 		if (!('workLog' in form) || !form.workLog) return;
 		currentActive = undefined;
+		// タグをクリア
+		tags = [];
 		const duration =
 			'durationSec' in form && typeof form.durationSec === 'number'
 				? Math.floor(form.durationSec / 60)
@@ -71,7 +73,10 @@
 		ACTIVE_EXISTS: (form) => {
 			// 409エラー: 既に進行中の作業がある
 			if ('active' in form && 'serverNow' in form && form.active) {
-				currentActive = form.active;
+				currentActive = {
+					...form.active,
+					tags: form.active.tags || []
+				};
 				currentServerNow = form.serverNow;
 			}
 			toastError('既に作業が進行中です');

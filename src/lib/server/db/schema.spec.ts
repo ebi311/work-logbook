@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { users, workLogs } from './schema';
+import { users, workLogs, workLogTags } from './schema';
 import { getTableColumns, getTableName } from 'drizzle-orm';
 
 describe('Database Schema - Users Table', () => {
@@ -82,5 +82,46 @@ describe('Database Schema - WorkLogs Table', () => {
 		expect(columns.description).toBeDefined();
 		expect(columns.description.notNull).toBe(true);
 		expect(columns.description.hasDefault).toBe(true);
+	});
+});
+
+describe('Database Schema - WorkLogTags Table', () => {
+	it('work_log_tagsテーブルが正しい名前で定義されている', () => {
+		expect(getTableName(workLogTags)).toBe('work_log_tags');
+	});
+
+	it('work_log_tagsテーブルが必要なカラムを持っている', () => {
+		const columns = getTableColumns(workLogTags);
+
+		expect(columns.id).toBeDefined();
+		expect(columns.workLogId).toBeDefined();
+		expect(columns.tag).toBeDefined();
+		expect(columns.createdAt).toBeDefined();
+	});
+
+	it('idカラムがserial型のプライマリーキーである', () => {
+		const columns = getTableColumns(workLogTags);
+		expect(columns.id.primary).toBe(true);
+		expect(columns.id.dataType).toBe('number');
+	});
+
+	it('workLogIdカラムがNOT NULLでwork_logsテーブルへの参照を持つ', () => {
+		const columns = getTableColumns(workLogTags);
+		expect(columns.workLogId).toBeDefined();
+		expect(columns.workLogId.notNull).toBe(true);
+	});
+
+	it('tagカラムがvarchar(100)でNOT NULLである', () => {
+		const columns = getTableColumns(workLogTags);
+		expect(columns.tag).toBeDefined();
+		expect(columns.tag.notNull).toBe(true);
+		expect(columns.tag.dataType).toBe('string');
+	});
+
+	it('createdAtカラムがNOT NULLでデフォルト値を持つ', () => {
+		const columns = getTableColumns(workLogTags);
+		expect(columns.createdAt).toBeDefined();
+		expect(columns.createdAt.notNull).toBe(true);
+		expect(columns.createdAt.hasDefault).toBe(true);
 	});
 });

@@ -46,6 +46,7 @@
 		"@types/node": "^22",
 		"@vitest/browser": "^3.2.4",
 		"@zerodevx/svelte-toast": "^0.9.6",
+		"dotenv": "^17.2.3",
 		"drizzle-kit": "^0.31.4",
 		"drizzle-orm": "^0.44.5",
 		"eslint": "^9.36.0",

@@ -1,4 +1,14 @@
-import { pgTable, text, boolean, uuid, timestamp, uniqueIndex, serial, varchar, index } from 'drizzle-orm/pg-core';
+import {
+	pgTable,
+	text,
+	boolean,
+	uuid,
+	timestamp,
+	uniqueIndex,
+	serial,
+	varchar,
+	index
+} from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 // NF-001: ユーザーテーブル
@@ -44,9 +54,7 @@ export const workLogTags = pgTable(
 			.notNull()
 			.references(() => workLogs.id, { onDelete: 'cascade' }),
 		tag: varchar('tag', { length: 100 }).notNull(),
-		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
-			.notNull()
-			.defaultNow()
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow()
 	},
 	(table) => [
 		// 同じ作業に同じタグを重複して付けられないようにする

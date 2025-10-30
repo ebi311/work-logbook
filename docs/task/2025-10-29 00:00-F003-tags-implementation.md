@@ -39,9 +39,7 @@ export const workLogTags = pgTable(
 			.notNull()
 			.references(() => workLogs.id, { onDelete: 'cascade' }),
 		tag: varchar('tag', { length: 100 }).notNull(),
-		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
-			.notNull()
-			.defaultNow()
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow()
 	},
 	(table) => [
 		// 同じ作業に同じタグを重複して付けられないようにする
@@ -118,23 +116,25 @@ describe('workLogTags schema', () => {
 
 ```typescript
 // 既存のスキーマに tags を追加
-const WorkLogSchema = z.object({
-	id: z.string().uuid(),
-	userId: z.string().uuid(),
-	startedAt: z.date(),
-	endedAt: z.date().nullable(),
-	description: z.string(),
-	tags: z.array(z.string()).default([]), // 追加
-	createdAt: z.date(),
-	updatedAt: z.date()
-}).refine(
-	(data) => {
-		// 既存のバリデーション: endedAt が startedAt より後であること
-		if (data.endedAt === null) return true;
-		return data.endedAt > data.startedAt;
-	},
-	{ message: 'endedAt must be after startedAt' }
-);
+const WorkLogSchema = z
+	.object({
+		id: z.string().uuid(),
+		userId: z.string().uuid(),
+		startedAt: z.date(),
+		endedAt: z.date().nullable(),
+		description: z.string(),
+		tags: z.array(z.string()).default([]), // 追加
+		createdAt: z.date(),
+		updatedAt: z.date()
+	})
+	.refine(
+		(data) => {
+			// 既存のバリデーション: endedAt が startedAt より後であること
+			if (data.endedAt === null) return true;
+			return data.endedAt > data.startedAt;
+		},
+		{ message: 'endedAt must be after startedAt' }
+	);
 ```
 
 #### 2-2: タグの正規化関数
@@ -447,7 +447,9 @@ export const getUserTagSuggestions = async (
 /**
  * 進行中の作業記録を取得（タグ付き）
  */
-export const getActiveWorkLog = async (userId: string): Promise<(DbWorkLog & { tags: string[] }) | null> => {
+export const getActiveWorkLog = async (
+	userId: string
+): Promise<(DbWorkLog & { tags: string[] }) | null> => {
 	const workLog = await db
 		.select()
 		.from(workLogs)
@@ -613,7 +615,7 @@ export const load = async ({ locals }) => {
 					endedAt: null,
 					description: activeWorkLog.description,
 					tags: activeWorkLog.tags // 追加
-			  }
+				}
 			: undefined,
 		serverNow: new Date().toISOString(),
 		tagSuggestions: tagSuggestionsData // 追加
@@ -837,15 +839,10 @@ it('suggestTags がタグ候補を返す', async () => {
 	export let clickable = false;
 </script>
 
-<span class="badge badge-primary badge-sm gap-1">
+<span class="badge gap-1 badge-sm badge-primary">
 	{tag}
 	{#if onRemove}
-		<button
-			type="button"
-			class="btn btn-ghost btn-xs"
-			on:click={onRemove}
-			aria-label="タグを削除"
-		>
+		<button type="button" class="btn btn-ghost btn-xs" on:click={onRemove} aria-label="タグを削除">
 			✕
 		</button>
 	{/if}
@@ -962,7 +959,7 @@ it('suggestTags がタグ候補を返す', async () => {
 
 	<!-- タグバッジ表示 -->
 	{#if tags.length > 0}
-		<div class="flex flex-wrap gap-1 mb-2">
+		<div class="mb-2 flex flex-wrap gap-1">
 			{#each tags as tag, i}
 				<TagBadge {tag} onRemove={() => removeTag(i)} />
 			{/each}
@@ -974,7 +971,7 @@ it('suggestTags がタグ候補を返す', async () => {
 		<input
 			id="tag-input"
 			type="text"
-			class="input input-bordered w-full"
+			class="input-bordered input w-full"
 			{placeholder}
 			bind:value={inputValue}
 			on:input={handleInput}
@@ -989,7 +986,7 @@ it('suggestTags がタグ候補を返す', async () => {
 
 		<!-- サジェスト -->
 		{#if showSuggestions && filteredSuggestions.length > 0}
-			<ul class="menu bg-base-200 rounded-box absolute z-10 w-full mt-1 shadow-lg">
+			<ul class="menu absolute z-10 mt-1 w-full rounded-box bg-base-200 shadow-lg">
 				{#each filteredSuggestions as suggestion, i}
 					<li>
 						<button
@@ -1055,7 +1052,7 @@ it('suggestTags がタグ候補を返す', async () => {
 
 		<!-- タグ表示 -->
 		{#if workLog.tags && workLog.tags.length > 0}
-			<div class="flex flex-wrap gap-1 mt-2">
+			<div class="mt-2 flex flex-wrap gap-1">
 				{#each workLog.tags as tag}
 					<TagBadge {tag} clickable />
 				{/each}

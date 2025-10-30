@@ -5,7 +5,8 @@ import {
 	startWorkLogResponseSchema,
 	errorResponseSchema,
 	validateWorkLog,
-	isWorkLog
+	isWorkLog,
+	normalizeTags
 } from './workLog';
 
 describe('WorkLog ドメインモデル', () => {
@@ -346,6 +347,7 @@ describe('WorkLog ドメインモデル', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: null,
 				description: '',
+				tags: [], // F-003: タグ配列を追加
 				createdAt: new Date('2025-10-20T12:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T12:00:00.000Z')
 			};
@@ -498,6 +500,247 @@ describe('WorkLog ドメインモデル', () => {
 			});
 
 			expect(workLog.isActive()).toBe(false);
+		});
+	});
+});
+
+describe('normalizeTags 関数', () => {
+	describe('正常系', () => {
+		it('タグの配列をそのまま返す', () => {
+			const tags = ['tag1', 'tag2', 'tag3'];
+			const result = normalizeTags(tags);
+			expect(result).toEqual(tags);
+		});
+
+		it('前後の空白をトリミングする', () => {
+			const tags = ['  tag1  ', ' tag2 ', 'tag3'];
+			const result = normalizeTags(tags);
+			expect(result).toEqual(['tag1', 'tag2', 'tag3']);
+		});
+
+		it('空文字列のタグを除外する', () => {
+			const tags = ['tag1', '', '  ', 'tag2'];
+			const result = normalizeTags(tags);
+			expect(result).toEqual(['tag1', 'tag2']);
+		});
+
+		it('重複したタグを削除する', () => {
+			const tags = ['tag1', 'tag2', 'tag1', 'tag3', 'tag2'];
+			const result = normalizeTags(tags);
+			expect(result).toEqual(['tag1', 'tag2', 'tag3']);
+		});
+
+		it('空配列を受け取った場合は空配列を返す', () => {
+			const result = normalizeTags([]);
+			expect(result).toEqual([]);
+		});
+
+		it('トリミング後の重複も削除する', () => {
+			const tags = ['tag1', '  tag1  ', 'tag2'];
+			const result = normalizeTags(tags);
+			expect(result).toEqual(['tag1', 'tag2']);
+		});
+	});
+
+	describe('異常系', () => {
+		it('タグが21個以上の場合はエラーをスローする', () => {
+			const tags = Array.from({ length: 21 }, (_, i) => `tag${i}`);
+			expect(() => normalizeTags(tags)).toThrow('タグは最大20個まで');
+		});
+
+		it('タグが20個の場合はエラーをスローしない', () => {
+			const tags = Array.from({ length: 20 }, (_, i) => `tag${i}`);
+			expect(() => normalizeTags(tags)).not.toThrow();
+		});
+
+		it('タグの文字数が100文字を超える場合はエラーをスローする', () => {
+			const longTag = 'a'.repeat(101);
+			expect(() => normalizeTags([longTag])).toThrow('タグは100文字以内');
+		});
+
+		it('タグの文字数が100文字の場合はエラーをスローしない', () => {
+			const tag = 'a'.repeat(100);
+			expect(() => normalizeTags([tag])).not.toThrow();
+		});
+	});
+});
+
+describe('WorkLog クラス - タグ機能', () => {
+	describe('WorkLog.from() - タグ付き', () => {
+		it('タグ配列を含むデータをパースできる', () => {
+			const data = {
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: null,
+				description: 'テスト作業',
+				tags: ['開発', 'バグ修正', 'urgent'],
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			};
+
+			const result = WorkLog.from(data);
+			expect(result).toBeInstanceOf(WorkLog);
+			expect(result.tags).toEqual(['開発', 'バグ修正', 'urgent']);
+		});
+
+		it('tagsが省略された場合は空配列になる', () => {
+			const data = {
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: null,
+				description: 'テスト作業',
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			};
+
+			const result = WorkLog.from(data);
+			expect(result.tags).toEqual([]);
+		});
+
+		it('tagsが空配列の場合は空配列になる', () => {
+			const data = {
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: null,
+				description: 'テスト作業',
+				tags: [],
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			};
+
+			const result = WorkLog.from(data);
+			expect(result.tags).toEqual([]);
+		});
+	});
+
+	describe('WorkLog.from() - タグ付き', () => {
+		it('タグを指定して作業を開始できる', () => {
+			const userId = '123e4567-e89b-12d3-a456-426614174001';
+			const startedAt = new Date('2025-10-20T12:00:00.000Z');
+			const tags = ['開発', 'feature'];
+
+			const result = WorkLog.from({
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId,
+				startedAt,
+				endedAt: null,
+				description: '',
+				tags,
+				createdAt: startedAt,
+				updatedAt: startedAt
+			});
+			expect(result).toBeInstanceOf(WorkLog);
+			expect(result.tags).toEqual(['開発', 'feature']);
+			expect(result.startedAt).toEqual(startedAt);
+			expect(result.endedAt).toBeNull();
+		});
+
+		it('タグを省略して作業を開始できる', () => {
+			const userId = '123e4567-e89b-12d3-a456-426614174001';
+			const startedAt = new Date('2025-10-20T12:00:00.000Z');
+
+			const result = WorkLog.from({
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId,
+				startedAt,
+				endedAt: null,
+				description: '',
+				createdAt: startedAt,
+				updatedAt: startedAt
+			});
+			expect(result.tags).toEqual([]);
+		});
+	});
+
+	describe('update() - タグ更新', () => {
+		it('タグを更新できる', () => {
+			const workLog = WorkLog.from({
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: null,
+				description: '',
+				tags: ['開発'],
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			});
+
+			const updated = workLog.update({ tags: ['開発', 'レビュー'] });
+			expect(updated.tags).toEqual(['開発', 'レビュー']);
+		});
+
+		it('タグを空配列に更新できる', () => {
+			const workLog = WorkLog.from({
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: null,
+				description: '',
+				tags: ['開発', 'バグ修正'],
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			});
+
+			const updated = workLog.update({ tags: [] });
+			expect(updated.tags).toEqual([]);
+		});
+
+		it('タグを省略した場合は元のタグが保持される', () => {
+			const workLog = WorkLog.from({
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: null,
+				description: '',
+				tags: ['開発'],
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			});
+
+			const updated = workLog.update({ description: '更新後の説明' });
+			expect(updated.tags).toEqual(['開発']);
+		});
+	});
+
+	describe('toObject() - タグを含む', () => {
+		it('タグを含むオブジェクトに変換できる', () => {
+			const data = {
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: null,
+				description: 'テスト作業',
+				tags: ['開発', 'feature'],
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			};
+
+			const workLog = WorkLog.from(data);
+			const obj = workLog.toObject();
+
+			expect(obj.tags).toEqual(['開発', 'feature']);
+			expect(obj).toHaveProperty('tags');
+		});
+
+		it('タグが空配列の場合も正しく変換できる', () => {
+			const data = {
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: null,
+				description: 'テスト作業',
+				tags: [],
+				createdAt: new Date('2025-10-20T12:00:00.000Z'),
+				updatedAt: new Date('2025-10-20T12:00:00.000Z')
+			};
+
+			const workLog = WorkLog.from(data);
+			const obj = workLog.toObject();
+
+			expect(obj.tags).toEqual([]);
 		});
 	});
 });

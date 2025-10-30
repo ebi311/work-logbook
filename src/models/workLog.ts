@@ -1,6 +1,40 @@
 import { z } from 'zod';
 
 /**
+ * タグの配列を正規化する
+ * - 先頭・末尾の空白をトリミング
+ * - 空文字列を除外
+ * - 重複を除去
+ * - 長さ制限（1〜100文字）をチェック
+ * - 個数制限（最大20個）をチェック
+ *
+ * F-003: タグ付け機能
+ *
+ * @param tags - 正規化するタグの配列
+ * @returns 正規化されたタグの配列
+ * @throws Error - バリデーションエラー
+ */
+export const normalizeTags = (tags: string[]): string[] => {
+	const normalized = tags
+		.map((tag) => tag.trim())
+		.filter((tag) => tag.length > 0)
+		.filter((tag, index, self) => self.indexOf(tag) === index); // 重複除去
+
+	// バリデーション
+	if (normalized.length > 20) {
+		throw new Error('タグは最大20個まで指定できます');
+	}
+
+	for (const tag of normalized) {
+		if (tag.length > 100) {
+			throw new Error('タグは100文字以内で指定してください');
+		}
+	}
+
+	return normalized;
+};
+
+/**
  * WorkLog バリデーションスキーマ
  */
 const workLogSchema = z
@@ -10,6 +44,7 @@ const workLogSchema = z
 		startedAt: z.date(),
 		endedAt: z.date().nullable(),
 		description: z.string(),
+		tags: z.array(z.string()).default([]), // F-003: タグ配列を追加
 		createdAt: z.date(),
 		updatedAt: z.date()
 	})
@@ -39,6 +74,7 @@ export class WorkLog {
 	readonly startedAt: Date;
 	readonly endedAt: Date | null;
 	readonly description: string;
+	readonly tags: string[]; // F-003: タグ配列を追加
 	readonly createdAt: Date;
 	readonly updatedAt: Date;
 
@@ -52,6 +88,7 @@ export class WorkLog {
 		this.startedAt = props.startedAt;
 		this.endedAt = props.endedAt;
 		this.description = props.description;
+		this.tags = props.tags; // F-003: タグ配列を追加
 		this.createdAt = props.createdAt;
 		this.updatedAt = props.updatedAt;
 	}
@@ -109,13 +146,19 @@ export class WorkLog {
 	 * @param params - 更新するフィールド
 	 * @returns 更新された新しいWorkLogインスタンス
 	 */
-	update(params: { startedAt?: Date; endedAt?: Date | null; description?: string }): WorkLog {
+	update(params: {
+		startedAt?: Date;
+		endedAt?: Date | null;
+		description?: string;
+		tags?: string[]; // F-003: タグ配列を追加
+	}): WorkLog {
 		const updatedData = {
 			id: this.id,
 			userId: this.userId,
 			startedAt: params.startedAt ?? this.startedAt,
 			endedAt: params.endedAt !== undefined ? params.endedAt : this.endedAt,
 			description: params.description ?? this.description,
+			tags: params.tags ?? this.tags, // F-003: タグ配列を追加
 			createdAt: this.createdAt,
 			updatedAt: new Date() // 現在時刻で更新
 		};
@@ -151,6 +194,7 @@ export class WorkLog {
 			startedAt: this.startedAt,
 			endedAt: this.endedAt,
 			description: this.description,
+			tags: this.tags, // F-003: タグ配列を追加
 			createdAt: this.createdAt,
 			updatedAt: this.updatedAt
 		};

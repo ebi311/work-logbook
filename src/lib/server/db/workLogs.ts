@@ -1,6 +1,6 @@
 import { db } from './index';
-import { workLogs, type DbWorkLog } from './schema';
-import { eq, and, isNull, sql, lt, gt, isNotNull, gte, lte, desc } from 'drizzle-orm';
+import { workLogs, workLogTags, type DbWorkLog } from './schema';
+import { eq, and, isNull, sql, lt, gt, isNotNull, gte, lte, desc, like } from 'drizzle-orm';
 import { WorkLog } from '../../../models/workLog';
 import { getMonthRange } from '../../utils/dateRange';
 import { z } from 'zod';
@@ -257,4 +257,99 @@ export const deleteWorkLog = async (id: string, userId: string): Promise<boolean
 		.returning();
 
 	return result.length > 0;
+};
+
+/**
+ * 作業記録のタグを保存（既存タグを削除して新規タグを挿入）
+ * F-003: タグ機能のために追加
+ * @param workLogId - 作業記録ID
+ * @param tags - タグ配列
+ */
+export const saveWorkLogTags = async (workLogId: string, tags: string[]): Promise<void> => {
+	// 既存のタグを削除
+	await db.delete(workLogTags).where(eq(workLogTags.workLogId, workLogId));
+
+	// 新しいタグを挿入（空配列の場合はスキップ）
+	if (tags.length > 0) {
+		await db.insert(workLogTags).values(
+			tags.map((tag) => ({
+				workLogId,
+				tag
+			}))
+		);
+	}
+};
+
+/**
+ * 作業記録のタグを取得
+ * F-003: タグ機能のために追加
+ * @param workLogId - 作業記録ID
+ * @returns タグ配列
+ */
+export const getWorkLogTags = async (workLogId: string): Promise<string[]> => {
+	const dbTags = await db.query.workLogTags.findMany({
+		where: (workLogTags, { eq }) => eq(workLogTags.workLogId, workLogId),
+		orderBy: (workLogTags, { asc }) => [asc(workLogTags.createdAt)]
+	});
+
+	return dbTags.map((dbTag) => dbTag.tag);
+};
+
+/**
+ * ユーザーのタグ候補を取得（部分一致検索、使用頻度順）
+ * F-003: タグ機能のために追加
+ * @param userId - ユーザーID
+ * @param query - 検索クエリ（部分一致）
+ * @param limit - 取得件数
+ * @returns タグ配列
+ */
+export const getUserTagSuggestions = async (
+	userId: string,
+	query: string,
+	limit: number
+): Promise<string[]> => {
+	// work_log_tags を work_logs と JOIN して、そのユーザーが使用したタグのみを取得
+	// GROUP BY で重複を除外し、tag で部分一致検索、使用回数でソート
+	const conditions = [eq(workLogs.userId, userId)];
+
+	if (query) {
+		conditions.push(like(workLogTags.tag, `%${query}%`));
+	}
+
+	const results = await db
+		.select({
+			tag: workLogTags.tag,
+			count: sql<number>`COUNT(*)`.as('count')
+		})
+		.from(workLogTags)
+		.innerJoin(workLogs, eq(workLogTags.workLogId, workLogs.id))
+		.where(and(...conditions))
+		.groupBy(workLogTags.tag)
+		.orderBy(desc(sql`count`), workLogTags.tag)
+		.limit(limit);
+
+	return results.map((r) => r.tag);
+};
+
+/**
+ * 作業記録をタグ付きで取得
+ * F-003: タグ機能のために追加
+ * @param id - 作業記録ID
+ * @returns タグを含む作業記録、または null
+ */
+export const getWorkLogWithTags = async (id: string): Promise<WorkLog | null> => {
+	const dbWorkLog = await db.query.workLogs.findFirst({
+		where: (workLogs, { eq }) => eq(workLogs.id, id)
+	});
+
+	if (!dbWorkLog) {
+		return null;
+	}
+
+	const tags = await getWorkLogTags(id);
+
+	return WorkLog.from({
+		...dbWorkLog,
+		tags
+	});
 };

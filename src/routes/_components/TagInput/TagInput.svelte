@@ -22,6 +22,7 @@
 	let inputValue = '';
 	let showSuggestions = false;
 	let selectedIndex = -1;
+	let isComposing = false; // IME変換中フラグ
 
 	/**
 	 * タグを追加
@@ -83,6 +84,9 @@
 	 * キーボードイベント
 	 */
 	const handleKeydown = (e: KeyboardEvent) => {
+		// IME変換中は処理しない
+		if (isComposing) return;
+
 		if (e.key === 'Enter') {
 			e.preventDefault();
 			if (selectedIndex >= 0 && filteredSuggestions[selectedIndex]) {
@@ -115,6 +119,20 @@
 			// 入力が空でBackspaceを押すと最後のタグを削除
 			removeTag(tags.length - 1);
 		}
+	};
+
+	/**
+	 * IME変換開始
+	 */
+	const handleCompositionStart = () => {
+		isComposing = true;
+	};
+
+	/**
+	 * IME変換終了
+	 */
+	const handleCompositionEnd = () => {
+		isComposing = false;
 	};
 
 	/**
@@ -153,6 +171,8 @@
 			bind:value={inputValue}
 			on:input={handleInput}
 			on:keydown={handleKeydown}
+			on:compositionstart={handleCompositionStart}
+			on:compositionend={handleCompositionEnd}
 			on:blur={() => {
 				// 少し遅延させてクリックイベントを処理できるようにする
 				setTimeout(() => {

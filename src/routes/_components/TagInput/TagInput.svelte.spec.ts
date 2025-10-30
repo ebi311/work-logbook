@@ -154,4 +154,31 @@ describe('TagInput', () => {
 		render(TagInput, { tags: ['開発', 'PJ-A'], maxTags: 20 });
 		expect(screen.getByText('2/20')).toBeInTheDocument();
 	});
+
+	it('IME変換中はスペースキーでタグが確定されない', async () => {
+		render(TagInput);
+		const input = screen.getByPlaceholderText(/開発/);
+
+		// IME変換開始
+		await fireEvent.compositionStart(input);
+
+		// 変換中に「かい」と入力
+		await fireEvent.input(input, { target: { value: 'かい' } });
+
+		// スペースキーを押す（変換のため）
+		await fireEvent.keyDown(input, { key: ' ' });
+
+		// タグは確定されない（まだ変換中）
+		expect(screen.queryByText('かい')).not.toBeInTheDocument();
+
+		// IME変換終了
+		await fireEvent.compositionEnd(input);
+
+		// 確定後にEnterを押す
+		await fireEvent.input(input, { target: { value: '開発' } });
+		await fireEvent.keyDown(input, { key: 'Enter' });
+
+		// タグが確定される
+		expect(screen.getByText('開発')).toBeInTheDocument();
+	});
 });

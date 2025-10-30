@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock session validation
 vi.mock('$lib/server/auth/session', () => ({
-	validateSession: vi.fn()
+	validateSession: vi.fn(),
 }));
 
 // Mock DB
@@ -12,7 +12,7 @@ vi.mock('$lib/server/db', () => {
 		select: vi.fn(() => mockDb),
 		from: vi.fn(() => mockDb),
 		where: vi.fn(() => mockDb),
-		limit: vi.fn(async () => [])
+		limit: vi.fn(async () => []),
 	};
 	return { db: mockDb };
 });
@@ -28,13 +28,13 @@ describe('hooks.server.ts', () => {
 
 	it('認証ルート（/auth/*）はセッション検証をスキップする', async () => {
 		const cookies = {
-			get: vi.fn(() => undefined)
+			get: vi.fn(() => undefined),
 		} as any;
 
 		const event = {
 			cookies,
 			locals: {},
-			url: new URL('http://localhost:5173/auth/login')
+			url: new URL('http://localhost:5173/auth/login'),
 		} as any;
 
 		const resolve = vi.fn(async () => new Response('OK'));
@@ -50,13 +50,13 @@ describe('hooks.server.ts', () => {
 
 	it('/auth/callback もセッション検証をスキップする', async () => {
 		const cookies = {
-			get: vi.fn(() => undefined)
+			get: vi.fn(() => undefined),
 		} as any;
 
 		const event = {
 			cookies,
 			locals: {},
-			url: new URL('http://localhost:5173/auth/callback')
+			url: new URL('http://localhost:5173/auth/callback'),
 		} as any;
 
 		const resolve = vi.fn(async () => new Response('OK'));
@@ -77,7 +77,7 @@ describe('hooks.server.ts', () => {
 		// Mock: セッション検証成功
 		vi.mocked(sessionModule.validateSession).mockResolvedValue({
 			valid: true,
-			userId
+			userId,
 		});
 
 		// Mock: DB からユーザー取得
@@ -87,18 +87,18 @@ describe('hooks.server.ts', () => {
 				id: userId,
 				githubId: '12345',
 				githubUsername: 'testuser',
-				isActive: true
-			}
+				isActive: true,
+			},
 		]);
 
 		const cookies = {
-			get: vi.fn((name: string) => (name === 'session_id' ? sessionId : undefined))
+			get: vi.fn((name: string) => (name === 'session_id' ? sessionId : undefined)),
 		} as any;
 
 		const event = {
 			cookies,
 			locals: {},
-			url: new URL('http://localhost:5173/')
+			url: new URL('http://localhost:5173/'),
 		} as any;
 
 		const resolve = vi.fn(async () => new Response('OK'));
@@ -116,7 +116,7 @@ describe('hooks.server.ts', () => {
 			id: userId,
 			githubId: '12345',
 			githubUsername: 'testuser',
-			isActive: true
+			isActive: true,
 		});
 
 		// resolve が呼ばれた
@@ -125,13 +125,13 @@ describe('hooks.server.ts', () => {
 
 	it('セッションCookieがない場合、/auth/loginにリダイレクトする', async () => {
 		const cookies = {
-			get: vi.fn(() => undefined)
+			get: vi.fn(() => undefined),
 		} as any;
 
 		const event = {
 			cookies,
 			locals: {},
-			url: new URL('http://localhost:5173/')
+			url: new URL('http://localhost:5173/'),
 		} as any;
 
 		const resolve = vi.fn(async () => new Response('OK'));
@@ -157,17 +157,17 @@ describe('hooks.server.ts', () => {
 
 		// Mock: セッション検証失敗
 		vi.mocked(sessionModule.validateSession).mockResolvedValue({
-			valid: false
+			valid: false,
 		});
 
 		const cookies = {
-			get: vi.fn((name: string) => (name === 'session_id' ? sessionId : undefined))
+			get: vi.fn((name: string) => (name === 'session_id' ? sessionId : undefined)),
 		} as any;
 
 		const event = {
 			cookies,
 			locals: {},
-			url: new URL('http://localhost:5173/')
+			url: new URL('http://localhost:5173/'),
 		} as any;
 
 		const resolve = vi.fn(async () => new Response('OK'));
@@ -195,7 +195,7 @@ describe('hooks.server.ts', () => {
 		// Mock: セッション検証成功
 		vi.mocked(sessionModule.validateSession).mockResolvedValue({
 			valid: true,
-			userId
+			userId,
 		});
 
 		// Mock: DB からユーザーが見つからない
@@ -203,13 +203,13 @@ describe('hooks.server.ts', () => {
 		dbMock.limit.mockResolvedValue([]);
 
 		const cookies = {
-			get: vi.fn((name: string) => (name === 'session_id' ? sessionId : undefined))
+			get: vi.fn((name: string) => (name === 'session_id' ? sessionId : undefined)),
 		} as any;
 
 		const event = {
 			cookies,
 			locals: {},
-			url: new URL('http://localhost:5173/')
+			url: new URL('http://localhost:5173/'),
 		} as any;
 
 		const resolve = vi.fn(async () => new Response('OK'));

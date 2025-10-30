@@ -27,14 +27,14 @@ vi.mock('../config/redis', () => {
 		set: setMock,
 		get: getMock,
 		del: delMock,
-		expire: expireMock
+		expire: expireMock,
 	};
 
 	return {
 		getRedisClient: vi.fn(async () => client),
 		closeRedisClient: vi.fn(async () => {}),
 		__client: client,
-		__mocks: { setMock, getMock, delMock, expireMock, store }
+		__mocks: { setMock, getMock, delMock, expireMock, store },
 	};
 });
 
@@ -44,7 +44,7 @@ import {
 	deleteSession,
 	refreshSession,
 	SESSION_PREFIX,
-	SESSION_TTL_SECONDS
+	SESSION_TTL_SECONDS,
 } from './session';
 import * as redisModule from '../config/redis';
 

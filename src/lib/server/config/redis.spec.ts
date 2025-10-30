@@ -5,7 +5,7 @@ vi.mock('./redis', () => {
 	const fakeClient = {} as unknown as RedisClientType;
 	return {
 		getRedisClient: vi.fn(async () => fakeClient),
-		closeRedisClient: vi.fn(async () => {})
+		closeRedisClient: vi.fn(async () => {}),
 	};
 });
 

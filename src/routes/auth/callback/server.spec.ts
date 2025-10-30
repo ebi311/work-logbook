@@ -7,13 +7,13 @@ vi.mock('$lib/server/config/env', () => ({
 		github: {
 			clientId: 'test-client-id',
 			clientSecret: 'test-client-secret',
-			callbackUrl: 'http://localhost:5173/auth/callback'
+			callbackUrl: 'http://localhost:5173/auth/callback',
 		},
 		session: { secret: 'test' },
 		allowedGithubIds: ['12345'],
-		redis: { url: 'redis://redis:6379' }
+		redis: { url: 'redis://redis:6379' },
 	})),
-	isAllowedGithubId: vi.fn((id: string) => id === '12345')
+	isAllowedGithubId: vi.fn((id: string) => id === '12345'),
 }));
 
 // Mock Redis client
@@ -23,16 +23,16 @@ vi.mock('$lib/server/config/redis', () => {
 		getRedisClient: vi.fn(async () => ({
 			get: vi.fn(async (key: string) => store.get(key) || null),
 			del: vi.fn(async (key: string) => (store.delete(key) ? 1 : 0)),
-			_testStore: store
+			_testStore: store,
 		})),
-		__testGetStore: () => store
+		__testGetStore: () => store,
 	};
 });
 
 // Mock session utilities
 vi.mock('$lib/server/auth/session', () => ({
 	createSession: vi.fn(async (userId: string) => `session-${userId}`),
-	_OAUTH_STATE_COOKIE: 'oauth_state'
+	_OAUTH_STATE_COOKIE: 'oauth_state',
 }));
 
 // Mock DB
@@ -42,8 +42,8 @@ vi.mock('$lib/server/db', () => {
 		values: vi.fn(() => mockDb),
 		onConflictDoUpdate: vi.fn(() => mockDb),
 		returning: vi.fn(async () => [
-			{ id: 'user-uuid-1', githubId: '12345', githubUsername: 'testuser' }
-		])
+			{ id: 'user-uuid-1', githubId: '12345', githubUsername: 'testuser' },
+		]),
 	};
 	return { db: mockDb };
 });
@@ -77,7 +77,7 @@ describe('GET /auth/callback', () => {
 		const cookies = {
 			get: vi.fn((name: string) => (name === 'oauth_state' ? state : undefined)),
 			set: vi.fn(),
-			delete: vi.fn()
+			delete: vi.fn(),
 		} as any;
 
 		// Fetch mock: GitHub token + user API
@@ -86,7 +86,7 @@ describe('GET /auth/callback', () => {
 			if (urlStr.includes('github.com/login/oauth/access_token')) {
 				return {
 					ok: true,
-					json: async () => ({ access_token: 'gho_test_token' })
+					json: async () => ({ access_token: 'gho_test_token' }),
 				};
 			}
 			if (urlStr.includes('api.github.com/user')) {
@@ -96,8 +96,8 @@ describe('GET /auth/callback', () => {
 						id: 12345,
 						login: 'testuser',
 						email: 'test@example.com',
-						avatar_url: 'https://avatar.url/test'
-					})
+						avatar_url: 'https://avatar.url/test',
+					}),
 				};
 			}
 			throw new Error('Unexpected fetch URL');
@@ -106,7 +106,7 @@ describe('GET /auth/callback', () => {
 		const event = {
 			cookies,
 			fetch: fetchMock,
-			url: new URL(`http://localhost:5173/auth/callback?code=${code}&state=${state}`)
+			url: new URL(`http://localhost:5173/auth/callback?code=${code}&state=${state}`),
 		} as unknown as Parameters<typeof GET>[0];
 
 		const res = await GET(event);
@@ -118,14 +118,14 @@ describe('GET /auth/callback', () => {
 		// State cookie削除
 		expect(cookies.delete).toHaveBeenCalledWith(
 			'oauth_state',
-			expect.objectContaining({ path: '/' })
+			expect.objectContaining({ path: '/' }),
 		);
 
 		// Session cookie設定
 		expect(cookies.set).toHaveBeenCalledWith(
 			'session_id',
 			'session-user-uuid-1',
-			expect.objectContaining({ httpOnly: true, sameSite: 'lax' })
+			expect.objectContaining({ httpOnly: true, sameSite: 'lax' }),
 		);
 
 		// DB upsert呼び出し
@@ -136,8 +136,8 @@ describe('GET /auth/callback', () => {
 				githubId: '12345',
 				githubUsername: 'testuser',
 				githubEmail: 'test@example.com',
-				avatarUrl: 'https://avatar.url/test'
-			})
+				avatarUrl: 'https://avatar.url/test',
+			}),
 		);
 
 		// Session作成
@@ -149,12 +149,12 @@ describe('GET /auth/callback', () => {
 
 	it('異常系: stateがCookieにない', async () => {
 		const cookies = {
-			get: vi.fn(() => undefined)
+			get: vi.fn(() => undefined),
 		} as any;
 
 		const event = {
 			cookies,
-			url: new URL('http://localhost:5173/auth/callback?code=test&state=test')
+			url: new URL('http://localhost:5173/auth/callback?code=test&state=test'),
 		} as unknown as Parameters<typeof GET>[0];
 
 		const res = await GET(event);
@@ -167,12 +167,12 @@ describe('GET /auth/callback', () => {
 	it('異常系: stateがRedisにない', async () => {
 		const state = 'missing-state';
 		const cookies = {
-			get: vi.fn(() => state)
+			get: vi.fn(() => state),
 		} as any;
 
 		const event = {
 			cookies,
-			url: new URL(`http://localhost:5173/auth/callback?code=test&state=${state}`)
+			url: new URL(`http://localhost:5173/auth/callback?code=test&state=${state}`),
 		} as unknown as Parameters<typeof GET>[0];
 
 		const res = await GET(event);
@@ -188,12 +188,12 @@ describe('GET /auth/callback', () => {
 
 		const cookies = {
 			get: vi.fn(() => state),
-			delete: vi.fn()
+			delete: vi.fn(),
 		} as unknown as Parameters<typeof GET>[0]['cookies'];
 
 		const event = {
 			cookies,
-			url: new URL(`http://localhost:5173/auth/callback?state=${state}`)
+			url: new URL(`http://localhost:5173/auth/callback?state=${state}`),
 		} as unknown as Parameters<typeof GET>[0];
 
 		const res = await GET(event);
@@ -210,7 +210,7 @@ describe('GET /auth/callback', () => {
 
 		const cookies = {
 			get: vi.fn(() => state),
-			delete: vi.fn()
+			delete: vi.fn(),
 		} as any;
 
 		const fetchMock = vi.fn(async (url: string | URL) => {
@@ -221,7 +221,7 @@ describe('GET /auth/callback', () => {
 			if (urlStr.includes('api.github.com/user')) {
 				return {
 					ok: true,
-					json: async () => ({ id: 99999, login: 'unauthorized', email: null, avatar_url: null })
+					json: async () => ({ id: 99999, login: 'unauthorized', email: null, avatar_url: null }),
 				};
 			}
 			throw new Error('Unexpected');
@@ -230,7 +230,7 @@ describe('GET /auth/callback', () => {
 		const event = {
 			cookies,
 			fetch: fetchMock,
-			url: new URL(`http://localhost:5173/auth/callback?code=${code}&state=${state}`)
+			url: new URL(`http://localhost:5173/auth/callback?code=${code}&state=${state}`),
 		} as unknown as Parameters<typeof GET>[0];
 
 		const res = await GET(event);

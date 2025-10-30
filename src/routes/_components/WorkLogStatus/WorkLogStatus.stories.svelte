@@ -9,13 +9,13 @@
 		argTypes: {
 			active: {
 				control: 'object',
-				description: 'アクティブな作業ログ'
+				description: 'アクティブな作業ログ',
 			},
 			serverNow: {
 				control: 'text',
-				description: 'サーバーの現在時刻（ISO 8601形式）'
-			}
-		}
+				description: 'サーバーの現在時刻（ISO 8601形式）',
+			},
+		},
 	});
 </script>
 
@@ -38,7 +38,7 @@
 	name="Stopped"
 	args={{
 		active: undefined,
-		serverNow: now
+		serverNow: now,
 	}}
 />
 
@@ -48,9 +48,9 @@
 	args={{
 		active: {
 			id: 'test-id-1',
-			startedAt: now
+			startedAt: now,
 		},
-		serverNow: now
+		serverNow: now,
 	}}
 />
 
@@ -60,9 +60,9 @@
 	args={{
 		active: {
 			id: 'test-id-2',
-			startedAt: fiveMinutesAgo
+			startedAt: fiveMinutesAgo,
 		},
-		serverNow: now
+		serverNow: now,
 	}}
 />
 
@@ -72,9 +72,9 @@
 	args={{
 		active: {
 			id: 'test-id-3',
-			startedAt: thirtyMinutesAgo
+			startedAt: thirtyMinutesAgo,
 		},
-		serverNow: now
+		serverNow: now,
 	}}
 />
 
@@ -84,9 +84,9 @@
 	args={{
 		active: {
 			id: 'test-id-4',
-			startedAt: oneHourAgo
+			startedAt: oneHourAgo,
 		},
-		serverNow: now
+		serverNow: now,
 	}}
 />
 
@@ -96,8 +96,8 @@
 	args={{
 		active: {
 			id: 'test-id-5',
-			startedAt: new Date(Date.now() - 10 * 1000).toISOString() // 10秒前
+			startedAt: new Date(Date.now() - 10 * 1000).toISOString(), // 10秒前
 		},
-		serverNow: now
+		serverNow: now,
 	}}
 />

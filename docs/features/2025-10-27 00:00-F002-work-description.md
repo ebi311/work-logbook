@@ -166,9 +166,9 @@ return {
 				id: activeWorkLog.id,
 				startedAt: activeWorkLog.startedAt.toISOString(),
 				endedAt: null,
-				description: activeWorkLog.description // 追加
+				description: activeWorkLog.description, // 追加
 			}
-		: undefined
+		: undefined,
 	// ... その他
 };
 ```
@@ -195,7 +195,7 @@ start: async ({ request, locals }) => {
 		workLog: {
 			/* ... description を含む */
 		},
-		serverNow: new Date().toISOString()
+		serverNow: new Date().toISOString(),
 	};
 };
 ```

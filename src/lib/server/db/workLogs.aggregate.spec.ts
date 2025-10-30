@@ -18,8 +18,8 @@ vi.mock('./index', () => {
 		db: {
 			select: mockSelect,
 			from: mockFrom,
-			where: mockWhere
-		}
+			where: mockWhere,
+		},
 	};
 });
 
@@ -115,7 +115,7 @@ describe('aggregateMonthlyWorkLogDuration', () => {
 
 	it('不正な月形式では getMonthRange が例外を投げる', async () => {
 		await expect(
-			aggregateMonthlyWorkLogDuration(testUserId, { month: 'invalid' })
+			aggregateMonthlyWorkLogDuration(testUserId, { month: 'invalid' }),
 		).rejects.toThrow();
 
 		// DBクエリは実行されない

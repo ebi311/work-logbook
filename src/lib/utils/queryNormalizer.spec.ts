@@ -24,7 +24,7 @@ describe('normalizeWorkLogQuery', () => {
 				month: '2025-09',
 				date: '2025-10-15',
 				from: '2025-08-01',
-				to: '2025-08-31'
+				to: '2025-08-31',
 			});
 
 			// 2025-09-01 00:00:00Z 〜 2025-10-01 00:00:00Z
@@ -37,7 +37,7 @@ describe('normalizeWorkLogQuery', () => {
 			const result = normalizeWorkLogQuery({
 				date: '2025-10-15',
 				from: '2025-08-01',
-				to: '2025-08-31'
+				to: '2025-08-31',
 			});
 
 			// 2025-10-15 00:00:00Z 〜 2025-10-15 23:59:59.999Z
@@ -49,7 +49,7 @@ describe('normalizeWorkLogQuery', () => {
 		it('from/to のみ指定されている場合、そのまま使用', () => {
 			const result = normalizeWorkLogQuery({
 				from: '2025-08-01',
-				to: '2025-08-31'
+				to: '2025-08-31',
 			});
 
 			expect(result.from).toEqual(new Date('2025-08-01T00:00:00Z'));

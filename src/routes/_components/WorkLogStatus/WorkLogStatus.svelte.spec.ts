@@ -17,8 +17,8 @@ describe('WorkLogStatus', () => {
 			render(WorkLogStatus, {
 				props: {
 					active: undefined,
-					serverNow: '2025-10-22T10:00:00.000Z'
-				}
+					serverNow: '2025-10-22T10:00:00.000Z',
+				},
 			});
 
 			const element = screen.getByText('停止中');
@@ -35,10 +35,10 @@ describe('WorkLogStatus', () => {
 				props: {
 					active: {
 						id: 'test-id',
-						startedAt: '2025-10-22T10:00:00.000Z'
+						startedAt: '2025-10-22T10:00:00.000Z',
 					},
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			const element = screen.getByText(/記録中/);
@@ -53,10 +53,10 @@ describe('WorkLogStatus', () => {
 				props: {
 					active: {
 						id: 'test-id',
-						startedAt: '2025-10-22T10:00:00.000Z'
+						startedAt: '2025-10-22T10:00:00.000Z',
 					},
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			const element = screen.getByText('記録中（経過 00:00:00）');
@@ -71,10 +71,10 @@ describe('WorkLogStatus', () => {
 				props: {
 					active: {
 						id: 'test-id',
-						startedAt: '2025-10-22T10:00:00.000Z'
+						startedAt: '2025-10-22T10:00:00.000Z',
 					},
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			const element = screen.getByText('記録中（経過 00:01:00）');
@@ -89,10 +89,10 @@ describe('WorkLogStatus', () => {
 				props: {
 					active: {
 						id: 'test-id',
-						startedAt: '2025-10-22T10:00:00.000Z'
+						startedAt: '2025-10-22T10:00:00.000Z',
 					},
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			const element = screen.getByText('記録中（経過 01:23:45）');
@@ -113,10 +113,10 @@ describe('WorkLogStatus', () => {
 				props: {
 					active: {
 						id: 'test-id',
-						startedAt
+						startedAt,
 					},
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			// 初期表示
@@ -147,10 +147,10 @@ describe('WorkLogStatus', () => {
 				props: {
 					active: {
 						id: 'test-id',
-						startedAt
+						startedAt,
 					},
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			// 初期表示
@@ -174,10 +174,10 @@ describe('WorkLogStatus', () => {
 				props: {
 					active: {
 						id: 'test-id',
-						startedAt: '2025-10-22T10:00:00.000Z'
+						startedAt: '2025-10-22T10:00:00.000Z',
 					},
-					serverNow: '2025-10-22T10:00:00.000Z'
-				}
+					serverNow: '2025-10-22T10:00:00.000Z',
+				},
 			});
 
 			unmount();

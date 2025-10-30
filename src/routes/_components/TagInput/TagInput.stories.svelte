@@ -12,7 +12,7 @@
 		{ tag: 'バグ修正', count: 4 },
 		{ tag: 'ドキュメント', count: 3 },
 		{ tag: 'リファクタリング', count: 2 },
-		{ tag: 'デプロイ', count: 1 }
+		{ tag: 'デプロイ', count: 1 },
 	];
 
 	const { Story } = defineMeta({
@@ -22,25 +22,25 @@
 		argTypes: {
 			tags: {
 				control: 'object',
-				description: '表示するタグの配列'
+				description: '表示するタグの配列',
 			},
 			suggestions: {
 				control: 'object',
-				description: 'サジェストのリスト（tag と count を持つオブジェクトの配列）'
+				description: 'サジェストのリスト（tag と count を持つオブジェクトの配列）',
 			},
 			placeholder: {
 				control: 'text',
-				description: '入力フィールドのプレースホルダー'
+				description: '入力フィールドのプレースホルダー',
 			},
 			maxTags: {
 				control: 'number',
-				description: '最大タグ数'
+				description: '最大タグ数',
 			},
 			maxTagLength: {
 				control: 'number',
-				description: 'タグの最大文字数'
-			}
-		}
+				description: 'タグの最大文字数',
+			},
+		},
 	});
 </script>
 
@@ -55,7 +55,7 @@
 	name="WithInitialTags"
 	args={{
 		tags: ['開発', 'PJ-A', '会議'],
-		suggestions: mockSuggestions
+		suggestions: mockSuggestions,
 	}}
 />
 
@@ -73,9 +73,9 @@
 			'バグ修正',
 			'ドキュメント',
 			'リファクタリング',
-			'デプロイ'
+			'デプロイ',
 		],
-		suggestions: mockSuggestions
+		suggestions: mockSuggestions,
 	}}
 />
 

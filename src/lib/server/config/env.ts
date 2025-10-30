@@ -9,7 +9,7 @@ import {
 	GITHUB_CALLBACK_URL,
 	SESSION_SECRET,
 	ALLOWED_GITHUB_IDS,
-	HEROKU_REDIS_URL
+	HEROKU_REDIS_URL,
 } from '$env/static/private';
 
 // 環境変数の型定義
@@ -65,15 +65,15 @@ export const getEnvConfig = (): EnvConfig => {
 		github: {
 			clientId: GITHUB_CLIENT_ID,
 			clientSecret: GITHUB_CLIENT_SECRET,
-			callbackUrl: githubCallbackUrl
+			callbackUrl: githubCallbackUrl,
 		},
 		session: {
-			secret: SESSION_SECRET
+			secret: SESSION_SECRET,
 		},
 		allowedGithubIds,
 		redis: {
-			url: HEROKU_REDIS_URL
-		}
+			url: HEROKU_REDIS_URL,
+		},
 	};
 };
 

@@ -14,7 +14,7 @@ export const renderMarkdown = (markdown: string): string => {
 	// Markdownをパース
 	const rawHtml = marked.parse(markdown, {
 		breaks: true, // 改行を<br>に変換
-		gfm: true // GitHub Flavored Markdown
+		gfm: true, // GitHub Flavored Markdown
 	}) as string;
 
 	// XSS対策のためサニタイズ
@@ -45,9 +45,9 @@ export const renderMarkdown = (markdown: string): string => {
 			'tbody',
 			'tr',
 			'th',
-			'td'
+			'td',
 		],
-		ALLOWED_ATTR: ['href', 'target', 'rel']
+		ALLOWED_ATTR: ['href', 'target', 'rel'],
 	});
 
 	return cleanHtml;

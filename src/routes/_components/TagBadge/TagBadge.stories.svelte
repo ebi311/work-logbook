@@ -9,13 +9,13 @@
 		argTypes: {
 			tag: {
 				control: 'text',
-				description: 'タグのテキスト'
+				description: 'タグのテキスト',
 			},
 			onRemove: {
 				action: 'remove',
-				description: '削除ボタンのクリックハンドラ（未定義の場合、削除ボタンは表示されない）'
-			}
-		}
+				description: '削除ボタンのクリックハンドラ（未定義の場合、削除ボタンは表示されない）',
+			},
+		},
 	});
 </script>
 
@@ -27,7 +27,7 @@
 	name="WithRemoveButton"
 	args={{
 		tag: '開発',
-		onRemove: () => console.log('Remove 開発')
+		onRemove: () => console.log('Remove 開発'),
 	}}
 />
 

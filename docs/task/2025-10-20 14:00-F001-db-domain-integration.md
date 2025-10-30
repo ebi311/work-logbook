@@ -126,7 +126,7 @@ export function toDbWorkLog(workLog: WorkLog): NewDbWorkLog {
 		id: obj.id,
 		userId: obj.userId,
 		startedAt: obj.startedAt,
-		endedAt: obj.endedAt
+		endedAt: obj.endedAt,
 		// createdAt, updatedAt は DB の defaultNow() で自動設定されるため省略可能
 	};
 }
@@ -297,7 +297,7 @@ export function toWorkLog(dbWorkLog: DbWorkLog): WorkLog {
 export async function getActiveWorkLog(userId: string): Promise<WorkLog | null> {
 	const dbWorkLog = await db.query.workLogs.findFirst({
 		where: (workLogs, { eq, and, isNull }) =>
-			and(eq(workLogs.userId, userId), isNull(workLogs.endedAt))
+			and(eq(workLogs.userId, userId), isNull(workLogs.endedAt)),
 	});
 
 	if (!dbWorkLog) {
@@ -320,7 +320,7 @@ export async function createWorkLog(userId: string, startedAt: Date): Promise<Wo
 		.values({
 			userId,
 			startedAt,
-			endedAt: null
+			endedAt: null,
 		})
 		.returning();
 
@@ -389,7 +389,7 @@ const serverNow = new Date().toISOString();
 await db.insert(workLogs).values({
 	userId: testUserId,
 	startedAt: serverNow,
-	endedAt: null
+	endedAt: null,
 });
 
 // 変更後
@@ -397,7 +397,7 @@ const serverNow = new Date();
 await db.insert(workLogs).values({
 	userId: testUserId,
 	startedAt: serverNow,
-	endedAt: null
+	endedAt: null,
 });
 ```
 

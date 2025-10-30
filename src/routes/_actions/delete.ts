@@ -43,7 +43,7 @@ export const handleDeleteAction = async ({ locals, request }: RequestEvent) => {
 				ok: false,
 				reason: 'NOT_FOUND',
 				message: '作業記録が見つかりません',
-				serverNow: serverNow.toISOString()
+				serverNow: serverNow.toISOString(),
 			} satisfies DeleteActionFailure);
 		}
 
@@ -53,7 +53,7 @@ export const handleDeleteAction = async ({ locals, request }: RequestEvent) => {
 				ok: false,
 				reason: 'FORBIDDEN',
 				message: 'この操作を実行する権限がありません',
-				serverNow: serverNow.toISOString()
+				serverNow: serverNow.toISOString(),
 			} satisfies DeleteActionFailure);
 		}
 
@@ -65,14 +65,14 @@ export const handleDeleteAction = async ({ locals, request }: RequestEvent) => {
 				ok: false,
 				reason: 'NOT_FOUND',
 				message: '作業記録が見つかりません',
-				serverNow: serverNow.toISOString()
+				serverNow: serverNow.toISOString(),
 			} satisfies DeleteActionFailure);
 		}
 
 		return {
 			ok: true,
 			deletedId: id,
-			serverNow: serverNow.toISOString()
+			serverNow: serverNow.toISOString(),
 		} satisfies DeleteActionSuccess;
 	} catch (err) {
 		console.error('Failed to delete work log:', err);

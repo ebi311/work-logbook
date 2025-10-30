@@ -10,8 +10,8 @@ describe('DescriptionField', () => {
 				label: '作業内容',
 				id: 'description',
 				name: 'description',
-				value: 'テスト作業'
-			}
+				value: 'テスト作業',
+			},
 		});
 
 		expect(screen.getByLabelText('作業内容')).toBeInTheDocument();
@@ -23,8 +23,8 @@ describe('DescriptionField', () => {
 				label: '作業内容',
 				id: 'description',
 				name: 'description',
-				value: 'テスト作業'
-			}
+				value: 'テスト作業',
+			},
 		});
 
 		const textarea = screen.getByLabelText('作業内容') as HTMLTextAreaElement;
@@ -37,8 +37,8 @@ describe('DescriptionField', () => {
 				label: '作業内容',
 				id: 'description',
 				name: 'description',
-				value: 'テスト'
-			}
+				value: 'テスト',
+			},
 		});
 
 		expect(screen.getByText('3 / 10,000')).toBeInTheDocument();
@@ -51,8 +51,8 @@ describe('DescriptionField', () => {
 				label: '作業内容',
 				id: 'description',
 				name: 'description',
-				value: ''
-			}
+				value: '',
+			},
 		});
 
 		const textarea = screen.getByLabelText('作業内容') as HTMLTextAreaElement;
@@ -68,8 +68,8 @@ describe('DescriptionField', () => {
 				id: 'description',
 				name: 'description',
 				value: 'テスト作業',
-				disabled: true
-			}
+				disabled: true,
+			},
 		});
 
 		const textarea = screen.getByLabelText('作業内容') as HTMLTextAreaElement;
@@ -83,8 +83,8 @@ describe('DescriptionField', () => {
 				id: 'description',
 				name: 'description',
 				value: 'テスト',
-				maxLength: 100
-			}
+				maxLength: 100,
+			},
 		});
 
 		expect(screen.getByText('3 / 100')).toBeInTheDocument();

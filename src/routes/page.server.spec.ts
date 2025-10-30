@@ -16,7 +16,7 @@ vi.mock('$lib/server/db/workLogs', () => ({
 	getActiveWorkLog: vi.fn(),
 	listWorkLogs: vi.fn(),
 	aggregateMonthlyWorkLogDuration: vi.fn(),
-	getUserTagSuggestions: vi.fn()
+	getUserTagSuggestions: vi.fn(),
 }));
 
 import { load } from './+page.server';
@@ -24,7 +24,7 @@ import {
 	getActiveWorkLog,
 	listWorkLogs,
 	aggregateMonthlyWorkLogDuration,
-	getUserTagSuggestions
+	getUserTagSuggestions,
 } from '$lib/server/db/workLogs';
 import type { ServerLoadEvent } from '@sveltejs/kit';
 
@@ -48,7 +48,7 @@ describe('Server Actions: load', () => {
 				endedAt: null,
 				description: '',
 				isActive: () => true,
-				getDuration: () => 0
+				getDuration: () => 0,
 			} as WorkLog;
 
 			vi.mocked(getActiveWorkLog).mockResolvedValue(mockWorkLog);
@@ -59,8 +59,8 @@ describe('Server Actions: load', () => {
 			// モック: locals と URL
 			const locals = {
 				user: {
-					id: testUserId
-				}
+					id: testUserId,
+				},
 			};
 			const url = new URL('http://localhost:5173/');
 
@@ -75,7 +75,7 @@ describe('Server Actions: load', () => {
 				id: testWorkLogId,
 				startedAt: startedAt.toISOString(),
 				endedAt: null,
-				description: ''
+				description: '',
 			});
 			expect(result?.serverNow).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
 			expect(getActiveWorkLog).toHaveBeenCalledWith(testUserId);
@@ -101,8 +101,8 @@ describe('Server Actions: load', () => {
 			// モック: locals と URL
 			const locals = {
 				user: {
-					id: testUserId
-				}
+					id: testUserId,
+				},
 			};
 			const url = new URL('http://localhost:5173/');
 
@@ -150,8 +150,8 @@ describe('Server Actions: load', () => {
 			// モック: locals と URL
 			const locals = {
 				user: {
-					id: testUserId
-				}
+					id: testUserId,
+				},
 			};
 			const url = new URL('http://localhost:5173/');
 
@@ -190,12 +190,12 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 					endedAt: new Date('2025-10-25T12:00:00Z'),
 					description: '',
 					createdAt: new Date(),
-					updatedAt: new Date()
-				}
+					updatedAt: new Date(),
+				},
 			];
 			vi.mocked(listWorkLogs).mockResolvedValue({
 				items: mockItems,
-				hasNext: false
+				hasNext: false,
 			});
 
 			// モック: 月次合計
@@ -205,8 +205,8 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			// モック: locals
 			const locals = {
 				user: {
-					id: testUserId
-				}
+					id: testUserId,
+				},
 			};
 
 			// モック: url (クエリパラメータなし)
@@ -237,7 +237,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			// モック: 一覧取得
 			vi.mocked(listWorkLogs).mockResolvedValue({
 				items: [],
-				hasNext: false
+				hasNext: false,
 			});
 
 			// モック: 月次合計
@@ -247,8 +247,8 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			// モック: locals
 			const locals = {
 				user: {
-					id: testUserId
-				}
+					id: testUserId,
+				},
 			};
 
 			// モック: url (month=2025-09)
@@ -262,7 +262,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 
 			// 検証: aggregateMonthlyWorkLogDuration が month='2025-09' で呼ばれる
 			expect(aggregateMonthlyWorkLogDuration).toHaveBeenCalledWith(testUserId, {
-				month: '2025-09'
+				month: '2025-09',
 			});
 			expect(listData.monthlyTotalSec).toBe(3600);
 		});
@@ -276,7 +276,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			// モック: 一覧取得
 			vi.mocked(listWorkLogs).mockResolvedValue({
 				items: [],
-				hasNext: true
+				hasNext: true,
 			});
 
 			// モック: 月次合計
@@ -286,8 +286,8 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			// モック: locals
 			const locals = {
 				user: {
-					id: testUserId
-				}
+					id: testUserId,
+				},
 			};
 
 			// モック: url
@@ -304,8 +304,8 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 				testUserId,
 				expect.objectContaining({
 					limit: 50,
-					offset: 50
-				})
+					offset: 50,
+				}),
 			);
 			expect(listData.page).toBe(2);
 			expect(listData.size).toBe(50);
@@ -317,7 +317,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 		it('未認証の場合は401エラー', async () => {
 			// モック: locals (認証なし)
 			const locals = {
-				user: null
+				user: null,
 			};
 
 			// モック: url

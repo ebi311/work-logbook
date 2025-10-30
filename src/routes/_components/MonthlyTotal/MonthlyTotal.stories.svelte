@@ -9,13 +9,13 @@
 		argTypes: {
 			totalSec: {
 				control: { type: 'number', min: 0, max: 1000000 },
-				description: '合計作業時間（秒）'
+				description: '合計作業時間（秒）',
 			},
 			month: {
 				control: 'text',
-				description: '対象月（YYYY-MM形式）。未指定の場合は「今月」'
-			}
-		}
+				description: '対象月（YYYY-MM形式）。未指定の場合は「今月」',
+			},
+		},
 	});
 </script>
 

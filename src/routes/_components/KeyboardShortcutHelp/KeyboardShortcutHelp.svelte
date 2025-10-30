@@ -27,8 +27,8 @@
 		{
 			modifier: modifierKey,
 			key: 'S',
-			description: '作業を開始/終了'
-		}
+			description: '作業を開始/終了',
+		},
 	]);
 </script>
 

@@ -4,7 +4,7 @@ import {
 	getActiveWorkLog,
 	listWorkLogs,
 	aggregateMonthlyWorkLogDuration,
-	getUserTagSuggestions
+	getUserTagSuggestions,
 } from '$lib/server/db/workLogs';
 import { normalizeWorkLogQuery } from '$lib/utils/queryNormalizer';
 import { handleStartAction } from './_actions/start';
@@ -22,7 +22,7 @@ const parseQueryParams = (url: URL) => {
 		from: url.searchParams.get('from') ?? undefined,
 		to: url.searchParams.get('to') ?? undefined,
 		page: url.searchParams.get('page') ? parseInt(url.searchParams.get('page')!, 10) : undefined,
-		size: url.searchParams.get('size') ? parseInt(url.searchParams.get('size')!, 10) : undefined
+		size: url.searchParams.get('size') ? parseInt(url.searchParams.get('size')!, 10) : undefined,
 	};
 };
 
@@ -38,7 +38,7 @@ const fetchListData = async (
 		size: number;
 		offset: number;
 		month?: string;
-	}
+	},
 ) => {
 	// テスト用の遅延（2秒）
 	if (process.env.NODE_ENV === 'development') {
@@ -52,9 +52,9 @@ const fetchListData = async (
 			from: normalized.from,
 			to: normalized.to,
 			limit: normalized.size,
-			offset: normalized.offset
+			offset: normalized.offset,
 		}),
-		aggregateMonthlyWorkLogDuration(userId, { month: monthForAggregate })
+		aggregateMonthlyWorkLogDuration(userId, { month: monthForAggregate }),
 	]);
 
 	// アイテムを変換
@@ -68,7 +68,7 @@ const fetchListData = async (
 			startedAt: item.startedAt.toISOString(),
 			endedAt: item.endedAt ? item.endedAt.toISOString() : null,
 			durationSec,
-			description: item.description
+			description: item.description,
 		};
 	});
 
@@ -77,7 +77,7 @@ const fetchListData = async (
 		page: normalized.page,
 		size: normalized.size,
 		hasNext,
-		monthlyTotalSec
+		monthlyTotalSec,
 	};
 };
 
@@ -146,7 +146,7 @@ export const load: ServerLoad = async ({ locals, url }) => {
 		const response: LoadData = {
 			serverNow,
 			listData,
-			tagSuggestions // F-003: タグ候補を追加
+			tagSuggestions, // F-003: タグ候補を追加
 		};
 
 		if (activeWorkLog) {
@@ -155,7 +155,7 @@ export const load: ServerLoad = async ({ locals, url }) => {
 				startedAt: activeWorkLog.startedAt.toISOString(),
 				endedAt: null,
 				description: activeWorkLog.description,
-				tags: activeWorkLog.tags || []
+				tags: activeWorkLog.tags || [],
 			};
 		}
 		return response;
@@ -200,5 +200,5 @@ export const actions: Actions = {
 			console.error('Failed to delete work log:', err);
 			throw error(500, 'Internal Server Error');
 		}
-	}
+	},
 };

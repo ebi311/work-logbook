@@ -10,8 +10,8 @@ describe('DateTimeField', () => {
 				label: 'テストラベル',
 				id: 'test-id',
 				name: 'test-name',
-				value: '2025-10-27T10:30'
-			}
+				value: '2025-10-27T10:30',
+			},
 		});
 
 		expect(screen.getByLabelText('テストラベル')).toBeInTheDocument();
@@ -23,8 +23,8 @@ describe('DateTimeField', () => {
 				label: 'テストラベル',
 				id: 'test-id',
 				name: 'test-name',
-				value: '2025-10-27T10:30'
-			}
+				value: '2025-10-27T10:30',
+			},
 		});
 
 		const input = screen.getByLabelText('テストラベル') as HTMLInputElement;
@@ -38,8 +38,8 @@ describe('DateTimeField', () => {
 				label: 'テストラベル',
 				id: 'test-id',
 				name: 'test-name',
-				value: '2025-10-27T10:30'
-			}
+				value: '2025-10-27T10:30',
+			},
 		});
 
 		const input = screen.getByLabelText('テストラベル') as HTMLInputElement;
@@ -56,8 +56,8 @@ describe('DateTimeField', () => {
 				id: 'test-id',
 				name: 'test-name',
 				value: '2025-10-27T10:30',
-				disabled: true
-			}
+				disabled: true,
+			},
 		});
 
 		const input = screen.getByLabelText('テストラベル') as HTMLInputElement;
@@ -71,8 +71,8 @@ describe('DateTimeField', () => {
 				id: 'test-id',
 				name: 'test-name',
 				value: '2025-10-27T10:30',
-				required: true
-			}
+				required: true,
+			},
 		});
 
 		const input = screen.getByLabelText('テストラベル') as HTMLInputElement;

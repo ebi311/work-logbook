@@ -58,7 +58,7 @@ export const handleStartAction = async ({ locals, request }: RequestEvent) => {
 			ok: false,
 			reason: 'INVALID_TAGS',
 			message: err instanceof Error ? err.message : 'タグが無効です',
-			serverNow: serverNow.toISOString()
+			serverNow: serverNow.toISOString(),
 		});
 	}
 
@@ -74,9 +74,9 @@ export const handleStartAction = async ({ locals, request }: RequestEvent) => {
 				startedAt: activeWorkLog.startedAt.toISOString(),
 				endedAt: null,
 				description: activeWorkLog.description,
-				tags: activeWorkLog.tags || []
+				tags: activeWorkLog.tags || [],
 			},
-			serverNow: serverNow.toISOString()
+			serverNow: serverNow.toISOString(),
 		} satisfies StartActionFailure);
 	}
 
@@ -95,8 +95,8 @@ export const handleStartAction = async ({ locals, request }: RequestEvent) => {
 			startedAt: workLog.startedAt.toISOString(),
 			endedAt: null,
 			description: workLog.description,
-			tags: normalizedTags // F-003: タグを含める
+			tags: normalizedTags, // F-003: タグを含める
 		},
-		serverNow: serverNow.toISOString()
+		serverNow: serverNow.toISOString(),
 	} satisfies StartActionSuccess;
 };

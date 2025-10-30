@@ -10,7 +10,7 @@ import type { WorkLog } from '../../models/workLog';
 // workLogs モジュールをモック化
 vi.mock('$lib/server/db/workLogs', () => ({
 	getWorkLogById: vi.fn(),
-	deleteWorkLog: vi.fn()
+	deleteWorkLog: vi.fn(),
 }));
 
 import { handleDeleteAction } from './delete';
@@ -36,7 +36,7 @@ describe('Server Actions: delete', () => {
 				startedAt,
 				endedAt,
 				description: 'テスト作業',
-				isActive: () => false
+				isActive: () => false,
 			} as WorkLog;
 
 			vi.mocked(getWorkLogById).mockResolvedValue(mockWorkLog);
@@ -50,7 +50,7 @@ describe('Server Actions: delete', () => {
 			formData.set('id', testWorkLogId);
 
 			const request = {
-				formData: async () => formData
+				formData: async () => formData,
 			};
 
 			// delete アクションを呼び出し
@@ -60,7 +60,7 @@ describe('Server Actions: delete', () => {
 			expect(result).toEqual({
 				ok: true,
 				deletedId: testWorkLogId,
-				serverNow: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/)
+				serverNow: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
 			});
 			expect(getWorkLogById).toHaveBeenCalledWith(testWorkLogId);
 			expect(deleteWorkLog).toHaveBeenCalledWith(testWorkLogId, testUserId);
@@ -77,7 +77,7 @@ describe('Server Actions: delete', () => {
 			formData.set('id', testWorkLogId);
 
 			const request = {
-				formData: async () => formData
+				formData: async () => formData,
 			};
 
 			// delete アクションを呼び出し
@@ -102,7 +102,7 @@ describe('Server Actions: delete', () => {
 			formData.set('id', testWorkLogId);
 
 			const request = {
-				formData: async () => formData
+				formData: async () => formData,
 			};
 
 			// delete アクションを呼び出し
@@ -115,8 +115,8 @@ describe('Server Actions: delete', () => {
 					ok: false,
 					reason: 'NOT_FOUND',
 					message: '作業記録が見つかりません',
-					serverNow: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/)
-				}
+					serverNow: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
+				},
 			});
 			expect(getWorkLogById).toHaveBeenCalledWith(testWorkLogId);
 			expect(deleteWorkLog).not.toHaveBeenCalled();
@@ -134,7 +134,7 @@ describe('Server Actions: delete', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: new Date('2025-10-20T13:00:00.000Z'),
 				description: 'テスト作業',
-				isActive: () => false
+				isActive: () => false,
 			} as WorkLog;
 
 			vi.mocked(getWorkLogById).mockResolvedValue(mockWorkLog);
@@ -147,7 +147,7 @@ describe('Server Actions: delete', () => {
 			formData.set('id', testWorkLogId);
 
 			const request = {
-				formData: async () => formData
+				formData: async () => formData,
 			};
 
 			// delete アクションを呼び出し
@@ -160,8 +160,8 @@ describe('Server Actions: delete', () => {
 					ok: false,
 					reason: 'FORBIDDEN',
 					message: 'この操作を実行する権限がありません',
-					serverNow: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/)
-				}
+					serverNow: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
+				},
 			});
 			expect(getWorkLogById).toHaveBeenCalledWith(testWorkLogId);
 			expect(deleteWorkLog).not.toHaveBeenCalled();

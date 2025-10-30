@@ -8,8 +8,8 @@ describe('WorkLogToggleButton', () => {
 			render(WorkLogToggleButton, {
 				props: {
 					isActive: false,
-					isSubmitting: false
-				}
+					isSubmitting: false,
+				},
 			});
 
 			const button = screen.getByRole('button', { name: '作業開始' });
@@ -20,8 +20,8 @@ describe('WorkLogToggleButton', () => {
 			render(WorkLogToggleButton, {
 				props: {
 					isActive: false,
-					isSubmitting: false
-				}
+					isSubmitting: false,
+				},
 			});
 
 			const button = screen.getByRole('button', { name: '作業開始' });
@@ -32,8 +32,8 @@ describe('WorkLogToggleButton', () => {
 			render(WorkLogToggleButton, {
 				props: {
 					isActive: false,
-					isSubmitting: false
-				}
+					isSubmitting: false,
+				},
 			});
 
 			const button = screen.getByRole('button', { name: '作業開始' });
@@ -46,8 +46,8 @@ describe('WorkLogToggleButton', () => {
 			render(WorkLogToggleButton, {
 				props: {
 					isActive: true,
-					isSubmitting: false
-				}
+					isSubmitting: false,
+				},
 			});
 
 			const button = screen.getByRole('button', { name: '作業終了' });
@@ -58,8 +58,8 @@ describe('WorkLogToggleButton', () => {
 			render(WorkLogToggleButton, {
 				props: {
 					isActive: true,
-					isSubmitting: false
-				}
+					isSubmitting: false,
+				},
 			});
 
 			const button = screen.getByRole('button', { name: '作業終了' });
@@ -70,8 +70,8 @@ describe('WorkLogToggleButton', () => {
 			render(WorkLogToggleButton, {
 				props: {
 					isActive: true,
-					isSubmitting: false
-				}
+					isSubmitting: false,
+				},
 			});
 
 			const button = screen.getByRole('button', { name: '作業終了' });
@@ -84,8 +84,8 @@ describe('WorkLogToggleButton', () => {
 			render(WorkLogToggleButton, {
 				props: {
 					isActive: false,
-					isSubmitting: true
-				}
+					isSubmitting: true,
+				},
 			});
 
 			const button = screen.getByRole('button', { name: '作業開始' });
@@ -96,8 +96,8 @@ describe('WorkLogToggleButton', () => {
 			render(WorkLogToggleButton, {
 				props: {
 					isActive: false,
-					isSubmitting: true
-				}
+					isSubmitting: true,
+				},
 			});
 
 			const button = screen.getByRole('button', { name: '作業開始' });
@@ -110,8 +110,8 @@ describe('WorkLogToggleButton', () => {
 			render(WorkLogToggleButton, {
 				props: {
 					isActive: true,
-					isSubmitting: true
-				}
+					isSubmitting: true,
+				},
 			});
 
 			const button = screen.getByRole('button', { name: '作業終了' });
@@ -122,8 +122,8 @@ describe('WorkLogToggleButton', () => {
 			render(WorkLogToggleButton, {
 				props: {
 					isActive: true,
-					isSubmitting: true
-				}
+					isSubmitting: true,
+				},
 			});
 
 			const button = screen.getByRole('button', { name: '作業終了' });

@@ -6,12 +6,12 @@ vi.mock('$lib/server/config/env', () => ({
 		github: {
 			clientId: 'test-client-id',
 			clientSecret: 'dummy',
-			callbackUrl: 'http://localhost:5173/auth/callback'
+			callbackUrl: 'http://localhost:5173/auth/callback',
 		},
 		session: { secret: 'test' },
 		allowedGithubIds: [],
-		redis: { url: 'redis://redis:6379' }
-	}))
+		redis: { url: 'redis://redis:6379' },
+	})),
 }));
 
 // Mock Redis client
@@ -23,7 +23,7 @@ vi.mock('$lib/server/config/redis', () => {
 	const client = { set };
 	return {
 		getRedisClient: vi.fn(async () => client),
-		__mocks: { set }
+		__mocks: { set },
 	};
 });
 
@@ -43,12 +43,12 @@ describe('GET /auth/login', () => {
 		const cookies = {
 			set: vi.fn((name: string, value: string, options: Record<string, unknown>) => {
 				cookieStore.set(name, { value, options });
-			})
+			}),
 		} as { set: (name: string, value: string, options: Record<string, unknown>) => void };
 
 		const event = {
 			cookies,
-			url: new URL('http://localhost:5173/auth/login')
+			url: new URL('http://localhost:5173/auth/login'),
 		} as unknown as Parameters<typeof GET>[0];
 
 		const res = await GET(event);

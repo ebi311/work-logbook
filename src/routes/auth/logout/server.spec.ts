@@ -8,8 +8,8 @@ const delMock = vi.fn(async (...args: unknown[]) => {
 
 vi.mock('$lib/server/config/redis', () => ({
 	getRedisClient: vi.fn(async () => ({
-		del: delMock
-	}))
+		del: delMock,
+	})),
 }));
 
 import { POST } from './+server';
@@ -24,11 +24,11 @@ describe('POST /auth/logout', () => {
 
 		const cookies = {
 			get: vi.fn(() => sessionId),
-			delete: vi.fn()
+			delete: vi.fn(),
 		} as unknown as Parameters<typeof POST>[0]['cookies'];
 
 		const event = {
-			cookies
+			cookies,
 		} as unknown as Parameters<typeof POST>[0];
 
 		const res = await POST(event);
@@ -40,7 +40,7 @@ describe('POST /auth/logout', () => {
 		// session_id Cookie削除
 		expect(cookies.delete).toHaveBeenCalledWith(
 			'session_id',
-			expect.objectContaining({ path: '/' })
+			expect.objectContaining({ path: '/' }),
 		);
 
 		// Redis からセッション削除（deleteSession内部で実行）
@@ -50,11 +50,11 @@ describe('POST /auth/logout', () => {
 	it('セッションIDがない場合でもリダイレクトする', async () => {
 		const cookies = {
 			get: vi.fn(() => undefined),
-			delete: vi.fn()
+			delete: vi.fn(),
 		} as unknown as Parameters<typeof POST>[0]['cookies'];
 
 		const event = {
-			cookies
+			cookies,
 		} as unknown as Parameters<typeof POST>[0];
 
 		const res = await POST(event);
@@ -66,7 +66,7 @@ describe('POST /auth/logout', () => {
 		// Cookie削除は呼ばれる
 		expect(cookies.delete).toHaveBeenCalledWith(
 			'session_id',
-			expect.objectContaining({ path: '/' })
+			expect.objectContaining({ path: '/' }),
 		);
 
 		// Redis削除は呼ばれない

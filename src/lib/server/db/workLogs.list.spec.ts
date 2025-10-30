@@ -27,8 +27,8 @@ vi.mock('./index', () => {
 			where: mockWhere,
 			orderBy: mockOrderBy,
 			limit: mockLimit,
-			offset: mockOffset
-		}
+			offset: mockOffset,
+		},
 	};
 });
 
@@ -52,8 +52,8 @@ describe('listWorkLogs', () => {
 				id: 'log-1',
 				startedAt: new Date('2025-10-25T10:00:00Z'),
 				endedAt: new Date('2025-10-25T12:00:00Z'),
-				userId: testUserId
-			}
+				userId: testUserId,
+			},
 		];
 		mockDb.offset.mockResolvedValue(mockData);
 
@@ -78,7 +78,7 @@ describe('listWorkLogs', () => {
 			id: `log-${i}`,
 			startedAt: new Date(`2025-10-${25 - i}T10:00:00Z`),
 			endedAt: new Date(`2025-10-${25 - i}T12:00:00Z`),
-			userId: testUserId
+			userId: testUserId,
 		}));
 		mockDb.offset.mockResolvedValue(mockData);
 
@@ -98,7 +98,7 @@ describe('listWorkLogs', () => {
 			id: `log-${i}`,
 			startedAt: new Date(`2025-10-${25 - i}T10:00:00Z`),
 			endedAt: new Date(`2025-10-${25 - i}T12:00:00Z`),
-			userId: testUserId
+			userId: testUserId,
 		}));
 		mockDb.offset.mockResolvedValue(mockData);
 
@@ -115,14 +115,14 @@ describe('listWorkLogs', () => {
 				id: 'log-1',
 				startedAt: new Date('2025-10-25T10:00:00Z'),
 				endedAt: null,
-				userId: testUserId
+				userId: testUserId,
 			},
 			{
 				id: 'log-2',
 				startedAt: new Date('2025-10-24T10:00:00Z'),
 				endedAt: new Date('2025-10-24T12:00:00Z'),
-				userId: testUserId
-			}
+				userId: testUserId,
+			},
 		];
 		mockDb.offset.mockResolvedValue(mockData);
 
@@ -160,8 +160,8 @@ describe('listWorkLogs', () => {
 				id: 'log-1',
 				startedAt: new Date('2025-10-25T10:00:00Z'),
 				endedAt: null, // 進行中
-				userId: testUserId
-			}
+				userId: testUserId,
+			},
 		];
 		mockDb.offset.mockResolvedValue(mockData);
 
@@ -198,7 +198,7 @@ describe('listWorkLogs', () => {
 		const to = new Date('2025-10-01T00:00:00Z');
 
 		await expect(listWorkLogs(testUserId, { limit: 10, offset: 0, from, to })).rejects.toThrow(
-			'from must be less than or equal to to'
+			'from must be less than or equal to to',
 		);
 	});
 
@@ -228,7 +228,7 @@ describe('listWorkLogs', () => {
 			limit: 10,
 			offset: 0,
 			from: sameDate,
-			to: sameDate
+			to: sameDate,
 		});
 
 		expect(result.items).toEqual([]);

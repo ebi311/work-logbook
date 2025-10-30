@@ -8,8 +8,8 @@ describe('Pagination', () => {
 			props: {
 				currentPage: 3,
 				hasNext: true,
-				size: 10
-			}
+				size: 10,
+			},
 		});
 
 		expect(screen.getByText('ページ 3')).toBeInTheDocument();
@@ -20,8 +20,8 @@ describe('Pagination', () => {
 			props: {
 				currentPage: 1,
 				hasNext: true,
-				size: 10
-			}
+				size: 10,
+			},
 		});
 
 		const prevButton = screen.getByLabelText('前のページ');
@@ -33,8 +33,8 @@ describe('Pagination', () => {
 			props: {
 				currentPage: 2,
 				hasNext: true,
-				size: 10
-			}
+				size: 10,
+			},
 		});
 
 		const prevButton = screen.getByLabelText('前のページ');
@@ -46,8 +46,8 @@ describe('Pagination', () => {
 			props: {
 				currentPage: 5,
 				hasNext: false,
-				size: 10
-			}
+				size: 10,
+			},
 		});
 
 		const nextButton = screen.getByLabelText('次のページ');
@@ -59,8 +59,8 @@ describe('Pagination', () => {
 			props: {
 				currentPage: 1,
 				hasNext: true,
-				size: 10
-			}
+				size: 10,
+			},
 		});
 
 		const nextButton = screen.getByLabelText('次のページ');
@@ -72,8 +72,8 @@ describe('Pagination', () => {
 			props: {
 				currentPage: 3,
 				hasNext: true,
-				size: 20
-			}
+				size: 20,
+			},
 		});
 
 		const prevButton = screen.getByLabelText('前のページ');
@@ -85,8 +85,8 @@ describe('Pagination', () => {
 			props: {
 				currentPage: 2,
 				hasNext: true,
-				size: 15
-			}
+				size: 15,
+			},
 		});
 
 		const nextButton = screen.getByLabelText('次のページ');
@@ -98,8 +98,8 @@ describe('Pagination', () => {
 			props: {
 				currentPage: 2,
 				hasNext: true,
-				size: 10
-			}
+				size: 10,
+			},
 		});
 
 		const prevButton = screen.getByLabelText('前のページ');
@@ -115,8 +115,8 @@ describe('Pagination', () => {
 			props: {
 				currentPage: 1,
 				hasNext: true,
-				size: 10
-			}
+				size: 10,
+			},
 		});
 
 		const prevButton = screen.getByLabelText('前のページ');
@@ -131,8 +131,8 @@ describe('Pagination', () => {
 			props: {
 				currentPage: 10,
 				hasNext: false,
-				size: 10
-			}
+				size: 10,
+			},
 		});
 
 		const prevButton = screen.getByLabelText('前のページ');

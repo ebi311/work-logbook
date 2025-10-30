@@ -75,7 +75,7 @@
 	const symbolClassname = $derived(() => {
 		let classes = classNames('mr-2', 'text-2xl', {
 			'text-red-500': active,
-			'text-gray-500': !active
+			'text-gray-500': !active,
 		});
 		return classes;
 	});

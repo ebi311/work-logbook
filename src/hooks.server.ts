@@ -36,7 +36,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 					id: users.id,
 					githubId: users.githubId,
 					githubUsername: users.githubUsername,
-					isActive: users.isActive
+					isActive: users.isActive,
 				})
 				.from(users)
 				.where(eq(users.id, sessionResult.userId))
@@ -54,8 +54,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return new Response(null, {
 			status: 302,
 			headers: {
-				location: '/auth/login'
-			}
+				location: '/auth/login',
+			},
 		});
 	}
 

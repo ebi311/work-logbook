@@ -21,13 +21,13 @@ vi.mock('./index', () => ({
 	db: {
 		query: {
 			workLogs: {
-				findFirst: vi.fn()
-			}
+				findFirst: vi.fn(),
+			},
 		},
 		insert: vi.fn(),
 		update: vi.fn(),
-		delete: vi.fn()
-	}
+		delete: vi.fn(),
+	},
 }));
 
 import { db } from './index';
@@ -51,7 +51,7 @@ describe('WorkLogs DB Functions', () => {
 				endedAt: null,
 				description: '',
 				createdAt: serverNow,
-				updatedAt: serverNow
+				updatedAt: serverNow,
 			};
 
 			const workLog = toWorkLog(dbWorkLog);
@@ -74,7 +74,7 @@ describe('WorkLogs DB Functions', () => {
 				endedAt,
 				description: 'テスト作業',
 				createdAt: startedAt,
-				updatedAt: endedAt
+				updatedAt: endedAt,
 			};
 
 			const workLog = toWorkLog(dbWorkLog);
@@ -93,7 +93,7 @@ describe('WorkLogs DB Functions', () => {
 				endedAt: null,
 				description: '',
 				createdAt: new Date(),
-				updatedAt: new Date()
+				updatedAt: new Date(),
 			} as DbWorkLog;
 
 			expect(() => toWorkLog(invalidData)).toThrow();
@@ -120,7 +120,7 @@ describe('WorkLogs DB Functions', () => {
 				endedAt: null,
 				description: '',
 				createdAt: serverNow,
-				updatedAt: serverNow
+				updatedAt: serverNow,
 			};
 
 			// モック: 進行中の作業を返す
@@ -145,7 +145,7 @@ describe('WorkLogs DB Functions', () => {
 				endedAt: null,
 				description: '',
 				createdAt: serverNow,
-				updatedAt: serverNow
+				updatedAt: serverNow,
 			};
 
 			// モック: insertのチェーンメソッド
@@ -189,7 +189,7 @@ describe('WorkLogs DB Functions', () => {
 				endedAt,
 				description: '',
 				createdAt: startedAt,
-				updatedAt: endedAt
+				updatedAt: endedAt,
 			};
 
 			// モック: updateのチェーンメソッド
@@ -249,7 +249,7 @@ describe('WorkLogs DB Functions', () => {
 				endedAt: null,
 				description: '',
 				createdAt: startedAt,
-				updatedAt: startedAt
+				updatedAt: startedAt,
 			};
 			const mockInsertReturning = vi.fn().mockResolvedValue([createdDbWorkLog]);
 			const mockInsertValues = vi.fn().mockReturnValue({ returning: mockInsertReturning });
@@ -269,7 +269,7 @@ describe('WorkLogs DB Functions', () => {
 			const stoppedDbWorkLog: DbWorkLog = {
 				...createdDbWorkLog,
 				endedAt,
-				updatedAt: endedAt
+				updatedAt: endedAt,
 			};
 			const mockUpdateReturning = vi.fn().mockResolvedValue([stoppedDbWorkLog]);
 			const mockUpdateWhere = vi.fn().mockReturnValue({ returning: mockUpdateReturning });
@@ -301,7 +301,7 @@ describe('WorkLogs DB Functions', () => {
 				endedAt: null,
 				description: '',
 				createdAt: startedAt,
-				updatedAt: originalUpdatedAt
+				updatedAt: originalUpdatedAt,
 			};
 			const mockInsertReturning = vi.fn().mockResolvedValue([createdDbWorkLog]);
 			const mockInsertValues = vi.fn().mockReturnValue({ returning: mockInsertReturning });
@@ -316,7 +316,7 @@ describe('WorkLogs DB Functions', () => {
 			const stoppedDbWorkLog: DbWorkLog = {
 				...createdDbWorkLog,
 				endedAt,
-				updatedAt: newUpdatedAt
+				updatedAt: newUpdatedAt,
 			};
 			const mockUpdateReturning = vi.fn().mockResolvedValue([stoppedDbWorkLog]);
 			const mockUpdateWhere = vi.fn().mockReturnValue({ returning: mockUpdateReturning });

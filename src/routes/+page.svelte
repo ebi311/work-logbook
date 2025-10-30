@@ -75,7 +75,7 @@
 			if ('active' in form && 'serverNow' in form && form.active) {
 				currentActive = {
 					...form.active,
-					tags: form.active.tags || []
+					tags: form.active.tags || [],
 				};
 				currentServerNow = form.serverNow;
 			}
@@ -88,7 +88,7 @@
 				currentServerNow = form.serverNow;
 			}
 			toastError('進行中の作業がありません');
-		}
+		},
 	};
 
 	// dataが変更されたら状態を同期
@@ -198,7 +198,7 @@
 			id: item.id,
 			startedAt: new Date(item.startedAt),
 			endedAt: item.endedAt ? new Date(item.endedAt) : null,
-			description: item.description
+			description: item.description,
 		};
 		editOpen = true;
 	};
@@ -217,7 +217,7 @@
 	const handleDeleteClick = async (item: ListItem) => {
 		// ブラウザ標準の確認ダイアログ
 		const confirmed = window.confirm(
-			'この作業記録を削除してもよろしいですか？\n\nこの操作は取り消せません。'
+			'この作業記録を削除してもよろしいですか？\n\nこの操作は取り消せません。',
 		);
 
 		if (!confirmed) {
@@ -231,7 +231,7 @@
 		try {
 			const response = await fetch('?/delete', {
 				method: 'POST',
-				body: formData
+				body: formData,
 			});
 
 			const result = await response.json();

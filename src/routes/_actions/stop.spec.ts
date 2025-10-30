@@ -12,7 +12,7 @@ import type { ServerLoadEvent } from '@sveltejs/kit';
 vi.mock('$lib/server/db/workLogs', () => ({
 	getActiveWorkLog: vi.fn(),
 	stopWorkLog: vi.fn(),
-	saveWorkLogTags: vi.fn()
+	saveWorkLogTags: vi.fn(),
 }));
 
 import { handleStopAction } from './stop';
@@ -40,7 +40,7 @@ describe('Server Actions: stop', () => {
 				endedAt: null,
 				description: 'Initial description',
 				isActive: () => true,
-				getDuration: () => 0
+				getDuration: () => 0,
 			} as WorkLog;
 			vi.mocked(getActiveWorkLog).mockResolvedValue(mockActiveWorkLog);
 
@@ -52,7 +52,7 @@ describe('Server Actions: stop', () => {
 				endedAt,
 				description: 'Updated description',
 				isActive: () => false,
-				getDuration: () => durationSec
+				getDuration: () => durationSec,
 			} as WorkLog;
 			vi.mocked(stopWorkLog).mockResolvedValue(mockStoppedWorkLog);
 			vi.mocked(saveWorkLogTags).mockResolvedValue();
@@ -60,8 +60,8 @@ describe('Server Actions: stop', () => {
 			// モック: locals
 			const locals = {
 				user: {
-					id: testUserId
-				}
+					id: testUserId,
+				},
 			};
 
 			// モック: request with FormData
@@ -69,7 +69,7 @@ describe('Server Actions: stop', () => {
 			formData.append('description', 'Updated description');
 			const request = new Request('http://localhost:5173/?/stop', {
 				method: 'POST',
-				body: formData
+				body: formData,
 			});
 
 			// stop actionを呼び出し
@@ -85,13 +85,13 @@ describe('Server Actions: stop', () => {
 				startedAt: startedAt.toISOString(),
 				endedAt: endedAt.toISOString(),
 				description: 'Updated description',
-				tags: []
+				tags: [],
 			});
 			expect((result as any).serverNow).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
 			expect(stopWorkLog).toHaveBeenCalledWith(
 				testWorkLogId,
 				expect.any(Date),
-				'Updated description'
+				'Updated description',
 			);
 		});
 	});
@@ -104,8 +104,8 @@ describe('Server Actions: stop', () => {
 			// モック: locals
 			const locals = {
 				user: {
-					id: testUserId
-				}
+					id: testUserId,
+				},
 			};
 
 			// モック: request with FormData
@@ -113,7 +113,7 @@ describe('Server Actions: stop', () => {
 			formData.append('description', '');
 			const request = new Request('http://localhost:5173/?/stop', {
 				method: 'POST',
-				body: formData
+				body: formData,
 			});
 
 			// stop actionを呼び出し
@@ -137,7 +137,7 @@ describe('Server Actions: stop', () => {
 			formData.append('description', '');
 			const request = new Request('http://localhost:5173/?/stop', {
 				method: 'POST',
-				body: formData
+				body: formData,
 			});
 
 			// stop actionを呼び出し
@@ -163,7 +163,7 @@ describe('Server Actions: stop', () => {
 				endedAt: null,
 				description: '',
 				isActive: () => true,
-				getDuration: () => 0
+				getDuration: () => 0,
 			} as WorkLog;
 			vi.mocked(getActiveWorkLog).mockResolvedValue(mockActiveWorkLog);
 
@@ -174,8 +174,8 @@ describe('Server Actions: stop', () => {
 			// モック: locals
 			const locals = {
 				user: {
-					id: testUserId
-				}
+					id: testUserId,
+				},
 			};
 
 			// モック: request with FormData
@@ -183,7 +183,7 @@ describe('Server Actions: stop', () => {
 			formData.append('description', '');
 			const request = new Request('http://localhost:5173/?/stop', {
 				method: 'POST',
-				body: formData
+				body: formData,
 			});
 
 			// stop actionを呼び出し
@@ -208,7 +208,7 @@ describe('Server Actions: stop', () => {
 				endedAt: null,
 				description: '',
 				isActive: () => true,
-				getDuration: () => 0
+				getDuration: () => 0,
 			} as WorkLog;
 			vi.mocked(getActiveWorkLog).mockResolvedValue(mockActiveWorkLog);
 
@@ -218,8 +218,8 @@ describe('Server Actions: stop', () => {
 			// モック: locals
 			const locals = {
 				user: {
-					id: testUserId
-				}
+					id: testUserId,
+				},
 			};
 
 			// モック: request with FormData
@@ -227,7 +227,7 @@ describe('Server Actions: stop', () => {
 			formData.append('description', '');
 			const request = new Request('http://localhost:5173/?/stop', {
 				method: 'POST',
-				body: formData
+				body: formData,
 			});
 
 			// stop actionを呼び出し
@@ -255,7 +255,7 @@ describe('Server Actions: stop', () => {
 				endedAt: null,
 				description: '',
 				isActive: () => true,
-				getDuration: () => 0
+				getDuration: () => 0,
 			} as WorkLog;
 			vi.mocked(getActiveWorkLog).mockResolvedValue(mockActiveWorkLog);
 
@@ -267,7 +267,7 @@ describe('Server Actions: stop', () => {
 				endedAt,
 				description: '',
 				isActive: () => false,
-				getDuration: () => durationSec
+				getDuration: () => durationSec,
 			} as WorkLog;
 			vi.mocked(stopWorkLog).mockResolvedValue(mockStoppedWorkLog);
 			vi.mocked(saveWorkLogTags).mockResolvedValue();
@@ -275,8 +275,8 @@ describe('Server Actions: stop', () => {
 			// モック: locals
 			const locals = {
 				user: {
-					id: testUserId
-				}
+					id: testUserId,
+				},
 			};
 
 			// モック: request with FormData
@@ -284,7 +284,7 @@ describe('Server Actions: stop', () => {
 			formData.append('description', '');
 			const request = new Request('http://localhost:5173/?/stop', {
 				method: 'POST',
-				body: formData
+				body: formData,
 			});
 
 			// stop actionを呼び出し

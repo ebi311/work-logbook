@@ -18,13 +18,13 @@ describe('KeyboardShortcutHelp', () => {
 		// macOS環境をシミュレート
 		Object.defineProperty(window.navigator, 'platform', {
 			value: 'MacIntel',
-			configurable: true
+			configurable: true,
 		});
 
 		render(KeyboardShortcutHelp, {
 			props: {
-				platform: 'mac'
-			}
+				platform: 'mac',
+			},
 		});
 
 		// Cmd が表示される
@@ -34,8 +34,8 @@ describe('KeyboardShortcutHelp', () => {
 	it('WindowsではCtrl キーを表示', () => {
 		render(KeyboardShortcutHelp, {
 			props: {
-				platform: 'win'
-			}
+				platform: 'win',
+			},
 		});
 
 		// Ctrl が表示される

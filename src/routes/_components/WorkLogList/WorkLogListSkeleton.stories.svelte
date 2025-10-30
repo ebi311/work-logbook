@@ -9,9 +9,9 @@
 		argTypes: {
 			rows: {
 				control: { type: 'number', min: 1, max: 20 },
-				description: '表示するスケルトン行数'
-			}
-		}
+				description: '表示するスケルトン行数',
+			},
+		},
 	});
 </script>
 

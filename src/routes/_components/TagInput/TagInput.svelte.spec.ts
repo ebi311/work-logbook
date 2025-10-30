@@ -64,8 +64,8 @@ describe('TagInput', () => {
 		render(TagInput, {
 			suggestions: [
 				{ tag: '開発', count: 5 },
-				{ tag: 'PJ-A', count: 3 }
-			]
+				{ tag: 'PJ-A', count: 3 },
+			],
 		});
 
 		const input = screen.getByPlaceholderText(/開発/);
@@ -78,7 +78,7 @@ describe('TagInput', () => {
 
 	it('サジェストをクリックして追加できる', async () => {
 		render(TagInput, {
-			suggestions: [{ tag: '開発', count: 5 }]
+			suggestions: [{ tag: '開発', count: 5 }],
 		});
 
 		const input = screen.getByPlaceholderText(/開発/);
@@ -95,8 +95,8 @@ describe('TagInput', () => {
 			tags: ['開発'],
 			suggestions: [
 				{ tag: '開発', count: 5 },
-				{ tag: 'PJ-A', count: 3 }
-			]
+				{ tag: 'PJ-A', count: 3 },
+			],
 		});
 
 		const input = screen.getByPlaceholderText(/開発/);
@@ -135,8 +135,8 @@ describe('TagInput', () => {
 		render(TagInput, {
 			suggestions: [
 				{ tag: '開発', count: 5 },
-				{ tag: 'PJ-A', count: 3 }
-			]
+				{ tag: 'PJ-A', count: 3 },
+			],
 		});
 
 		const input = screen.getByPlaceholderText(/開発/);

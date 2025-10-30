@@ -28,20 +28,20 @@ const exchangeCodeForToken = async (
 	clientId: string,
 	clientSecret: string,
 	redirectUri: string,
-	fetchFn: typeof fetch
+	fetchFn: typeof fetch,
 ): Promise<string> => {
 	const res = await fetchFn('https://github.com/login/oauth/access_token', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Accept: 'application/json'
+			Accept: 'application/json',
 		},
 		body: JSON.stringify({
 			client_id: clientId,
 			client_secret: clientSecret,
 			code,
-			redirect_uri: redirectUri
-		})
+			redirect_uri: redirectUri,
+		}),
 	});
 
 	if (!res.ok) {
@@ -61,8 +61,8 @@ const fetchGitHubUser = async (accessToken: string, fetchFn: typeof fetch): Prom
 		headers: {
 			Authorization: `Bearer ${accessToken}`,
 			Accept: 'application/vnd.github+json',
-			'X-GitHub-Api-Version': '2022-11-28'
-		}
+			'X-GitHub-Api-Version': '2022-11-28',
+		},
 	});
 
 	if (!res.ok) {
@@ -78,7 +78,7 @@ const fetchGitHubUser = async (accessToken: string, fetchFn: typeof fetch): Prom
 const validateAndConsumeState = async (
 	state: string | null,
 	cookies: Cookies,
-	redisClient: RedisClientType
+	redisClient: RedisClientType,
 ): Promise<boolean> => {
 	const stateCookie = cookies.get('oauth_state');
 	if (!stateCookie || stateCookie !== state) {
@@ -105,14 +105,14 @@ const authenticateWithGitHub = async (
 	clientId: string,
 	clientSecret: string,
 	callbackUrl: string,
-	fetchFn: typeof fetch
+	fetchFn: typeof fetch,
 ): Promise<GitHubUser> => {
 	const accessToken = await exchangeCodeForToken(
 		code,
 		clientId,
 		clientSecret,
 		callbackUrl,
-		fetchFn
+		fetchFn,
 	);
 	return await fetchGitHubUser(accessToken, fetchFn);
 };
@@ -127,7 +127,7 @@ const upsertUser = async (githubUser: GitHubUser) => {
 			githubId: String(githubUser.id),
 			githubUsername: githubUser.login,
 			githubEmail: githubUser.email,
-			avatarUrl: githubUser.avatar_url
+			avatarUrl: githubUser.avatar_url,
 		})
 		.onConflictDoUpdate({
 			target: users.githubId,
@@ -135,8 +135,8 @@ const upsertUser = async (githubUser: GitHubUser) => {
 				githubUsername: githubUser.login,
 				githubEmail: githubUser.email,
 				avatarUrl: githubUser.avatar_url,
-				updatedAt: new Date()
-			}
+				updatedAt: new Date(),
+			},
 		})
 		.returning();
 
@@ -154,7 +154,7 @@ const createSessionAndSetCookie = async (userId: string, cookies: Cookies): Prom
 		httpOnly: true,
 		sameSite: 'lax',
 		secure: true,
-		maxAge: _SESSION_TTL_SECONDS
+		maxAge: _SESSION_TTL_SECONDS,
 	});
 };
 
@@ -171,7 +171,7 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 	if (!isStateValid) {
 		return new Response(JSON.stringify({ error: 'Invalid state' }), {
 			status: 400,
-			headers: { 'Content-Type': 'application/json' }
+			headers: { 'Content-Type': 'application/json' },
 		});
 	}
 
@@ -179,7 +179,7 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 	if (!code) {
 		return new Response(JSON.stringify({ error: 'Missing code' }), {
 			status: 400,
-			headers: { 'Content-Type': 'application/json' }
+			headers: { 'Content-Type': 'application/json' },
 		});
 	}
 
@@ -189,14 +189,14 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 		github.clientId,
 		github.clientSecret,
 		github.callbackUrl,
-		fetch
+		fetch,
 	);
 
 	// Check whitelist
 	if (!isAllowedGithubId(String(githubUser.id))) {
 		return new Response(JSON.stringify({ error: 'Access denied' }), {
 			status: 403,
-			headers: { 'Content-Type': 'application/json' }
+			headers: { 'Content-Type': 'application/json' },
 		});
 	}
 
@@ -209,6 +209,6 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 	// Redirect to home
 	return new Response(null, {
 		status: 302,
-		headers: { Location: '/' }
+		headers: { Location: '/' },
 	});
 };

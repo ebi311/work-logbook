@@ -12,9 +12,9 @@ vi.mock('$app/forms', () => {
 				// Svelte アクション互換の destroy を返す
 				destroy: () => {
 					form?.removeEventListener?.('submit', handler);
-				}
+				},
 			};
-		}
+		},
 	};
 });
 
@@ -22,8 +22,8 @@ vi.mock('$app/forms', () => {
 vi.mock('@zerodevx/svelte-toast', () => {
 	return {
 		toast: {
-			push: vi.fn()
-		}
+			push: vi.fn(),
+		},
 	};
 });
 
@@ -47,7 +47,7 @@ describe('/+page.svelte', () => {
 			page: 1,
 			size: 10,
 			hasNext: false,
-			monthlyTotalSec: 0
+			monthlyTotalSec: 0,
 		});
 
 	// テストデータヘルパー: デフォルトのdataオブジェクトを生成
@@ -56,7 +56,7 @@ describe('/+page.svelte', () => {
 		serverNow,
 		listData: createDefaultListData(),
 		tagSuggestions: [],
-		...overrides
+		...overrides,
 	});
 
 	// テストデータヘルパー: activeWorkLogを生成
@@ -66,15 +66,15 @@ describe('/+page.svelte', () => {
 		endedAt: null,
 		description: 'テスト作業中',
 		tags: [],
-		...overrides
+		...overrides,
 	});
 
 	describe('停止中の状態', () => {
 		it('「停止中」のステータスが表示される', () => {
 			render(Page, {
 				props: {
-					data: createDefaultData()
-				}
+					data: createDefaultData(),
+				},
 			});
 
 			expect(screen.getByText('停止中')).toBeInTheDocument();
@@ -83,8 +83,8 @@ describe('/+page.svelte', () => {
 		it('「作業開始」ボタンが表示される', () => {
 			render(Page, {
 				props: {
-					data: createDefaultData()
-				}
+					data: createDefaultData(),
+				},
 			});
 
 			const button = screen.getByRole('button', { name: '作業開始' });
@@ -94,8 +94,8 @@ describe('/+page.svelte', () => {
 		it('「作業開始」ボタンのformactionが"?/start"である', () => {
 			render(Page, {
 				props: {
-					data: createDefaultData()
-				}
+					data: createDefaultData(),
+				},
 			});
 
 			const button = screen.getByRole('button', { name: '作業開始' });
@@ -107,14 +107,14 @@ describe('/+page.svelte', () => {
 		const active = createActiveWorkLog({
 			id: 'test-work-log-id',
 			startedAt: '2025-10-22T09:30:00.000Z', // 30分前
-			description: 'テスト作業中'
+			description: 'テスト作業中',
 		});
 
 		it('「記録中」のステータスが表示される', () => {
 			render(Page, {
 				props: {
-					data: createDefaultData({ active })
-				}
+					data: createDefaultData({ active }),
+				},
 			});
 
 			// "記録中" という文字列を含むテキストを探す
@@ -124,8 +124,8 @@ describe('/+page.svelte', () => {
 		it('経過時間が表示される', () => {
 			render(Page, {
 				props: {
-					data: createDefaultData({ active })
-				}
+					data: createDefaultData({ active }),
+				},
 			});
 
 			// 「記録中（経過」というテキストが含まれることを確認
@@ -136,8 +136,8 @@ describe('/+page.svelte', () => {
 		it('「作業終了」ボタンが表示される', () => {
 			render(Page, {
 				props: {
-					data: createDefaultData({ active })
-				}
+					data: createDefaultData({ active }),
+				},
 			});
 
 			const button = screen.getByRole('button', { name: '作業終了' });
@@ -147,8 +147,8 @@ describe('/+page.svelte', () => {
 		it('「作業終了」ボタンのformactionが"?/stop"である', () => {
 			render(Page, {
 				props: {
-					data: createDefaultData({ active })
-				}
+					data: createDefaultData({ active }),
+				},
 			});
 
 			const button = screen.getByRole('button', { name: '作業終了' });
@@ -161,8 +161,8 @@ describe('/+page.svelte', () => {
 			it('停止中から記録中に状態が変化する', async () => {
 				const { rerender } = render(Page, {
 					props: {
-						data: createDefaultData()
-					}
+						data: createDefaultData(),
+					},
 				});
 
 				// 初期状態: 停止中
@@ -174,7 +174,7 @@ describe('/+page.svelte', () => {
 				const newActive = createActiveWorkLog({
 					id: 'new-work-log-id',
 					startedAt: newServerNow,
-					description: 'テスト作業中'
+					description: 'テスト作業中',
 				});
 
 				rerender({
@@ -182,8 +182,8 @@ describe('/+page.svelte', () => {
 					form: {
 						ok: true,
 						workLog: newActive,
-						serverNow: newServerNow
-					}
+						serverNow: newServerNow,
+					},
 				}); // 新しい状態: 記録中（リアクティビティの更新を待つ）
 				await waitFor(() => {
 					expect(screen.getByText(/記録中/)).toBeInTheDocument();
@@ -196,8 +196,8 @@ describe('/+page.svelte', () => {
 						theme: {
 							'--toastBackground': 'oklch(var(--su))',
 							'--toastColor': 'oklch(var(--suc))',
-							'--toastBarBackground': 'oklch(var(--suc))'
-						}
+							'--toastBarBackground': 'oklch(var(--suc))',
+						},
 					});
 				});
 			});
@@ -207,8 +207,8 @@ describe('/+page.svelte', () => {
 			it('既に作業が進行中の場合、エラーメッセージが表示され、サーバー状態で更新される', async () => {
 				const { rerender } = render(Page, {
 					props: {
-						data: createDefaultData()
-					}
+						data: createDefaultData(),
+					},
 				});
 
 				// 初期状態: 停止中
@@ -218,7 +218,7 @@ describe('/+page.svelte', () => {
 				const existingActive = createActiveWorkLog({
 					id: 'existing-work-log-id',
 					startedAt: '2025-10-22T09:00:00.000Z',
-					description: 'テスト作業中'
+					description: 'テスト作業中',
 				});
 
 				rerender({
@@ -226,8 +226,8 @@ describe('/+page.svelte', () => {
 					form: {
 						reason: 'ACTIVE_EXISTS' as const,
 						active: existingActive,
-						serverNow: '2025-10-22T10:00:05.000Z'
-					}
+						serverNow: '2025-10-22T10:00:05.000Z',
+					},
 				});
 
 				// エラーメッセージが表示される
@@ -236,8 +236,8 @@ describe('/+page.svelte', () => {
 						theme: {
 							'--toastBackground': 'oklch(var(--er))',
 							'--toastColor': 'oklch(var(--erc))',
-							'--toastBarBackground': 'oklch(var(--erc))'
-						}
+							'--toastBarBackground': 'oklch(var(--erc))',
+						},
 					});
 				});
 
@@ -255,13 +255,13 @@ describe('/+page.svelte', () => {
 				const active = createActiveWorkLog({
 					id: 'test-work-log-id',
 					startedAt: '2025-10-22T09:30:00.000Z',
-					description: 'テスト作業中'
+					description: 'テスト作業中',
 				});
 
 				const { rerender } = render(Page, {
 					props: {
-						data: createDefaultData({ active })
-					}
+						data: createDefaultData({ active }),
+					},
 				});
 
 				// 初期状態: 記録中
@@ -275,7 +275,7 @@ describe('/+page.svelte', () => {
 					startedAt: active.startedAt,
 					endedAt: newServerNow,
 					description: active.description,
-					tags: active.tags
+					tags: active.tags,
 				};
 
 				rerender({
@@ -284,8 +284,8 @@ describe('/+page.svelte', () => {
 						ok: true,
 						workLog: stoppedWorkLog,
 						serverNow: newServerNow,
-						durationSec: 3600 // 60分
-					}
+						durationSec: 3600, // 60分
+					},
 				});
 
 				// 新しい状態: 停止中（リアクティビティの更新を待つ）
@@ -300,8 +300,8 @@ describe('/+page.svelte', () => {
 						theme: {
 							'--toastBackground': 'oklch(var(--su))',
 							'--toastColor': 'oklch(var(--suc))',
-							'--toastBarBackground': 'oklch(var(--suc))'
-						}
+							'--toastBarBackground': 'oklch(var(--suc))',
+						},
 					});
 				});
 			});
@@ -312,13 +312,13 @@ describe('/+page.svelte', () => {
 				const active = createActiveWorkLog({
 					id: 'test-work-log-id',
 					startedAt: '2025-10-22T09:30:00.000Z',
-					description: 'テスト作業中'
+					description: 'テスト作業中',
 				});
 
 				const { rerender } = render(Page, {
 					props: {
-						data: createDefaultData({ active })
-					}
+						data: createDefaultData({ active }),
+					},
 				});
 
 				// 初期状態: 記録中
@@ -329,8 +329,8 @@ describe('/+page.svelte', () => {
 					data: createDefaultData({ active }),
 					form: {
 						reason: 'NO_ACTIVE' as const,
-						serverNow: '2025-10-22T10:00:05.000Z'
-					}
+						serverNow: '2025-10-22T10:00:05.000Z',
+					},
 				});
 
 				// エラーメッセージが表示される
@@ -339,8 +339,8 @@ describe('/+page.svelte', () => {
 						theme: {
 							'--toastBackground': 'oklch(var(--er))',
 							'--toastColor': 'oklch(var(--erc))',
-							'--toastBarBackground': 'oklch(var(--erc))'
-						}
+							'--toastBarBackground': 'oklch(var(--erc))',
+						},
 					});
 				});
 
@@ -356,8 +356,8 @@ describe('/+page.svelte', () => {
 		it('dataプロップが変更されたら、currentActiveとcurrentServerNowが更新される', async () => {
 			const { rerender } = render(Page, {
 				props: {
-					data: createDefaultData()
-				}
+					data: createDefaultData(),
+				},
 			});
 
 			// 初期状態
@@ -367,15 +367,15 @@ describe('/+page.svelte', () => {
 			const newActive = createActiveWorkLog({
 				id: 'new-id',
 				startedAt: '2025-10-22T10:00:00.000Z',
-				description: 'テスト作業中'
+				description: 'テスト作業中',
 			});
 			const newServerNow = '2025-10-22T10:00:00.000Z';
 
 			rerender({
 				data: createDefaultData({
 					active: newActive,
-					serverNow: newServerNow
-				})
+					serverNow: newServerNow,
+				}),
 			});
 
 			// 新しい状態が反映される（リアクティビティの更新を待つ）
@@ -390,8 +390,8 @@ describe('/+page.svelte', () => {
 			it('停止中に Ctrl + S で作業を開始できる', async () => {
 				render(Page, {
 					props: {
-						data: createDefaultData()
-					}
+						data: createDefaultData(),
+					},
 				});
 
 				// Ctrl + S を押下
@@ -399,7 +399,7 @@ describe('/+page.svelte', () => {
 					key: 's',
 					ctrlKey: true,
 					bubbles: true,
-					cancelable: true
+					cancelable: true,
 				});
 
 				const button = screen.getByRole('button', { name: '作業開始' });
@@ -414,8 +414,8 @@ describe('/+page.svelte', () => {
 			it('停止中に Cmd + S (macOS) で作業を開始できる', async () => {
 				render(Page, {
 					props: {
-						data: createDefaultData()
-					}
+						data: createDefaultData(),
+					},
 				});
 
 				// Cmd + S を押下
@@ -423,7 +423,7 @@ describe('/+page.svelte', () => {
 					key: 's',
 					metaKey: true,
 					bubbles: true,
-					cancelable: true
+					cancelable: true,
 				});
 
 				const button = screen.getByRole('button', { name: '作業開始' });
@@ -439,13 +439,13 @@ describe('/+page.svelte', () => {
 				const active = createActiveWorkLog({
 					id: 'test-id',
 					startedAt: '2025-10-22T10:00:00.000Z',
-					description: 'テスト作業中'
+					description: 'テスト作業中',
 				});
 
 				render(Page, {
 					props: {
-						data: createDefaultData({ active })
-					}
+						data: createDefaultData({ active }),
+					},
 				});
 
 				// Ctrl + S を押下
@@ -453,7 +453,7 @@ describe('/+page.svelte', () => {
 					key: 's',
 					ctrlKey: true,
 					bubbles: true,
-					cancelable: true
+					cancelable: true,
 				});
 
 				const button = screen.getByRole('button', { name: '作業終了' });
@@ -468,8 +468,8 @@ describe('/+page.svelte', () => {
 			it('input要素フォーカス時はショートカットが無効', async () => {
 				const { container } = render(Page, {
 					props: {
-						data: createDefaultData()
-					}
+						data: createDefaultData(),
+					},
 				});
 
 				// input要素を作成してフォーカス
@@ -482,7 +482,7 @@ describe('/+page.svelte', () => {
 					key: 's',
 					ctrlKey: true,
 					bubbles: true,
-					cancelable: true
+					cancelable: true,
 				});
 
 				const button = screen.getByRole('button', { name: '作業開始' });
@@ -497,8 +497,8 @@ describe('/+page.svelte', () => {
 			it('textarea要素フォーカス時はショートカットが無効', async () => {
 				const { container } = render(Page, {
 					props: {
-						data: createDefaultData()
-					}
+						data: createDefaultData(),
+					},
 				});
 
 				// textarea要素を作成してフォーカス
@@ -511,7 +511,7 @@ describe('/+page.svelte', () => {
 					key: 's',
 					ctrlKey: true,
 					bubbles: true,
-					cancelable: true
+					cancelable: true,
 				});
 
 				const button = screen.getByRole('button', { name: '作業開始' });
@@ -526,8 +526,8 @@ describe('/+page.svelte', () => {
 			it('ブラウザのデフォルト動作が抑制される', async () => {
 				render(Page, {
 					props: {
-						data: createDefaultData()
-					}
+						data: createDefaultData(),
+					},
 				});
 
 				// Ctrl + S を押下
@@ -535,7 +535,7 @@ describe('/+page.svelte', () => {
 					key: 's',
 					ctrlKey: true,
 					bubbles: true,
-					cancelable: true
+					cancelable: true,
 				});
 
 				const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
@@ -548,8 +548,8 @@ describe('/+page.svelte', () => {
 			it('送信中はショートカットが無効', async () => {
 				render(Page, {
 					props: {
-						data: createDefaultData()
-					}
+						data: createDefaultData(),
+					},
 				});
 
 				// Ctrl + S を押下
@@ -557,7 +557,7 @@ describe('/+page.svelte', () => {
 					key: 's',
 					ctrlKey: true,
 					bubbles: true,
-					cancelable: true
+					cancelable: true,
 				});
 
 				window.dispatchEvent(event);
@@ -590,8 +590,8 @@ describe('/+page.svelte', () => {
 
 			render(Page, {
 				props: {
-					data: createDefaultData({ listData: listDataPromise })
-				}
+					data: createDefaultData({ listData: listDataPromise }),
+				},
 			});
 
 			// スケルトン要素が表示されることを確認
@@ -607,26 +607,26 @@ describe('/+page.svelte', () => {
 						startedAt: '2025-10-25T09:00:00.000Z',
 						endedAt: '2025-10-25T10:30:00.000Z',
 						durationSec: 5400,
-						description: 'テスト作業内容1'
+						description: 'テスト作業内容1',
 					},
 					{
 						id: '2',
 						startedAt: '2025-10-25T11:00:00.000Z',
 						endedAt: null, // 進行中
 						durationSec: null,
-						description: 'テスト作業内容2'
-					}
+						description: 'テスト作業内容2',
+					},
 				],
 				page: 1,
 				size: 10,
 				hasNext: false,
-				monthlyTotalSec: 5400 // 1時間30分
+				monthlyTotalSec: 5400, // 1時間30分
 			});
 
 			render(Page, {
 				props: {
-					data: createDefaultData({ listData })
-				}
+					data: createDefaultData({ listData }),
+				},
 			});
 
 			// データが表示されるのを待つ
@@ -649,19 +649,19 @@ describe('/+page.svelte', () => {
 						startedAt: '2025-10-25T09:00:00.000Z',
 						endedAt: '2025-10-25T10:30:00.000Z',
 						durationSec: 5400,
-						description: 'テスト作業内容1'
-					}
+						description: 'テスト作業内容1',
+					},
 				],
 				page: 1,
 				size: 10,
 				hasNext: true,
-				monthlyTotalSec: 5400
+				monthlyTotalSec: 5400,
 			});
 
 			render(Page, {
 				props: {
-					data: createDefaultData({ listData })
-				}
+					data: createDefaultData({ listData }),
+				},
 			});
 
 			await waitFor(() => {
@@ -679,8 +679,8 @@ describe('/+page.svelte', () => {
 
 			render(Page, {
 				props: {
-					data: createDefaultData({ listData })
-				}
+					data: createDefaultData({ listData }),
+				},
 			});
 
 			await waitFor(() => {
@@ -694,13 +694,13 @@ describe('/+page.svelte', () => {
 				page: 1,
 				size: 10,
 				hasNext: false,
-				monthlyTotalSec: 0
+				monthlyTotalSec: 0,
 			});
 
 			render(Page, {
 				props: {
-					data: createDefaultData({ listData })
-				}
+					data: createDefaultData({ listData }),
+				},
 			});
 
 			await waitFor(() => {
@@ -726,26 +726,26 @@ describe('/+page.svelte', () => {
 						startedAt: '2025-10-25T09:00:00.000Z',
 						endedAt: '2025-10-25T10:30:00.000Z',
 						durationSec: 5400,
-						description: '完了済み'
+						description: '完了済み',
 					},
 					{
 						id: '2',
 						startedAt: '2025-10-25T11:00:00.000Z',
 						endedAt: null,
 						durationSec: null,
-						description: '進行中'
-					}
+						description: '進行中',
+					},
 				],
 				page: 1,
 				size: 10,
 				hasNext: false,
-				monthlyTotalSec: 5400
+				monthlyTotalSec: 5400,
 			});
 
 			render(Page, {
 				props: {
-					data: createDefaultData({ listData })
-				}
+					data: createDefaultData({ listData }),
+				},
 			});
 
 			await waitFor(() => {
@@ -764,19 +764,19 @@ describe('/+page.svelte', () => {
 						startedAt: '2025-10-25T09:00:00.000Z',
 						endedAt: '2025-10-25T10:30:00.000Z',
 						durationSec: 5400,
-						description: '編集対象'
-					}
+						description: '編集対象',
+					},
 				],
 				page: 1,
 				size: 10,
 				hasNext: false,
-				monthlyTotalSec: 5400
+				monthlyTotalSec: 5400,
 			});
 
 			render(Page, {
 				props: {
-					data: createDefaultData({ listData })
-				}
+					data: createDefaultData({ listData }),
+				},
 			});
 
 			await waitFor(() => {
@@ -800,19 +800,19 @@ describe('/+page.svelte', () => {
 						startedAt: '2025-10-25T09:00:00.000Z',
 						endedAt: '2025-10-25T10:30:00.000Z',
 						durationSec: 5400,
-						description: '旧い説明'
-					}
+						description: '旧い説明',
+					},
 				],
 				page: 1,
 				size: 10,
 				hasNext: false,
-				monthlyTotalSec: 5400
+				monthlyTotalSec: 5400,
 			});
 
 			render(Page, {
 				props: {
-					data: createDefaultData({ listData: initialList })
-				}
+					data: createDefaultData({ listData: initialList }),
+				},
 			});
 
 			// 初期データの読み込みを待つ
@@ -857,26 +857,26 @@ describe('/+page.svelte', () => {
 						startedAt: '2025-10-25T09:00:00.000Z',
 						endedAt: '2025-10-25T10:30:00.000Z',
 						durationSec: 5400,
-						description: '完了済み'
+						description: '完了済み',
 					},
 					{
 						id: '2',
 						startedAt: '2025-10-25T11:00:00.000Z',
 						endedAt: null,
 						durationSec: null,
-						description: '進行中'
-					}
+						description: '進行中',
+					},
 				],
 				page: 1,
 				size: 10,
 				hasNext: false,
-				monthlyTotalSec: 5400
+				monthlyTotalSec: 5400,
 			});
 
 			render(Page, {
 				props: {
-					data: createDefaultData({ listData })
-				}
+					data: createDefaultData({ listData }),
+				},
 			});
 
 			await waitFor(() => {
@@ -895,19 +895,19 @@ describe('/+page.svelte', () => {
 						startedAt: '2025-10-25T09:00:00.000Z',
 						endedAt: '2025-10-25T10:30:00.000Z',
 						durationSec: 5400,
-						description: '削除対象'
-					}
+						description: '削除対象',
+					},
 				],
 				page: 1,
 				size: 10,
 				hasNext: false,
-				monthlyTotalSec: 5400
+				monthlyTotalSec: 5400,
 			});
 
 			render(Page, {
 				props: {
-					data: createDefaultData({ listData })
-				}
+					data: createDefaultData({ listData }),
+				},
 			});
 
 			await waitFor(() => {
@@ -920,7 +920,7 @@ describe('/+page.svelte', () => {
 			// window.confirm が呼ばれたことを確認
 			await waitFor(() => {
 				expect(window.confirm).toHaveBeenCalledWith(
-					'この作業記録を削除してもよろしいですか？\n\nこの操作は取り消せません。'
+					'この作業記録を削除してもよろしいですか？\n\nこの操作は取り消せません。',
 				);
 			});
 		});
@@ -936,19 +936,19 @@ describe('/+page.svelte', () => {
 						startedAt: '2025-10-25T09:00:00.000Z',
 						endedAt: '2025-10-25T10:30:00.000Z',
 						durationSec: 5400,
-						description: '削除対象'
-					}
+						description: '削除対象',
+					},
 				],
 				page: 1,
 				size: 10,
 				hasNext: false,
-				monthlyTotalSec: 5400
+				monthlyTotalSec: 5400,
 			});
 
 			render(Page, {
 				props: {
-					data: createDefaultData({ listData })
-				}
+					data: createDefaultData({ listData }),
+				},
 			});
 
 			await waitFor(() => {
@@ -972,9 +972,9 @@ describe('/+page.svelte', () => {
 					data: {
 						ok: true,
 						deletedId: '1',
-						serverNow: '2025-10-25T12:00:00.000Z'
-					}
-				})
+						serverNow: '2025-10-25T12:00:00.000Z',
+					},
+				}),
 			});
 
 			const listData = Promise.resolve({
@@ -984,19 +984,19 @@ describe('/+page.svelte', () => {
 						startedAt: '2025-10-25T09:00:00.000Z',
 						endedAt: '2025-10-25T10:30:00.000Z',
 						durationSec: 5400,
-						description: '削除対象'
-					}
+						description: '削除対象',
+					},
 				],
 				page: 1,
 				size: 10,
 				hasNext: false,
-				monthlyTotalSec: 5400
+				monthlyTotalSec: 5400,
 			});
 
 			render(Page, {
 				props: {
-					data: createDefaultData({ listData })
-				}
+					data: createDefaultData({ listData }),
+				},
 			});
 
 			await waitFor(() => {
@@ -1012,8 +1012,8 @@ describe('/+page.svelte', () => {
 					'?/delete',
 					expect.objectContaining({
 						method: 'POST',
-						body: expect.any(FormData)
-					})
+						body: expect.any(FormData),
+					}),
 				);
 			});
 		});

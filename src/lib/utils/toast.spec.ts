@@ -5,8 +5,8 @@ import { toast } from '@zerodevx/svelte-toast';
 // toast.push をモック
 vi.mock('@zerodevx/svelte-toast', () => ({
 	toast: {
-		push: vi.fn()
-	}
+		push: vi.fn(),
+	},
 }));
 
 describe('toast utilities', () => {
@@ -23,8 +23,8 @@ describe('toast utilities', () => {
 				theme: {
 					'--toastBackground': 'oklch(var(--su))',
 					'--toastColor': 'oklch(var(--suc))',
-					'--toastBarBackground': 'oklch(var(--suc))'
-				}
+					'--toastBarBackground': 'oklch(var(--suc))',
+				},
 			});
 		});
 	});
@@ -38,8 +38,8 @@ describe('toast utilities', () => {
 				theme: {
 					'--toastBackground': 'oklch(var(--er))',
 					'--toastColor': 'oklch(var(--erc))',
-					'--toastBarBackground': 'oklch(var(--erc))'
-				}
+					'--toastBarBackground': 'oklch(var(--erc))',
+				},
 			});
 		});
 	});
@@ -53,8 +53,8 @@ describe('toast utilities', () => {
 				theme: {
 					'--toastBackground': 'oklch(var(--wa))',
 					'--toastColor': 'oklch(var(--wac))',
-					'--toastBarBackground': 'oklch(var(--wac))'
-				}
+					'--toastBarBackground': 'oklch(var(--wac))',
+				},
 			});
 		});
 	});
@@ -68,8 +68,8 @@ describe('toast utilities', () => {
 				theme: {
 					'--toastBackground': 'oklch(var(--in))',
 					'--toastColor': 'oklch(var(--inc))',
-					'--toastBarBackground': 'oklch(var(--inc))'
-				}
+					'--toastBarBackground': 'oklch(var(--inc))',
+				},
 			});
 		});
 	});

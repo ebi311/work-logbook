@@ -25,7 +25,7 @@ export const validateTimeRange = (startedAt: Date, endedAt: Date): ValidationRes
 	if (isFutureDate(startedAt) || isFutureDate(endedAt)) {
 		return {
 			valid: false,
-			error: '未来の時刻は設定できません'
+			error: '未来の時刻は設定できません',
 		};
 	}
 
@@ -33,7 +33,7 @@ export const validateTimeRange = (startedAt: Date, endedAt: Date): ValidationRes
 	if (startedAt >= endedAt) {
 		return {
 			valid: false,
-			error: '開始時刻は終了時刻より前である必要があります'
+			error: '開始時刻は終了時刻より前である必要があります',
 		};
 	}
 
@@ -53,7 +53,7 @@ export const validateDescription = (description: string): ValidationResult => {
 	if (description.length > MAX_LENGTH) {
 		return {
 			valid: false,
-			error: '作業内容は10,000文字以内で入力してください'
+			error: '作業内容は10,000文字以内で入力してください',
 		};
 	}
 

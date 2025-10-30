@@ -25,14 +25,14 @@ export const createSession = async (userId: string): Promise<string> => {
 	const key = buildKey(sessionId);
 	const record: SessionRecord = {
 		userId,
-		createdAt: new Date().toISOString()
+		createdAt: new Date().toISOString(),
 	};
 	await client.set(key, JSON.stringify(record), { EX: SESSION_TTL_SECONDS });
 	return sessionId;
 };
 
 export const validateSession = async (
-	sessionId: string
+	sessionId: string,
 ): Promise<{ valid: true; userId: string } | { valid: false }> => {
 	const client = await getRedisClient();
 	const key = buildKey(sessionId);

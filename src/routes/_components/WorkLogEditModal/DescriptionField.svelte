@@ -14,7 +14,7 @@
 		name,
 		value = $bindable(),
 		disabled = false,
-		maxLength = 10000
+		maxLength = 10000,
 	}: Props = $props();
 
 	const countId = `${id}-count`;

@@ -14,7 +14,7 @@
 		name,
 		value = $bindable(),
 		disabled = false,
-		required = false
+		required = false,
 	}: Props = $props();
 </script>
 

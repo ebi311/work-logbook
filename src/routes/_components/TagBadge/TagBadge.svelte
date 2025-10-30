@@ -27,7 +27,7 @@
 			'badge-accent',
 			'badge-info',
 			'badge-success',
-			'badge-warning'
+			'badge-warning',
 		];
 
 		return colors[Math.abs(hash) % colors.length];

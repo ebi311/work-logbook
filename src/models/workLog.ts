@@ -46,7 +46,7 @@ const workLogSchema = z
 		description: z.string(),
 		tags: z.array(z.string()).default([]), // F-003: タグ配列を追加
 		createdAt: z.date(),
-		updatedAt: z.date()
+		updatedAt: z.date(),
 	})
 	.refine(
 		(data) => {
@@ -58,8 +58,8 @@ const workLogSchema = z
 		},
 		{
 			message: 'endedAt must be greater than startedAt',
-			path: ['endedAt']
-		}
+			path: ['endedAt'],
+		},
 	);
 
 type WorkLogProps = z.infer<typeof workLogSchema>;
@@ -160,7 +160,7 @@ export class WorkLog {
 			description: params.description ?? this.description,
 			tags: params.tags ?? this.tags, // F-003: タグ配列を追加
 			createdAt: this.createdAt,
-			updatedAt: new Date() // 現在時刻で更新
+			updatedAt: new Date(), // 現在時刻で更新
 		};
 
 		return new WorkLog(updatedData);
@@ -196,7 +196,7 @@ export class WorkLog {
 			description: this.description,
 			tags: this.tags, // F-003: タグ配列を追加
 			createdAt: this.createdAt,
-			updatedAt: this.updatedAt
+			updatedAt: this.updatedAt,
 		};
 	}
 }
@@ -207,7 +207,7 @@ export class WorkLog {
 export const startWorkLogResponseSchema = z.object({
 	ok: z.literal(true),
 	workLog: workLogSchema,
-	serverNow: z.date()
+	serverNow: z.date(),
 });
 
 export type StartWorkLogResponse = {
@@ -223,7 +223,7 @@ export const stopWorkLogResponseSchema = z.object({
 	ok: z.literal(true),
 	workLog: workLogSchema,
 	serverNow: z.date(),
-	durationSec: z.number().int().nonnegative()
+	durationSec: z.number().int().nonnegative(),
 });
 
 export type StopWorkLogResponse = {
@@ -238,7 +238,7 @@ export type StopWorkLogResponse = {
  */
 export const loadWorkLogResponseSchema = z.object({
 	active: workLogSchema.nullable(),
-	serverNow: z.date()
+	serverNow: z.date(),
 });
 
 export type LoadWorkLogResponse = {
@@ -254,7 +254,7 @@ export const errorResponseSchema = z.object({
 	reason: z.enum(['ACTIVE_EXISTS', 'NO_ACTIVE', 'UNAUTHORIZED', 'INTERNAL_ERROR']),
 	message: z.string(),
 	serverNow: z.date().optional(),
-	active: workLogSchema.optional()
+	active: workLogSchema.optional(),
 });
 
 export type ErrorResponse = {

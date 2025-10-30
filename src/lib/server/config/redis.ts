@@ -20,7 +20,7 @@ export const getRedisClient = async (): Promise<RedisClientType> => {
 
 	const config = getEnvConfig();
 	redisClient = createClient({
-		url: config.redis.url
+		url: config.redis.url,
 	});
 
 	// エラーハンドリング

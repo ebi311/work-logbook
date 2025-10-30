@@ -8,8 +8,8 @@ export const toastSuccess = (message: string) => {
 		theme: {
 			'--toastBackground': 'oklch(var(--su))',
 			'--toastColor': 'oklch(var(--suc))',
-			'--toastBarBackground': 'oklch(var(--suc))'
-		}
+			'--toastBarBackground': 'oklch(var(--suc))',
+		},
 	});
 };
 
@@ -21,8 +21,8 @@ export const toastError = (message: string) => {
 		theme: {
 			'--toastBackground': 'oklch(var(--er))',
 			'--toastColor': 'oklch(var(--erc))',
-			'--toastBarBackground': 'oklch(var(--erc))'
-		}
+			'--toastBarBackground': 'oklch(var(--erc))',
+		},
 	});
 };
 
@@ -34,8 +34,8 @@ export const toastWarn = (message: string) => {
 		theme: {
 			'--toastBackground': 'oklch(var(--wa))',
 			'--toastColor': 'oklch(var(--wac))',
-			'--toastBarBackground': 'oklch(var(--wac))'
-		}
+			'--toastBarBackground': 'oklch(var(--wac))',
+		},
 	});
 };
 
@@ -47,7 +47,7 @@ export const toastInfo = (message: string) => {
 		theme: {
 			'--toastBackground': 'oklch(var(--in))',
 			'--toastColor': 'oklch(var(--inc))',
-			'--toastBarBackground': 'oklch(var(--inc))'
-		}
+			'--toastBarBackground': 'oklch(var(--inc))',
+		},
 	});
 };

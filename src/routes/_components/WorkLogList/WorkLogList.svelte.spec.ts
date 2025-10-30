@@ -12,15 +12,15 @@ describe('WorkLogList', () => {
 					id: '1',
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
-					description: 'テスト'
-				}
+					description: 'テスト',
+				},
 			];
 
 			render(WorkLogList, {
 				props: {
 					items,
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			expect(screen.getByText('日付')).toBeInTheDocument();
@@ -33,8 +33,8 @@ describe('WorkLogList', () => {
 			render(WorkLogList, {
 				props: {
 					items: [],
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			expect(screen.getByText('データがありません')).toBeInTheDocument();
@@ -48,15 +48,15 @@ describe('WorkLogList', () => {
 					id: '1',
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
-					description: ''
-				}
+					description: '',
+				},
 			];
 
 			const { container } = render(WorkLogList, {
 				props: {
 					items,
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			// データが表示されることを確認
@@ -70,15 +70,15 @@ describe('WorkLogList', () => {
 					id: '1',
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: null,
-					description: ''
-				}
+					description: '',
+				},
 			];
 
 			render(WorkLogList, {
 				props: {
 					items,
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			// 「—」が3つ表示されることを確認（終了時刻、作業時間、作業内容（空文字の場合））
@@ -92,27 +92,27 @@ describe('WorkLogList', () => {
 					id: '1',
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
-					description: ''
+					description: '',
 				},
 				{
 					id: '2',
 					startedAt: '2025-10-25T11:00:00.000Z',
 					endedAt: '2025-10-25T12:00:00.000Z',
-					description: ''
+					description: '',
 				},
 				{
 					id: '3',
 					startedAt: '2025-10-25T13:00:00.000Z',
 					endedAt: null,
-					description: ''
-				}
+					description: '',
+				},
 			];
 
 			const { container } = render(WorkLogList, {
 				props: {
 					items,
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			// 3つのデータアイテムが表示されることを確認
@@ -126,15 +126,15 @@ describe('WorkLogList', () => {
 					id: '1',
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
-					description: 'テスト作業内容'
-				}
+					description: 'テスト作業内容',
+				},
 			];
 
 			render(WorkLogList, {
 				props: {
 					items,
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			expect(screen.getByText('テスト作業内容')).toBeInTheDocument();
@@ -146,15 +146,15 @@ describe('WorkLogList', () => {
 					id: '1',
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
-					description: ''
-				}
+					description: '',
+				},
 			];
 
 			render(WorkLogList, {
 				props: {
 					items,
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			// 作業内容欄の「—」を確認
@@ -168,8 +168,8 @@ describe('WorkLogList', () => {
 			render(WorkLogList, {
 				props: {
 					items: [],
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			const region = screen.getByRole('region');
@@ -184,21 +184,21 @@ describe('WorkLogList', () => {
 					id: '1',
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
-					description: ''
+					description: '',
 				},
 				{
 					id: '2',
 					startedAt: '2025-10-25T11:00:00.000Z',
 					endedAt: null,
-					description: ''
-				}
+					description: '',
+				},
 			];
 
 			const { container } = render(WorkLogList, {
 				props: {
 					items,
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			// 進行中の作業行に特別なクラスがあることを確認
@@ -214,15 +214,15 @@ describe('WorkLogList', () => {
 					id: '1',
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
-					description: 'テスト作業'
-				}
+					description: 'テスト作業',
+				},
 			];
 
 			const { container } = render(WorkLogList, {
 				props: {
 					items,
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			const button = container.querySelector('[role="button"]');
@@ -236,15 +236,15 @@ describe('WorkLogList', () => {
 					id: '1',
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
-					description: 'テスト作業'
-				}
+					description: 'テスト作業',
+				},
 			];
 
 			const { container } = render(WorkLogList, {
 				props: {
 					items,
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			const button = container.querySelector('[role="button"]');
@@ -259,15 +259,15 @@ describe('WorkLogList', () => {
 					id: '1',
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
-					description: 'テスト作業'
-				}
+					description: 'テスト作業',
+				},
 			];
 
 			render(WorkLogList, {
 				props: {
 					items,
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			const editButton = screen.getByLabelText('編集');
@@ -284,15 +284,15 @@ describe('WorkLogList', () => {
 					id: '1',
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: null,
-					description: 'テスト作業'
-				}
+					description: 'テスト作業',
+				},
 			];
 
 			render(WorkLogList, {
 				props: {
 					items,
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			const editButton = screen.queryByLabelText('編集');
@@ -308,21 +308,21 @@ describe('WorkLogList', () => {
 					id: '1',
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
-					description: 'テスト作業1'
+					description: 'テスト作業1',
 				},
 				{
 					id: '2',
 					startedAt: '2025-10-25T11:00:00.000Z',
 					endedAt: '2025-10-25T12:00:00.000Z',
-					description: 'テスト作業2'
-				}
+					description: 'テスト作業2',
+				},
 			];
 
 			render(WorkLogList, {
 				props: {
 					items,
-					serverNow
-				}
+					serverNow,
+				},
 			});
 
 			const editButtons = screen.getAllByLabelText('編集');

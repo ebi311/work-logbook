@@ -9,17 +9,17 @@
 		argTypes: {
 			item: {
 				control: 'object',
-				description: '作業アイテム'
+				description: '作業アイテム',
 			},
 			duration: {
 				control: 'number',
-				description: '作業時間（ミリ秒）'
+				description: '作業時間（ミリ秒）',
 			},
 			onClose: {
 				action: 'close',
-				description: 'ダイアログを閉じる際のコールバック'
-			}
-		}
+				description: 'ダイアログを閉じる際のコールバック',
+			},
+		},
 	});
 </script>
 
@@ -55,7 +55,7 @@ const handleLogin = async () => {
 
 ## 参考
 - [Issue #123](https://example.com/issue/123)
-- [Design Doc](https://example.com/design)`
+- [Design Doc](https://example.com/design)`,
 	};
 
 	// 進行中の作業
@@ -63,7 +63,7 @@ const handleLogin = async () => {
 		id: '2',
 		startedAt: '2025-10-25T11:00:00.000Z',
 		endedAt: null,
-		description: '新機能開発: ユーザー設定画面の実装中'
+		description: '新機能開発: ユーザー設定画面の実装中',
 	};
 
 	// Markdownなし
@@ -71,7 +71,7 @@ const handleLogin = async () => {
 		id: '3',
 		startedAt: '2025-10-25T13:00:00.000Z',
 		endedAt: '2025-10-25T14:00:00.000Z',
-		description: 'コードレビュー対応とドキュメント更新'
+		description: 'コードレビュー対応とドキュメント更新',
 	};
 
 	// 空の説明
@@ -79,7 +79,7 @@ const handleLogin = async () => {
 		id: '4',
 		startedAt: '2025-10-25T15:00:00.000Z',
 		endedAt: '2025-10-25T16:00:00.000Z',
-		description: ''
+		description: '',
 	};
 
 	// 長い説明とコードブロック
@@ -144,7 +144,7 @@ export const users = pgTable('users', {
 ## 参考資料
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
 - [Drizzle ORM](https://orm.drizzle.team/)
-- 社内Wiki: データベース設計ガイドライン`
+- 社内Wiki: データベース設計ガイドライン`,
 	};
 
 	// リスト項目が多い
@@ -179,7 +179,7 @@ export const users = pgTable('users', {
 ### ドキュメント
 - JSDocコメントの追加
 - README更新
-- 使用例の追加`
+- 使用例の追加`,
 	};
 
 	const noop = () => {};
@@ -191,7 +191,7 @@ export const users = pgTable('users', {
 	args={{
 		item: normalItem,
 		duration: 5400000, // 1時間30分（ミリ秒）
-		onClose: noop
+		onClose: noop,
 	}}
 />
 
@@ -201,7 +201,7 @@ export const users = pgTable('users', {
 	args={{
 		item: activeItem,
 		duration: null,
-		onClose: noop
+		onClose: noop,
 	}}
 />
 
@@ -211,7 +211,7 @@ export const users = pgTable('users', {
 	args={{
 		item: plainItem,
 		duration: 3600000, // 1時間（ミリ秒）
-		onClose: noop
+		onClose: noop,
 	}}
 />
 
@@ -221,7 +221,7 @@ export const users = pgTable('users', {
 	args={{
 		item: emptyItem,
 		duration: 3600000, // 1時間（ミリ秒）
-		onClose: noop
+		onClose: noop,
 	}}
 />
 
@@ -231,7 +231,7 @@ export const users = pgTable('users', {
 	args={{
 		item: longItem,
 		duration: 28800000, // 8時間（ミリ秒）
-		onClose: noop
+		onClose: noop,
 	}}
 />
 
@@ -241,6 +241,6 @@ export const users = pgTable('users', {
 	args={{
 		item: listItem,
 		duration: 5400000, // 1時間30分（ミリ秒）
-		onClose: noop
+		onClose: noop,
 	}}
 />

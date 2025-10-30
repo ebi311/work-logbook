@@ -52,7 +52,7 @@ export const handleStopAction = async ({ locals, request }: RequestEvent) => {
 			ok: false,
 			reason: 'INVALID_TAGS',
 			message: err instanceof Error ? err.message : 'タグが無効です',
-			serverNow: serverNow.toISOString()
+			serverNow: serverNow.toISOString(),
 		});
 	}
 
@@ -63,7 +63,7 @@ export const handleStopAction = async ({ locals, request }: RequestEvent) => {
 		// 進行中の作業がない
 		return fail(404, {
 			reason: 'NO_ACTIVE',
-			serverNow: serverNow.toISOString()
+			serverNow: serverNow.toISOString(),
 		} satisfies StopActionFailure);
 	}
 
@@ -74,7 +74,7 @@ export const handleStopAction = async ({ locals, request }: RequestEvent) => {
 		// 更新失敗（既に終了済み）
 		return fail(404, {
 			reason: 'NO_ACTIVE',
-			serverNow: serverNow.toISOString()
+			serverNow: serverNow.toISOString(),
 		} satisfies StopActionFailure);
 	}
 
@@ -97,9 +97,9 @@ export const handleStopAction = async ({ locals, request }: RequestEvent) => {
 			startedAt: stoppedWorkLog.startedAt.toISOString(),
 			endedAt: stoppedWorkLog.endedAt!.toISOString(),
 			description: stoppedWorkLog.description,
-			tags: normalizedTags // F-003: タグを含める
+			tags: normalizedTags, // F-003: タグを含める
 		},
 		serverNow: serverNow.toISOString(),
-		durationSec
+		durationSec,
 	} satisfies StopActionSuccess;
 };

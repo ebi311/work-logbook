@@ -46,7 +46,7 @@ export const formatTime = (isoString: string): string => {
 export const calculateDuration = (
 	startedAt: string,
 	endedAt: string | null,
-	_serverNow: string
+	_serverNow: string,
 ): number | null => {
 	// 進行中の作業の場合はnullを返す
 	if (endedAt === null) {

@@ -4,7 +4,7 @@ import {
 	formatDate,
 	formatTime,
 	calculateDuration,
-	toDatetimeLocal
+	toDatetimeLocal,
 } from './timeFormat';
 
 describe('timeFormat', () => {

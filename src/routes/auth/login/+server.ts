@@ -33,12 +33,12 @@ export const GET: RequestHandler = async ({ cookies }) => {
 		httpOnly: true,
 		sameSite: 'lax',
 		secure: true,
-		maxAge: _OAUTH_STATE_TTL_SECONDS
+		maxAge: _OAUTH_STATE_TTL_SECONDS,
 	});
 
 	const location = buildAuthorizeUrl(github.clientId, github.callbackUrl, state);
 	return new Response(null, {
 		status: 302,
-		headers: { Location: location }
+		headers: { Location: location },
 	});
 };

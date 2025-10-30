@@ -55,7 +55,7 @@ export const handleUpdateAction = async ({ locals, request }: RequestEvent) => {
 				ok: false,
 				reason: 'NOT_FOUND',
 				message: '作業記録が見つかりません',
-				serverNow: serverNow.toISOString()
+				serverNow: serverNow.toISOString(),
 			} satisfies UpdateActionFailure);
 		}
 
@@ -65,7 +65,7 @@ export const handleUpdateAction = async ({ locals, request }: RequestEvent) => {
 				ok: false,
 				reason: 'FORBIDDEN',
 				message: 'この操作を実行する権限がありません',
-				serverNow: serverNow.toISOString()
+				serverNow: serverNow.toISOString(),
 			} satisfies UpdateActionFailure);
 		}
 
@@ -95,7 +95,7 @@ export const handleUpdateAction = async ({ locals, request }: RequestEvent) => {
 				reason: 'VALIDATION_ERROR',
 				message: 'バリデーションエラー',
 				errors,
-				serverNow: serverNow.toISOString()
+				serverNow: serverNow.toISOString(),
 			} satisfies UpdateActionFailure);
 		}
 
@@ -103,7 +103,7 @@ export const handleUpdateAction = async ({ locals, request }: RequestEvent) => {
 		const updatedWorkLog = await updateWorkLog(id, {
 			startedAt,
 			endedAt,
-			description
+			description,
 		});
 
 		if (!updatedWorkLog) {
@@ -111,7 +111,7 @@ export const handleUpdateAction = async ({ locals, request }: RequestEvent) => {
 				ok: false,
 				reason: 'NOT_FOUND',
 				message: '作業記録が見つかりません',
-				serverNow: serverNow.toISOString()
+				serverNow: serverNow.toISOString(),
 			} satisfies UpdateActionFailure);
 		}
 
@@ -123,9 +123,9 @@ export const handleUpdateAction = async ({ locals, request }: RequestEvent) => {
 				startedAt: updatedWorkLog.startedAt.toISOString(),
 				endedAt: updatedWorkLog.endedAt!.toISOString(),
 				description: updatedWorkLog.description,
-				updatedAt: updatedWorkLog.updatedAt.toISOString()
+				updatedAt: updatedWorkLog.updatedAt.toISOString(),
 			},
-			serverNow: serverNow.toISOString()
+			serverNow: serverNow.toISOString(),
 		} satisfies UpdateActionSuccess;
 	} catch (err) {
 		console.error('Failed to update work log:', err);

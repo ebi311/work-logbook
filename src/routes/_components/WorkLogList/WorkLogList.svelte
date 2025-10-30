@@ -57,9 +57,9 @@
 			'cursor-pointer',
 			'hover:bg-accent/10',
 			{
-				'bg-accent text-accent-content hover:bg-accent/90': item.endedAt === null
-			}
-		)
+				'bg-accent text-accent-content hover:bg-accent/90': item.endedAt === null,
+			},
+		),
 	);
 </script>
 

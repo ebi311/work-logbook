@@ -13,7 +13,7 @@ const ListWorkLogsOptionsSchema = z
 		limit: z.number().int().min(10).max(100),
 		offset: z.number().int().min(0),
 		from: z.date().optional(),
-		to: z.date().optional()
+		to: z.date().optional(),
 	})
 	.refine(
 		(data) => {
@@ -24,8 +24,8 @@ const ListWorkLogsOptionsSchema = z
 			return true;
 		},
 		{
-			message: 'from must be less than or equal to to'
-		}
+			message: 'from must be less than or equal to to',
+		},
 	);
 
 /**
@@ -46,7 +46,7 @@ export const toWorkLog = (dbWorkLog: DbWorkLog): WorkLog => {
 export const getActiveWorkLog = async (userId: string): Promise<WorkLog | null> => {
 	const dbWorkLog = await db.query.workLogs.findFirst({
 		where: (workLogs, { eq, and, isNull }) =>
-			and(eq(workLogs.userId, userId), isNull(workLogs.endedAt))
+			and(eq(workLogs.userId, userId), isNull(workLogs.endedAt)),
 	});
 
 	if (!dbWorkLog) {
@@ -67,7 +67,7 @@ export const getActiveWorkLog = async (userId: string): Promise<WorkLog | null> 
 export const createWorkLog = async (
 	userId: string,
 	startedAt: Date,
-	description: string
+	description: string,
 ): Promise<WorkLog> => {
 	const [dbWorkLog] = await db
 		.insert(workLogs)
@@ -75,7 +75,7 @@ export const createWorkLog = async (
 			userId,
 			startedAt,
 			endedAt: null,
-			description
+			description,
 		})
 		.returning();
 
@@ -92,7 +92,7 @@ export const createWorkLog = async (
 export const stopWorkLog = async (
 	workLogId: string,
 	endedAt: Date,
-	description: string
+	description: string,
 ): Promise<WorkLog | null> => {
 	const [dbWorkLog] = await db
 		.update(workLogs)
@@ -115,7 +115,7 @@ export const stopWorkLog = async (
  */
 export const aggregateMonthlyWorkLogDuration = async (
 	userId: string,
-	{ month }: { month: string }
+	{ month }: { month: string },
 ): Promise<number> => {
 	const { from, toExclusive } = getMonthRange(month);
 
@@ -128,7 +128,7 @@ export const aggregateMonthlyWorkLogDuration = async (
 					LEAST(${workLogs.endedAt}, ${toExclusive.toISOString()}::timestamptz)
 					- GREATEST(${workLogs.startedAt}, ${from.toISOString()}::timestamptz)
 				))
-			), 0)`
+			), 0)`,
 		})
 		.from(workLogs)
 		.where(
@@ -136,8 +136,8 @@ export const aggregateMonthlyWorkLogDuration = async (
 				eq(workLogs.userId, userId),
 				isNotNull(workLogs.endedAt),
 				lt(workLogs.startedAt, toExclusive),
-				gt(workLogs.endedAt, from)
-			)
+				gt(workLogs.endedAt, from),
+			),
 		);
 
 	return Math.floor(result[0].totalSec);
@@ -157,7 +157,7 @@ export const listWorkLogs = async (
 		offset: number;
 		from?: Date;
 		to?: Date;
-	}
+	},
 ): Promise<{
 	items: DbWorkLog[];
 	hasNext: boolean;
@@ -200,7 +200,7 @@ export const listWorkLogs = async (
  */
 export const getWorkLogById = async (id: string): Promise<WorkLog | null> => {
 	const dbWorkLog = await db.query.workLogs.findFirst({
-		where: (workLogs, { eq }) => eq(workLogs.id, id)
+		where: (workLogs, { eq }) => eq(workLogs.id, id),
 	});
 
 	if (!dbWorkLog) {
@@ -223,7 +223,7 @@ export const updateWorkLog = async (
 		startedAt?: Date;
 		endedAt?: Date | null;
 		description?: string;
-	}
+	},
 ): Promise<WorkLog | null> => {
 	const now = new Date();
 
@@ -231,7 +231,7 @@ export const updateWorkLog = async (
 		.update(workLogs)
 		.set({
 			...updates,
-			updatedAt: now
+			updatedAt: now,
 		})
 		.where(eq(workLogs.id, id))
 		.returning();
@@ -274,8 +274,8 @@ export const saveWorkLogTags = async (workLogId: string, tags: string[]): Promis
 		await db.insert(workLogTags).values(
 			tags.map((tag) => ({
 				workLogId,
-				tag
-			}))
+				tag,
+			})),
 		);
 	}
 };
@@ -289,7 +289,7 @@ export const saveWorkLogTags = async (workLogId: string, tags: string[]): Promis
 export const getWorkLogTags = async (workLogId: string): Promise<string[]> => {
 	const dbTags = await db.query.workLogTags.findMany({
 		where: (workLogTags, { eq }) => eq(workLogTags.workLogId, workLogId),
-		orderBy: (workLogTags, { asc }) => [asc(workLogTags.createdAt)]
+		orderBy: (workLogTags, { asc }) => [asc(workLogTags.createdAt)],
 	});
 
 	return dbTags.map((dbTag) => dbTag.tag);
@@ -306,7 +306,7 @@ export const getWorkLogTags = async (workLogId: string): Promise<string[]> => {
 export const getUserTagSuggestions = async (
 	userId: string,
 	query: string,
-	limit: number
+	limit: number,
 ): Promise<{ tag: string; count: number }[]> => {
 	// work_log_tags を work_logs と JOIN して、そのユーザーが使用したタグのみを取得
 	// GROUP BY で重複を除外し、tag で部分一致検索、使用回数でソート
@@ -319,7 +319,7 @@ export const getUserTagSuggestions = async (
 	const results = await db
 		.select({
 			tag: workLogTags.tag,
-			count: sql<number>`COUNT(*)`.as('count')
+			count: sql<number>`COUNT(*)`.as('count'),
 		})
 		.from(workLogTags)
 		.innerJoin(workLogs, eq(workLogTags.workLogId, workLogs.id))
@@ -339,7 +339,7 @@ export const getUserTagSuggestions = async (
  */
 export const getWorkLogWithTags = async (id: string): Promise<WorkLog | null> => {
 	const dbWorkLog = await db.query.workLogs.findFirst({
-		where: (workLogs, { eq }) => eq(workLogs.id, id)
+		where: (workLogs, { eq }) => eq(workLogs.id, id),
 	});
 
 	if (!dbWorkLog) {
@@ -350,6 +350,6 @@ export const getWorkLogWithTags = async (id: string): Promise<WorkLog | null> =>
 
 	return WorkLog.from({
 		...dbWorkLog,
-		tags
+		tags,
 	});
 };

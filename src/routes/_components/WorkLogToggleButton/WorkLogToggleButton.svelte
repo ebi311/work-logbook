@@ -19,7 +19,7 @@
 	const buttonClass = $derived(() => {
 		let classes = classNames('btn', 'btn-lg', {
 			'btn-primary': !isActive,
-			'btn-secondary': isActive
+			'btn-secondary': isActive,
 		});
 		return classes;
 	});

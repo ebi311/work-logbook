@@ -6,7 +6,7 @@ import {
 	saveWorkLogTags,
 	getWorkLogTags,
 	getUserTagSuggestions,
-	getWorkLogWithTags
+	getWorkLogWithTags,
 } from './workLogs';
 
 describe('WorkLog タグ関連関数', () => {
@@ -23,15 +23,15 @@ describe('WorkLog タグ関連関数', () => {
 
 			// 既存タグの削除をモック
 			const deleteSpy = vi.spyOn(db, 'delete').mockReturnValue({
-				where: vi.fn().mockResolvedValue([])
+				where: vi.fn().mockResolvedValue([]),
 			} as any);
 
 			// 新規タグの挿入をモック
 			const insertSpy = vi.spyOn(db, 'insert').mockReturnValue({
 				values: vi.fn().mockResolvedValue([
 					{ id: 1, workLogId: mockWorkLogId, tag: '開発', createdAt: new Date() },
-					{ id: 2, workLogId: mockWorkLogId, tag: 'バグ修正', createdAt: new Date() }
-				])
+					{ id: 2, workLogId: mockWorkLogId, tag: 'バグ修正', createdAt: new Date() },
+				]),
 			} as any);
 
 			await saveWorkLogTags(mockWorkLogId, tags);
@@ -44,7 +44,7 @@ describe('WorkLog タグ関連関数', () => {
 			const tags: string[] = [];
 
 			const deleteSpy = vi.spyOn(db, 'delete').mockReturnValue({
-				where: vi.fn().mockResolvedValue([])
+				where: vi.fn().mockResolvedValue([]),
 			} as any);
 
 			const insertSpy = vi.spyOn(db, 'insert');
@@ -61,7 +61,7 @@ describe('WorkLog タグ関連関数', () => {
 		it('TC1: 正常系 - タグを取得できる', async () => {
 			const mockTags = [
 				{ id: 1, workLogId: mockWorkLogId, tag: '開発', createdAt: new Date() },
-				{ id: 2, workLogId: mockWorkLogId, tag: 'バグ修正', createdAt: new Date() }
+				{ id: 2, workLogId: mockWorkLogId, tag: 'バグ修正', createdAt: new Date() },
 			];
 
 			vi.spyOn(db.query.workLogTags, 'findMany').mockResolvedValue(mockTags as any);
@@ -85,7 +85,7 @@ describe('WorkLog タグ関連関数', () => {
 			const mockResults = [
 				{ tag: '開発', count: 5 },
 				{ tag: 'バグ修正', count: 3 },
-				{ tag: 'レビュー', count: 2 }
+				{ tag: 'レビュー', count: 2 },
 			];
 
 			// SELECT ... FROM work_log_tags をモック
@@ -95,12 +95,12 @@ describe('WorkLog タグ関連関数', () => {
 						where: vi.fn().mockReturnValue({
 							groupBy: vi.fn().mockReturnValue({
 								orderBy: vi.fn().mockReturnValue({
-									limit: vi.fn().mockResolvedValue(mockResults)
-								})
-							})
-						})
-					})
-				})
+									limit: vi.fn().mockResolvedValue(mockResults),
+								}),
+							}),
+						}),
+					}),
+				}),
 			};
 
 			vi.spyOn(db, 'select').mockReturnValue(selectMock as any);
@@ -113,7 +113,7 @@ describe('WorkLog タグ関連関数', () => {
 		it('TC2: 正常系 - queryが空文字の場合は全てのタグを返す', async () => {
 			const mockResults = [
 				{ tag: '開発', count: 5 },
-				{ tag: 'バグ修正', count: 3 }
+				{ tag: 'バグ修正', count: 3 },
 			];
 
 			const selectMock = {
@@ -122,12 +122,12 @@ describe('WorkLog タグ関連関数', () => {
 						where: vi.fn().mockReturnValue({
 							groupBy: vi.fn().mockReturnValue({
 								orderBy: vi.fn().mockReturnValue({
-									limit: vi.fn().mockResolvedValue(mockResults)
-								})
-							})
-						})
-					})
-				})
+									limit: vi.fn().mockResolvedValue(mockResults),
+								}),
+							}),
+						}),
+					}),
+				}),
 			};
 
 			vi.spyOn(db, 'select').mockReturnValue(selectMock as any);
@@ -144,12 +144,12 @@ describe('WorkLog タグ関連関数', () => {
 						where: vi.fn().mockReturnValue({
 							groupBy: vi.fn().mockReturnValue({
 								orderBy: vi.fn().mockReturnValue({
-									limit: vi.fn().mockResolvedValue([])
-								})
-							})
-						})
-					})
-				})
+									limit: vi.fn().mockResolvedValue([]),
+								}),
+							}),
+						}),
+					}),
+				}),
 			};
 
 			vi.spyOn(db, 'select').mockReturnValue(selectMock as any);
@@ -169,7 +169,7 @@ describe('WorkLog タグ関連関数', () => {
 				endedAt: null,
 				description: 'テスト作業',
 				createdAt: new Date('2025-10-30T10:00:00Z'),
-				updatedAt: new Date('2025-10-30T10:00:00Z')
+				updatedAt: new Date('2025-10-30T10:00:00Z'),
 			};
 
 			const mockTags = [{ id: 1, workLogId: mockWorkLogId, tag: '開発', createdAt: new Date() }];
@@ -200,7 +200,7 @@ describe('WorkLog タグ関連関数', () => {
 				endedAt: null,
 				description: 'テスト作業',
 				createdAt: new Date('2025-10-30T10:00:00Z'),
-				updatedAt: new Date('2025-10-30T10:00:00Z')
+				updatedAt: new Date('2025-10-30T10:00:00Z'),
 			};
 
 			vi.spyOn(db.query.workLogs, 'findFirst').mockResolvedValue(mockWorkLog as any);

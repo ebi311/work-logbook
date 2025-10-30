@@ -204,8 +204,8 @@ const shortcuts: ShortcutDefinition[] = [
 	{
 		key: 'S',
 		description: '作業を開始/終了',
-		modifierKeys: ['Cmd', 'Ctrl'] // プラットフォームで自動選択
-	}
+		modifierKeys: ['Cmd', 'Ctrl'], // プラットフォームで自動選択
+	},
 ];
 ```
 

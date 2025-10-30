@@ -7,7 +7,7 @@ import {
 	uniqueIndex,
 	serial,
 	varchar,
-	index
+	index,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
@@ -20,7 +20,7 @@ export const users = pgTable('users', {
 	avatarUrl: text('avatar_url'),
 	isActive: boolean('is_active').notNull().default(true),
 	createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
-	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow()
+	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 });
 
 // F-001: 作業記録テーブル
@@ -35,14 +35,14 @@ export const workLogs = pgTable(
 		endedAt: timestamp('ended_at', { withTimezone: true, mode: 'date' }),
 		description: text('description').notNull().default(''),
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
-		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow()
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 	},
 	(table) => [
 		// 部分ユニークインデックス: 1ユーザーにつき1つだけ進行中の作業を許可
 		uniqueIndex('work_logs_user_id_active_unique')
 			.on(table.userId)
-			.where(sql`${table.endedAt} IS NULL`)
-	]
+			.where(sql`${table.endedAt} IS NULL`),
+	],
 );
 
 // F-003: 作業記録タグテーブル
@@ -54,7 +54,7 @@ export const workLogTags = pgTable(
 			.notNull()
 			.references(() => workLogs.id, { onDelete: 'cascade' }),
 		tag: varchar('tag', { length: 100 }).notNull(),
-		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow()
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 	},
 	(table) => [
 		// 同じ作業に同じタグを重複して付けられないようにする
@@ -62,8 +62,8 @@ export const workLogTags = pgTable(
 		// タグでの検索を高速化
 		index('work_log_tags_tag_idx').on(table.tag),
 		// work_log_id での検索を高速化（JOINで使用）
-		index('work_log_tags_work_log_id_idx').on(table.workLogId)
-	]
+		index('work_log_tags_work_log_id_idx').on(table.workLogId),
+	],
 );
 
 // 型エクスポート

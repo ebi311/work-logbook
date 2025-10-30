@@ -12,7 +12,7 @@ import type { ServerLoadEvent } from '@sveltejs/kit';
 vi.mock('$lib/server/db/workLogs', () => ({
 	getActiveWorkLog: vi.fn(),
 	createWorkLog: vi.fn(),
-	saveWorkLogTags: vi.fn()
+	saveWorkLogTags: vi.fn(),
 }));
 
 import { handleStartAction } from './start';
@@ -41,15 +41,15 @@ describe('Server Actions: start', () => {
 				endedAt: null,
 				description: '',
 				isActive: () => true,
-				getDuration: () => 0
+				getDuration: () => 0,
 			} as WorkLog;
 			vi.mocked(createWorkLog).mockResolvedValue(mockWorkLog);
 
 			// モック: locals
 			const locals = {
 				user: {
-					id: testUserId
-				}
+					id: testUserId,
+				},
 			};
 
 			// モック: request with FormData
@@ -57,7 +57,7 @@ describe('Server Actions: start', () => {
 			formData.append('description', '');
 			const request = new Request('http://localhost:5173/?/start', {
 				method: 'POST',
-				body: formData
+				body: formData,
 			});
 
 			// start actionを呼び出し
@@ -72,7 +72,7 @@ describe('Server Actions: start', () => {
 				startedAt: startedAt.toISOString(),
 				endedAt: null,
 				description: '',
-				tags: []
+				tags: [],
 			});
 			expect((result as any).serverNow).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
 			expect(createWorkLog).toHaveBeenCalledWith(testUserId, expect.any(Date), '');
@@ -91,15 +91,15 @@ describe('Server Actions: start', () => {
 				endedAt: null,
 				description: '',
 				isActive: () => true,
-				getDuration: () => 0
+				getDuration: () => 0,
 			} as WorkLog;
 			vi.mocked(getActiveWorkLog).mockResolvedValue(mockWorkLog);
 
 			// モック: locals
 			const locals = {
 				user: {
-					id: testUserId
-				}
+					id: testUserId,
+				},
 			};
 
 			// モック: request with FormData
@@ -107,7 +107,7 @@ describe('Server Actions: start', () => {
 			formData.append('description', '');
 			const request = new Request('http://localhost:5173/?/start', {
 				method: 'POST',
-				body: formData
+				body: formData,
 			});
 
 			// start actionを呼び出し
@@ -122,7 +122,7 @@ describe('Server Actions: start', () => {
 				id: testWorkLogId,
 				startedAt: startedAt.toISOString(),
 				endedAt: null,
-				description: ''
+				description: '',
 			});
 			expect(createWorkLog).not.toHaveBeenCalled();
 		});
@@ -135,7 +135,7 @@ describe('Server Actions: start', () => {
 
 			// モック: request
 			const request = new Request('http://localhost:5173/?/start', {
-				method: 'POST'
+				method: 'POST',
 			});
 
 			// start actionを呼び出し
@@ -164,8 +164,8 @@ describe('Server Actions: start', () => {
 			// モック: locals
 			const locals = {
 				user: {
-					id: testUserId
-				}
+					id: testUserId,
+				},
 			};
 
 			// モック: request with FormData
@@ -173,7 +173,7 @@ describe('Server Actions: start', () => {
 			formData.append('description', '');
 			const request = new Request('http://localhost:5173/?/start', {
 				method: 'POST',
-				body: formData
+				body: formData,
 			});
 
 			// start actionを呼び出し
@@ -202,13 +202,13 @@ describe('Server Actions: start', () => {
 			// モック: locals
 			const locals = {
 				user: {
-					id: testUserId
-				}
+					id: testUserId,
+				},
 			};
 
 			// モック: request
 			const request = new Request('http://localhost:5173/?/start', {
-				method: 'POST'
+				method: 'POST',
 			});
 
 			// start actionを呼び出し

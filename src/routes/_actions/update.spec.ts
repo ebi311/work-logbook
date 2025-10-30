@@ -10,7 +10,7 @@ import type { WorkLog } from '../../models/workLog';
 // workLogs モジュールをモック化
 vi.mock('$lib/server/db/workLogs', () => ({
 	getWorkLogById: vi.fn(),
-	updateWorkLog: vi.fn()
+	updateWorkLog: vi.fn(),
 }));
 
 import { handleUpdateAction } from './update';
@@ -39,7 +39,7 @@ describe('Server Actions: update', () => {
 				description: '元の作業内容',
 				createdAt: new Date('2025-10-20T11:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T11:00:00.000Z'),
-				isActive: () => false
+				isActive: () => false,
 			} as WorkLog;
 
 			vi.mocked(getWorkLogById).mockResolvedValue(mockWorkLog);
@@ -53,7 +53,7 @@ describe('Server Actions: update', () => {
 				description,
 				createdAt: new Date('2025-10-20T11:00:00.000Z'),
 				updatedAt: new Date(),
-				isActive: () => false
+				isActive: () => false,
 			} as WorkLog;
 
 			vi.mocked(updateWorkLog).mockResolvedValue(updatedWorkLog);
@@ -69,7 +69,7 @@ describe('Server Actions: update', () => {
 			formData.set('description', description);
 
 			const request = {
-				formData: async () => formData
+				formData: async () => formData,
 			};
 
 			// update アクションを呼び出し
@@ -89,7 +89,7 @@ describe('Server Actions: update', () => {
 			expect(updateWorkLog).toHaveBeenCalledWith(testWorkLogId, {
 				startedAt,
 				endedAt,
-				description
+				description,
 			});
 		});
 	});
@@ -101,7 +101,7 @@ describe('Server Actions: update', () => {
 
 			// モック: request
 			const request = {
-				formData: async () => new FormData()
+				formData: async () => new FormData(),
 			};
 
 			// update アクションを呼び出し
@@ -125,7 +125,7 @@ describe('Server Actions: update', () => {
 			formData.set('description', '');
 
 			const request = {
-				formData: async () => formData
+				formData: async () => formData,
 			};
 
 			// update アクションを呼び出し
@@ -148,7 +148,7 @@ describe('Server Actions: update', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: new Date('2025-10-20T13:00:00.000Z'),
 				description: '',
-				isActive: () => false
+				isActive: () => false,
 			} as WorkLog;
 
 			vi.mocked(getWorkLogById).mockResolvedValue(mockWorkLog);
@@ -164,7 +164,7 @@ describe('Server Actions: update', () => {
 			formData.set('description', '');
 
 			const request = {
-				formData: async () => formData
+				formData: async () => formData,
 			};
 
 			// update アクションを呼び出し
@@ -188,7 +188,7 @@ describe('Server Actions: update', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: new Date('2025-10-20T14:00:00.000Z'),
 				description: '',
-				isActive: () => false
+				isActive: () => false,
 			} as WorkLog;
 
 			vi.mocked(getWorkLogById).mockResolvedValue(mockWorkLog);
@@ -204,7 +204,7 @@ describe('Server Actions: update', () => {
 			formData.set('description', '');
 
 			const request = {
-				formData: async () => formData
+				formData: async () => formData,
 			};
 
 			// update アクションを呼び出し
@@ -229,7 +229,7 @@ describe('Server Actions: update', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: new Date('2025-10-20T13:00:00.000Z'),
 				description: '',
-				isActive: () => false
+				isActive: () => false,
 			} as WorkLog;
 
 			vi.mocked(getWorkLogById).mockResolvedValue(mockWorkLog);
@@ -245,7 +245,7 @@ describe('Server Actions: update', () => {
 			formData.set('description', '');
 
 			const request = {
-				formData: async () => formData
+				formData: async () => formData,
 			};
 
 			// update アクションを呼び出し
@@ -268,7 +268,7 @@ describe('Server Actions: update', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: new Date('2025-10-20T13:00:00.000Z'),
 				description: '',
-				isActive: () => false
+				isActive: () => false,
 			} as WorkLog;
 
 			vi.mocked(getWorkLogById).mockResolvedValue(mockWorkLog);
@@ -284,7 +284,7 @@ describe('Server Actions: update', () => {
 			formData.set('description', description);
 
 			const request = {
-				formData: async () => formData
+				formData: async () => formData,
 			};
 
 			// update アクションを呼び出し
@@ -305,7 +305,7 @@ describe('Server Actions: update', () => {
 				startedAt: new Date('2025-10-20T12:00:00.000Z'),
 				endedAt: new Date('2025-10-20T13:00:00.000Z'),
 				description: '',
-				isActive: () => false
+				isActive: () => false,
 			} as WorkLog;
 
 			vi.mocked(getWorkLogById).mockResolvedValue(mockWorkLog);
@@ -324,7 +324,7 @@ describe('Server Actions: update', () => {
 			formData.set('description', '');
 
 			const request = {
-				formData: async () => formData
+				formData: async () => formData,
 			};
 
 			// update アクションを呼び出し

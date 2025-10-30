@@ -26,7 +26,7 @@ export const WorkLogQueryParamsSchema = z.object({
 		.regex(/^\d{4}-\d{2}-\d{2}$/)
 		.optional(), // YYYY-MM-DD
 	page: z.number().int().positive().optional(),
-	size: z.number().int().min(10).max(100).optional()
+	size: z.number().int().min(10).max(100).optional(),
 });
 
 /**
@@ -46,7 +46,7 @@ export const NormalizedWorkLogQuerySchema = z.object({
 	month: z
 		.string()
 		.regex(/^\d{4}-\d{2}$/)
-		.optional()
+		.optional(),
 });
 
 /**
@@ -126,7 +126,7 @@ const resolveFromToRange = (from?: string, to?: string): { from: Date; to: Date 
  * 日付範囲を解決（month > date > from/to > デフォルト）
  */
 const resolveQueryDateRange = (
-	params: WorkLogQueryParams
+	params: WorkLogQueryParams,
 ): { from: Date; to: Date; month?: string } => {
 	// 1. month が指定されている場合（最優先）
 	if (params.month) {
@@ -169,6 +169,6 @@ export const normalizeWorkLogQuery = (params: WorkLogQueryParams): NormalizedWor
 		page,
 		size,
 		offset,
-		month
+		month,
 	};
 };

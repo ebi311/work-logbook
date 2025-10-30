@@ -11,7 +11,7 @@ describe('WorkLogEditModal', () => {
 		endedAt: new Date('2024-10-27T10:00:00.000Z'),
 		description: 'テスト作業',
 		createdAt: new Date('2024-10-27T08:00:00.000Z'),
-		updatedAt: new Date('2024-10-27T08:00:00.000Z')
+		updatedAt: new Date('2024-10-27T08:00:00.000Z'),
 	});
 
 	beforeEach(() => {
@@ -25,8 +25,8 @@ describe('WorkLogEditModal', () => {
 		render(WorkLogEditModal, {
 			props: {
 				workLog: mockWorkLog,
-				open: true
-			}
+				open: true,
+			},
 		});
 
 		expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
@@ -38,8 +38,8 @@ describe('WorkLogEditModal', () => {
 		render(WorkLogEditModal, {
 			props: {
 				workLog: mockWorkLog,
-				open: false
-			}
+				open: false,
+			},
 		});
 
 		// dialogは存在しないか、showModalが呼ばれていない
@@ -51,8 +51,8 @@ describe('WorkLogEditModal', () => {
 		render(WorkLogEditModal, {
 			props: {
 				workLog: mockWorkLog,
-				open: true
-			}
+				open: true,
+			},
 		});
 
 		// datetime-local形式に変換した初期値を確認
@@ -75,8 +75,8 @@ describe('WorkLogEditModal', () => {
 		render(WorkLogEditModal, {
 			props: {
 				workLog: mockWorkLog,
-				open: true
-			}
+				open: true,
+			},
 		});
 
 		const startInput = screen.getByLabelText('開始時刻') as HTMLInputElement;
@@ -100,8 +100,8 @@ describe('WorkLogEditModal', () => {
 		render(WorkLogEditModal, {
 			props: {
 				workLog: mockWorkLog,
-				open: true
-			}
+				open: true,
+			},
 		});
 
 		const endInput = screen.getByLabelText('終了時刻') as HTMLInputElement;
@@ -119,8 +119,8 @@ describe('WorkLogEditModal', () => {
 		render(WorkLogEditModal, {
 			props: {
 				workLog: mockWorkLog,
-				open: true
-			}
+				open: true,
+			},
 		});
 
 		const descInput = screen.getByLabelText('作業内容') as HTMLTextAreaElement;
@@ -148,8 +148,8 @@ describe('WorkLogEditModal', () => {
 				workLog: mockWorkLog,
 				open: true,
 				onupdated: handleUpdated,
-				onclose: handleClose
-			}
+				onclose: handleClose,
+			},
 		});
 
 		const saveButton = screen.getByRole('button', { name: '保存', hidden: true });
@@ -177,8 +177,8 @@ describe('WorkLogEditModal', () => {
 			props: {
 				workLog: mockWorkLog,
 				open: true,
-				onclose: handleClose
-			}
+				onclose: handleClose,
+			},
 		});
 
 		const cancelButton = screen.getByRole('button', { name: 'キャンセル', hidden: true });
@@ -195,8 +195,8 @@ describe('WorkLogEditModal', () => {
 			props: {
 				workLog: mockWorkLog,
 				open: true,
-				onclose: handleClose
-			}
+				onclose: handleClose,
+			},
 		});
 
 		// dialog要素を取得して直接closeイベントを発火
@@ -214,8 +214,8 @@ describe('WorkLogEditModal', () => {
 		render(WorkLogEditModal, {
 			props: {
 				workLog: mockWorkLog,
-				open: true
-			}
+				open: true,
+			},
 		});
 
 		const saveButton = screen.getByRole('button', { name: '保存', hidden: true });

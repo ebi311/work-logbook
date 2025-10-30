@@ -9,17 +9,17 @@
 		argTypes: {
 			currentPage: {
 				control: 'number',
-				description: '現在のページ番号'
+				description: '現在のページ番号',
 			},
 			hasNext: {
 				control: 'boolean',
-				description: '次のページが存在するかどうか'
+				description: '次のページが存在するかどうか',
 			},
 			size: {
 				control: 'number',
-				description: '1ページあたりのアイテム数'
-			}
-		}
+				description: '1ページあたりのアイテム数',
+			},
+		},
 	});
 </script>
 
@@ -29,7 +29,7 @@
 	args={{
 		currentPage: 1,
 		hasNext: true,
-		size: 10
+		size: 10,
 	}}
 />
 
@@ -39,7 +39,7 @@
 	args={{
 		currentPage: 5,
 		hasNext: true,
-		size: 10
+		size: 10,
 	}}
 />
 
@@ -49,7 +49,7 @@
 	args={{
 		currentPage: 10,
 		hasNext: false,
-		size: 10
+		size: 10,
 	}}
 />
 
@@ -59,7 +59,7 @@
 	args={{
 		currentPage: 2,
 		hasNext: true,
-		size: 10
+		size: 10,
 	}}
 />
 
@@ -69,7 +69,7 @@
 	args={{
 		currentPage: 3,
 		hasNext: true,
-		size: 20
+		size: 20,
 	}}
 />
 
@@ -79,6 +79,6 @@
 	args={{
 		currentPage: 1,
 		hasNext: false,
-		size: 10
+		size: 10,
 	}}
 />

@@ -39,7 +39,7 @@ export const workLogTags = pgTable(
 			.notNull()
 			.references(() => workLogs.id, { onDelete: 'cascade' }),
 		tag: varchar('tag', { length: 100 }).notNull(),
-		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow()
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 	},
 	(table) => [
 		// 同じ作業に同じタグを重複して付けられないようにする
@@ -47,8 +47,8 @@ export const workLogTags = pgTable(
 		// タグでの検索を高速化
 		index('work_log_tags_tag_idx').on(table.tag),
 		// work_log_id での検索を高速化（JOINで使用）
-		index('work_log_tags_work_log_id_idx').on(table.workLogId)
-	]
+		index('work_log_tags_work_log_id_idx').on(table.workLogId),
+	],
 );
 
 // 型エクスポート
@@ -125,7 +125,7 @@ const WorkLogSchema = z
 		description: z.string(),
 		tags: z.array(z.string()).default([]), // 追加
 		createdAt: z.date(),
-		updatedAt: z.date()
+		updatedAt: z.date(),
 	})
 	.refine(
 		(data) => {
@@ -133,7 +133,7 @@ const WorkLogSchema = z
 			if (data.endedAt === null) return true;
 			return data.endedAt > data.startedAt;
 		},
-		{ message: 'endedAt must be after startedAt' }
+		{ message: 'endedAt must be after startedAt' },
 	);
 ```
 
@@ -205,7 +205,7 @@ export class WorkLog {
 			description: this.description,
 			tags: this.tags, // 追加
 			createdAt: this.createdAt,
-			updatedAt: this.updatedAt
+			updatedAt: this.updatedAt,
 		};
 	}
 }
@@ -227,7 +227,7 @@ it('tags プロパティが設定される', () => {
 		description: 'テスト作業',
 		tags: ['開発', 'PJ-A'],
 		createdAt: new Date('2025-01-01T10:00:00Z'),
-		updatedAt: new Date('2025-01-01T10:00:00Z')
+		updatedAt: new Date('2025-01-01T10:00:00Z'),
 	};
 
 	const workLog = WorkLog.from(data);
@@ -242,7 +242,7 @@ it('tags プロパティが設定される', () => {
 it('tags が空配列でも正しく動作する', () => {
 	const data = {
 		// ... 他のプロパティ
-		tags: []
+		tags: [],
 	};
 
 	const workLog = WorkLog.from(data);
@@ -331,7 +331,7 @@ import type { DbWorkLog, DbWorkLogTag } from './schema';
  */
 export const saveWorkLogTags = async (
 	workLogId: string,
-	tags: string[]
+	tags: string[],
 ): Promise<DbWorkLogTag[]> => {
 	return await db.transaction(async (tx) => {
 		// 既存のタグを削除
@@ -347,8 +347,8 @@ export const saveWorkLogTags = async (
 			.values(
 				tags.map((tag) => ({
 					workLogId,
-					tag
-				}))
+					tag,
+				})),
 			)
 			.returning();
 
@@ -389,7 +389,7 @@ export const getWorkLogTagsMap = async (workLogIds: string[]): Promise<Map<strin
 	const tags = await db
 		.select({
 			workLogId: workLogTags.workLogId,
-			tag: workLogTags.tag
+			tag: workLogTags.tag,
 		})
 		.from(workLogTags)
 		.where(sql`${workLogTags.workLogId} IN ${workLogIds}`)
@@ -416,12 +416,12 @@ export const getWorkLogTagsMap = async (workLogIds: string[]): Promise<Map<strin
 export const getUserTagSuggestions = async (
 	userId: string,
 	query?: string,
-	limit = 20
+	limit = 20,
 ): Promise<Array<{ tag: string; count: number }>> => {
 	let sql = db
 		.select({
 			tag: workLogTags.tag,
-			count: sql<number>`COUNT(*)::int`
+			count: sql<number>`COUNT(*)::int`,
 		})
 		.from(workLogTags)
 		.innerJoin(workLogs, eq(workLogTags.workLogId, workLogs.id))
@@ -448,7 +448,7 @@ export const getUserTagSuggestions = async (
  * 進行中の作業記録を取得（タグ付き）
  */
 export const getActiveWorkLog = async (
-	userId: string
+	userId: string,
 ): Promise<(DbWorkLog & { tags: string[] }) | null> => {
 	const workLog = await db
 		.select()
@@ -464,7 +464,7 @@ export const getActiveWorkLog = async (
 
 	return {
 		...workLog[0],
-		tags
+		tags,
 	};
 };
 ```
@@ -528,7 +528,7 @@ describe('getUserTagSuggestions', () => {
 			{ tag: '開発', count: 2 },
 			{ tag: 'PJ-A', count: 1 },
 			{ tag: 'PJ-B', count: 1 },
-			{ tag: '会議', count: 1 }
+			{ tag: '会議', count: 1 },
 		]);
 	});
 
@@ -539,7 +539,7 @@ describe('getUserTagSuggestions', () => {
 
 		expect(suggestions).toEqual([
 			{ tag: 'PJ-A', count: 1 },
-			{ tag: 'PJ-B', count: 1 }
+			{ tag: 'PJ-B', count: 1 },
 		]);
 	});
 
@@ -614,11 +614,11 @@ export const load = async ({ locals }) => {
 					startedAt: activeWorkLog.startedAt.toISOString(),
 					endedAt: null,
 					description: activeWorkLog.description,
-					tags: activeWorkLog.tags // 追加
+					tags: activeWorkLog.tags, // 追加
 				}
 			: undefined,
 		serverNow: new Date().toISOString(),
-		tagSuggestions: tagSuggestionsData // 追加
+		tagSuggestions: tagSuggestionsData, // 追加
 	};
 };
 ```
@@ -651,7 +651,7 @@ export const actions = {
 		} catch (error) {
 			return fail(400, {
 				reason: 'INVALID_TAGS',
-				message: error instanceof Error ? error.message : 'Invalid tags'
+				message: error instanceof Error ? error.message : 'Invalid tags',
 			});
 		}
 
@@ -668,9 +668,9 @@ export const actions = {
 							startedAt: active.startedAt.toISOString(),
 							endedAt: null,
 							description: active.description,
-							tags: active.tags
+							tags: active.tags,
 						},
-						serverNow: new Date().toISOString()
+						serverNow: new Date().toISOString(),
 					});
 				}
 
@@ -680,7 +680,7 @@ export const actions = {
 					.values({
 						userId,
 						startedAt: new Date(),
-						description
+						description,
 					})
 					.returning();
 
@@ -697,15 +697,15 @@ export const actions = {
 					startedAt: workLog.startedAt.toISOString(),
 					endedAt: null,
 					description: workLog.description,
-					tags: normalizedTags
+					tags: normalizedTags,
 				},
-				serverNow: new Date().toISOString()
+				serverNow: new Date().toISOString(),
 			};
 		} catch (error) {
 			console.error('Failed to start work log:', error);
 			return fail(500, { reason: 'INTERNAL_ERROR' });
 		}
-	}
+	},
 	// ... stop も同様に拡張
 };
 ```
@@ -733,9 +733,9 @@ export const actions = {
 
 		return {
 			ok: true,
-			suggestions
+			suggestions,
 		};
-	}
+	},
 };
 ```
 
@@ -767,7 +767,7 @@ it('start がタグを保存する', async () => {
 
 	const result = await actions.start({
 		request: { formData: async () => formData },
-		locals: { user: { id: userId } }
+		locals: { user: { id: userId } },
 	});
 
 	expect(result.ok).toBe(true);
@@ -785,7 +785,7 @@ it('21個以上のタグはエラー', async () => {
 
 	const result = await actions.start({
 		request: { formData: async () => formData },
-		locals: { user: { id: userId } }
+		locals: { user: { id: userId } },
 	});
 
 	expect(result.reason).toBe('INVALID_TAGS');
@@ -802,7 +802,7 @@ it('suggestTags がタグ候補を返す', async () => {
 	const formData = new FormData();
 	const result = await actions.suggestTags({
 		request: { formData: async () => formData },
-		locals: { user: { id: userId } }
+		locals: { user: { id: userId } },
 	});
 
 	expect(result.ok).toBe(true);
@@ -1125,8 +1125,8 @@ describe('TagInput', () => {
 		render(TagInput, {
 			suggestions: [
 				{ tag: '開発', count: 5 },
-				{ tag: 'PJ-A', count: 3 }
-			]
+				{ tag: 'PJ-A', count: 3 },
+			],
 		});
 
 		const input = screen.getByPlaceholderText(/開発/);

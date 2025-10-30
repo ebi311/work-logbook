@@ -17,6 +17,6 @@ export const POST: RequestHandler = async ({ cookies }) => {
 	// Redirect to home
 	return new Response(null, {
 		status: 302,
-		headers: { Location: '/' }
+		headers: { Location: '/' },
 	});
 };

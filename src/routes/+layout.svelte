@@ -4,7 +4,7 @@
 	import { SvelteToast, type SvelteToastOptions } from '@zerodevx/svelte-toast';
 
 	const toastOptions: SvelteToastOptions = {
-		duration: 3000
+		duration: 3000,
 	};
 
 	let { children } = $props();

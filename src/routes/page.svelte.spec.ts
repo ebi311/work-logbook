@@ -73,11 +73,7 @@ describe('/+page.svelte', () => {
 		it('「停止中」のステータスが表示される', () => {
 			render(Page, {
 				props: {
-					data: {
-						active: undefined,
-						serverNow,
-						listData: createDefaultListData()
-					}
+					data: createDefaultData()
 				}
 			});
 
@@ -87,11 +83,7 @@ describe('/+page.svelte', () => {
 		it('「作業開始」ボタンが表示される', () => {
 			render(Page, {
 				props: {
-					data: {
-						active: undefined,
-						serverNow,
-						listData: createDefaultListData()
-					}
+					data: createDefaultData()
 				}
 			});
 
@@ -102,11 +94,7 @@ describe('/+page.svelte', () => {
 		it('「作業開始」ボタンのformactionが"?/start"である', () => {
 			render(Page, {
 				props: {
-					data: {
-						active: undefined,
-						serverNow,
-						listData: createDefaultListData()
-					}
+					data: createDefaultData()
 				}
 			});
 
@@ -116,21 +104,16 @@ describe('/+page.svelte', () => {
 	});
 
 	describe('記録中の状態', () => {
-		const active = {
+		const active = createActiveWorkLog({
 			id: 'test-work-log-id',
 			startedAt: '2025-10-22T09:30:00.000Z', // 30分前
-			endedAt: null,
 			description: 'テスト作業中'
-		};
+		});
 
 		it('「記録中」のステータスが表示される', () => {
 			render(Page, {
 				props: {
-					data: {
-						active,
-						serverNow,
-						listData: createDefaultListData()
-					}
+					data: createDefaultData({ active })
 				}
 			});
 
@@ -141,11 +124,7 @@ describe('/+page.svelte', () => {
 		it('経過時間が表示される', () => {
 			render(Page, {
 				props: {
-					data: {
-						active,
-						serverNow,
-						listData: createDefaultListData()
-					}
+					data: createDefaultData({ active })
 				}
 			});
 
@@ -157,11 +136,7 @@ describe('/+page.svelte', () => {
 		it('「作業終了」ボタンが表示される', () => {
 			render(Page, {
 				props: {
-					data: {
-						active,
-						serverNow,
-						listData: createDefaultListData()
-					}
+					data: createDefaultData({ active })
 				}
 			});
 
@@ -172,11 +147,7 @@ describe('/+page.svelte', () => {
 		it('「作業終了」ボタンのformactionが"?/stop"である', () => {
 			render(Page, {
 				props: {
-					data: {
-						active,
-						serverNow,
-						listData: createDefaultListData()
-					}
+					data: createDefaultData({ active })
 				}
 			});
 
@@ -190,11 +161,7 @@ describe('/+page.svelte', () => {
 			it('停止中から記録中に状態が変化する', async () => {
 				const { rerender } = render(Page, {
 					props: {
-						data: {
-							active: undefined,
-							serverNow,
-							listData: createDefaultListData()
-						}
+						data: createDefaultData()
 					}
 				});
 
@@ -204,21 +171,14 @@ describe('/+page.svelte', () => {
 
 				// アクション成功後の状態に更新
 				const newServerNow = '2025-10-22T10:00:01.000Z';
-				const newActive = {
+				const newActive = createActiveWorkLog({
 					id: 'new-work-log-id',
 					startedAt: newServerNow,
-					endedAt: null,
-					description: 'テスト作業中',
-					tags: []
-				};
+					description: 'テスト作業中'
+				});
 
 				rerender({
-					data: {
-						active: undefined,
-						serverNow,
-						listData: createDefaultListData(),
-						tagSuggestions: []
-					},
+					data: createDefaultData(),
 					form: {
 						ok: true,
 						workLog: newActive,
@@ -247,11 +207,7 @@ describe('/+page.svelte', () => {
 			it('既に作業が進行中の場合、エラーメッセージが表示され、サーバー状態で更新される', async () => {
 				const { rerender } = render(Page, {
 					props: {
-						data: {
-							active: undefined,
-							serverNow,
-							listData: createDefaultListData()
-						}
+						data: createDefaultData()
 					}
 				});
 
@@ -259,19 +215,14 @@ describe('/+page.svelte', () => {
 				expect(screen.getByText('停止中')).toBeInTheDocument();
 
 				// 409エラーレスポンスをシミュレート
-				const existingActive = {
+				const existingActive = createActiveWorkLog({
 					id: 'existing-work-log-id',
 					startedAt: '2025-10-22T09:00:00.000Z',
-					endedAt: null,
 					description: 'テスト作業中'
-				};
+				});
 
 				rerender({
-					data: {
-						active: undefined,
-						serverNow,
-						listData: createDefaultListData()
-					},
+					data: createDefaultData(),
 					form: {
 						reason: 'ACTIVE_EXISTS' as const,
 						active: existingActive,
@@ -301,20 +252,15 @@ describe('/+page.svelte', () => {
 	describe('作業終了アクション', () => {
 		describe('成功時', () => {
 			it('記録中から停止中に状態が変化する', async () => {
-				const active = {
+				const active = createActiveWorkLog({
 					id: 'test-work-log-id',
 					startedAt: '2025-10-22T09:30:00.000Z',
-					endedAt: null,
 					description: 'テスト作業中'
-				};
+				});
 
 				const { rerender } = render(Page, {
 					props: {
-						data: {
-							active,
-							serverNow,
-							listData: createDefaultListData()
-						}
+						data: createDefaultData({ active })
 					}
 				});
 
@@ -328,15 +274,12 @@ describe('/+page.svelte', () => {
 					id: active.id,
 					startedAt: active.startedAt,
 					endedAt: newServerNow,
-					description: active.description
+					description: active.description,
+					tags: active.tags
 				};
 
 				rerender({
-					data: {
-						active,
-						serverNow,
-						listData: createDefaultListData()
-					},
+					data: createDefaultData({ active }),
 					form: {
 						ok: true,
 						workLog: stoppedWorkLog,
@@ -366,20 +309,15 @@ describe('/+page.svelte', () => {
 
 		describe('失敗時（404 Not Found）', () => {
 			it('進行中の作業がない場合、エラーメッセージが表示され、停止中に更新される', async () => {
-				const active = {
+				const active = createActiveWorkLog({
 					id: 'test-work-log-id',
 					startedAt: '2025-10-22T09:30:00.000Z',
-					endedAt: null,
 					description: 'テスト作業中'
-				};
+				});
 
 				const { rerender } = render(Page, {
 					props: {
-						data: {
-							active,
-							serverNow,
-							listData: createDefaultListData()
-						}
+						data: createDefaultData({ active })
 					}
 				});
 
@@ -388,11 +326,7 @@ describe('/+page.svelte', () => {
 
 				// 404エラーレスポンスをシミュレート
 				rerender({
-					data: {
-						active,
-						serverNow,
-						listData: createDefaultListData()
-					},
+					data: createDefaultData({ active }),
 					form: {
 						reason: 'NO_ACTIVE' as const,
 						serverNow: '2025-10-22T10:00:05.000Z'
@@ -422,11 +356,7 @@ describe('/+page.svelte', () => {
 		it('dataプロップが変更されたら、currentActiveとcurrentServerNowが更新される', async () => {
 			const { rerender } = render(Page, {
 				props: {
-					data: {
-						active: undefined,
-						serverNow,
-						listData: createDefaultListData()
-					}
+					data: createDefaultData()
 				}
 			});
 
@@ -434,20 +364,18 @@ describe('/+page.svelte', () => {
 			expect(screen.getByText('停止中')).toBeInTheDocument();
 
 			// dataを更新
-			const newActive = {
+			const newActive = createActiveWorkLog({
 				id: 'new-id',
 				startedAt: '2025-10-22T10:00:00.000Z',
-				endedAt: null,
 				description: 'テスト作業中'
-			};
+			});
 			const newServerNow = '2025-10-22T10:00:00.000Z';
 
 			rerender({
-				data: {
+				data: createDefaultData({
 					active: newActive,
-					serverNow: newServerNow,
-					listData: createDefaultListData()
-				}
+					serverNow: newServerNow
+				})
 			});
 
 			// 新しい状態が反映される（リアクティビティの更新を待つ）
@@ -462,11 +390,7 @@ describe('/+page.svelte', () => {
 			it('停止中に Ctrl + S で作業を開始できる', async () => {
 				render(Page, {
 					props: {
-						data: {
-							active: undefined,
-							serverNow,
-							listData: createDefaultListData()
-						}
+						data: createDefaultData()
 					}
 				});
 
@@ -490,11 +414,7 @@ describe('/+page.svelte', () => {
 			it('停止中に Cmd + S (macOS) で作業を開始できる', async () => {
 				render(Page, {
 					props: {
-						data: {
-							active: undefined,
-							serverNow,
-							listData: createDefaultListData()
-						}
+						data: createDefaultData()
 					}
 				});
 
@@ -516,18 +436,15 @@ describe('/+page.svelte', () => {
 			});
 
 			it('作業中に Ctrl + S で作業を終了できる', async () => {
+				const active = createActiveWorkLog({
+					id: 'test-id',
+					startedAt: '2025-10-22T10:00:00.000Z',
+					description: 'テスト作業中'
+				});
+
 				render(Page, {
 					props: {
-						data: {
-							active: {
-								id: 'test-id',
-								startedAt: '2025-10-22T10:00:00.000Z',
-								endedAt: null,
-								description: 'テスト作業中'
-							},
-							serverNow,
-							listData: createDefaultListData()
-						}
+						data: createDefaultData({ active })
 					}
 				});
 
@@ -551,11 +468,7 @@ describe('/+page.svelte', () => {
 			it('input要素フォーカス時はショートカットが無効', async () => {
 				const { container } = render(Page, {
 					props: {
-						data: {
-							active: undefined,
-							serverNow,
-							listData: createDefaultListData()
-						}
+						data: createDefaultData()
 					}
 				});
 
@@ -584,11 +497,7 @@ describe('/+page.svelte', () => {
 			it('textarea要素フォーカス時はショートカットが無効', async () => {
 				const { container } = render(Page, {
 					props: {
-						data: {
-							active: undefined,
-							serverNow,
-							listData: createDefaultListData()
-						}
+						data: createDefaultData()
 					}
 				});
 
@@ -617,11 +526,7 @@ describe('/+page.svelte', () => {
 			it('ブラウザのデフォルト動作が抑制される', async () => {
 				render(Page, {
 					props: {
-						data: {
-							active: undefined,
-							serverNow,
-							listData: createDefaultListData()
-						}
+						data: createDefaultData()
 					}
 				});
 
@@ -643,11 +548,7 @@ describe('/+page.svelte', () => {
 			it('送信中はショートカットが無効', async () => {
 				render(Page, {
 					props: {
-						data: {
-							active: undefined,
-							serverNow,
-							listData: createDefaultListData()
-						}
+						data: createDefaultData()
 					}
 				});
 
@@ -689,11 +590,7 @@ describe('/+page.svelte', () => {
 
 			render(Page, {
 				props: {
-					data: {
-						active: undefined,
-						serverNow,
-						listData: listDataPromise
-					}
+					data: createDefaultData({ listData: listDataPromise })
 				}
 			});
 
@@ -728,11 +625,7 @@ describe('/+page.svelte', () => {
 
 			render(Page, {
 				props: {
-					data: {
-						active: undefined,
-						serverNow,
-						listData
-					}
+					data: createDefaultData({ listData })
 				}
 			});
 
@@ -767,11 +660,7 @@ describe('/+page.svelte', () => {
 
 			render(Page, {
 				props: {
-					data: {
-						active: undefined,
-						serverNow,
-						listData
-					}
+					data: createDefaultData({ listData })
 				}
 			});
 
@@ -790,11 +679,7 @@ describe('/+page.svelte', () => {
 
 			render(Page, {
 				props: {
-					data: {
-						active: undefined,
-						serverNow,
-						listData
-					}
+					data: createDefaultData({ listData })
 				}
 			});
 
@@ -814,11 +699,7 @@ describe('/+page.svelte', () => {
 
 			render(Page, {
 				props: {
-					data: {
-						active: undefined,
-						serverNow,
-						listData
-					}
+					data: createDefaultData({ listData })
 				}
 			});
 
@@ -863,11 +744,7 @@ describe('/+page.svelte', () => {
 
 			render(Page, {
 				props: {
-					data: {
-						active: undefined,
-						serverNow,
-						listData
-					}
+					data: createDefaultData({ listData })
 				}
 			});
 
@@ -898,11 +775,7 @@ describe('/+page.svelte', () => {
 
 			render(Page, {
 				props: {
-					data: {
-						active: undefined,
-						serverNow,
-						listData
-					}
+					data: createDefaultData({ listData })
 				}
 			});
 
@@ -938,11 +811,7 @@ describe('/+page.svelte', () => {
 
 			render(Page, {
 				props: {
-					data: {
-						active: undefined,
-						serverNow,
-						listData: initialList
-					}
+					data: createDefaultData({ listData: initialList })
 				}
 			});
 
@@ -1006,11 +875,7 @@ describe('/+page.svelte', () => {
 
 			render(Page, {
 				props: {
-					data: {
-						active: undefined,
-						serverNow,
-						listData
-					}
+					data: createDefaultData({ listData })
 				}
 			});
 
@@ -1041,11 +906,7 @@ describe('/+page.svelte', () => {
 
 			render(Page, {
 				props: {
-					data: {
-						active: undefined,
-						serverNow,
-						listData
-					}
+					data: createDefaultData({ listData })
 				}
 			});
 
@@ -1086,11 +947,7 @@ describe('/+page.svelte', () => {
 
 			render(Page, {
 				props: {
-					data: {
-						active: undefined,
-						serverNow,
-						listData
-					}
+					data: createDefaultData({ listData })
 				}
 			});
 
@@ -1138,11 +995,7 @@ describe('/+page.svelte', () => {
 
 			render(Page, {
 				props: {
-					data: {
-						active: undefined,
-						serverNow,
-						listData
-					}
+					data: createDefaultData({ listData })
 				}
 			});
 

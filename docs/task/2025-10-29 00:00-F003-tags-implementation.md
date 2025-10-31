@@ -1303,6 +1303,7 @@ test.describe('タグ機能', () => {
 ### 実装ファイル一覧
 
 #### バックエンド
+
 - `src/lib/server/db/schema.ts` - `workLogTags` テーブル定義
 - `src/lib/server/db/workLogs.ts` - タグ関連関数の実装
 - `src/models/workLog.ts` - `tags` プロパティ追加
@@ -1312,6 +1313,7 @@ test.describe('タグ機能', () => {
 - `src/routes/+page.server.ts` - タグサジェスト取得
 
 #### フロントエンド
+
 - `src/routes/_components/TagInput/TagInput.svelte` - タグ入力コンポーネント
 - `src/routes/_components/TagInput/TagInput.svelte.spec.ts` - テスト
 - `src/routes/_components/TagInput/TagInput.stories.svelte` - Storybook
@@ -1323,6 +1325,7 @@ test.describe('タグ機能', () => {
 - `src/routes/_components/WorkLogEditModal/WorkLogEditModal.svelte` - タグ編集
 
 #### テスト
+
 - `src/lib/server/db/workLogs.tags.spec.ts` - リポジトリ層テスト (10件)
 - `src/models/workLog.spec.ts` - ドメインモデルテスト (拡張)
 - `src/routes/_actions/*.spec.ts` - Server Actionsテスト (拡張)
@@ -1330,6 +1333,7 @@ test.describe('タグ機能', () => {
 - `src/routes/page.svelte.spec.ts` - UIテスト (拡張)
 
 #### マイグレーション
+
 - `drizzle/0002_great_lionheart.sql` - `work_log_tags` テーブル作成
 
 ### テスト結果
@@ -1362,4 +1366,3 @@ test.describe('タグ機能', () => {
 - [ ] タグのRedisキャッシュ（必要に応じて）
 - [ ] パフォーマンステスト（大量タグ時）
 - [ ] アクセシビリティの詳細チェック
-

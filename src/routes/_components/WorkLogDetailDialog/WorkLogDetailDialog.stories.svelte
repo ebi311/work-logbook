@@ -29,6 +29,7 @@
 		id: '1',
 		startedAt: '2025-10-25T09:00:00.000Z',
 		endedAt: '2025-10-25T10:30:00.000Z',
+		tags: ['バグ修正', 'ログイン', 'フロントエンド'],
 		description: `# バグ修正: ログイン画面のエラーハンドリング
 
 ## 概要
@@ -63,6 +64,7 @@ const handleLogin = async () => {
 		id: '2',
 		startedAt: '2025-10-25T11:00:00.000Z',
 		endedAt: null,
+		tags: ['開発', 'ユーザー設定'],
 		description: '新機能開発: ユーザー設定画面の実装中',
 	};
 
@@ -71,6 +73,7 @@ const handleLogin = async () => {
 		id: '3',
 		startedAt: '2025-10-25T13:00:00.000Z',
 		endedAt: '2025-10-25T14:00:00.000Z',
+		tags: ['レビュー'],
 		description: 'コードレビュー対応とドキュメント更新',
 	};
 
@@ -79,6 +82,7 @@ const handleLogin = async () => {
 		id: '4',
 		startedAt: '2025-10-25T15:00:00.000Z',
 		endedAt: '2025-10-25T16:00:00.000Z',
+		tags: [],
 		description: '',
 	};
 
@@ -87,6 +91,7 @@ const handleLogin = async () => {
 		id: '5',
 		startedAt: '2025-10-25T09:00:00.000Z',
 		endedAt: '2025-10-25T17:00:00.000Z',
+		tags: ['DB設計', 'スキーマ変更', 'マイグレーション'],
 		description: `# データベース設計の見直し
 
 ## 実施内容
@@ -152,6 +157,7 @@ export const users = pgTable('users', {
 		id: '6',
 		startedAt: '2025-10-25T10:00:00.000Z',
 		endedAt: '2025-10-25T11:30:00.000Z',
+		tags: ['レビュー', 'TypeScript', 'パフォーマンス'],
 		description: `# コードレビュー対応
 
 ## 対応した指摘事項

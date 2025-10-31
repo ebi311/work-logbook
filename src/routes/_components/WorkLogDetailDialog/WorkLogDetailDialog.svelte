@@ -2,6 +2,7 @@
 	import { formatDate, formatTime, formatDuration } from '$lib/utils/timeFormat';
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { onMount } from 'svelte';
+	import TagBadge from '../TagBadge/TagBadge.svelte';
 
 	type Props = {
 		item: {
@@ -9,6 +10,7 @@
 			startedAt: string;
 			endedAt: string | null;
 			description: string;
+			tags: string[];
 		};
 		duration: number | null;
 		onClose: () => void;
@@ -62,13 +64,25 @@
 				<span class="font-semibold text-base-content/60">終了:</span>
 				<span>{item.endedAt ? formatTime(item.endedAt) : '進行中'}</span>
 
-				<span class="font-semibold text-base-content/60">作業時間:</span>
-				<span>{duration !== null ? formatDuration(duration) : '計測中'}</span>
+			<span class="font-semibold text-base-content/60">作業時間:</span>
+			<span>{duration !== null ? formatDuration(duration) : '計測中'}</span>
+		</div>
+	</div>
+
+	<!-- タグ -->
+	{#if item.tags && item.tags.length > 0}
+		<div class="mb-4 flex-shrink-0">
+			<h4 class="mb-2 text-sm font-semibold text-base-content/60">タグ:</h4>
+			<div class="flex flex-wrap gap-2">
+				{#each item.tags as tag}
+					<TagBadge {tag} />
+				{/each}
 			</div>
 		</div>
+	{/if}
 
-		<!-- 作業内容 (スクロール可能) -->
-		<h4 class="mb-2 text-sm font-semibold text-base-content/60">作業内容:</h4>
+	<!-- 作業内容 (スクロール可能) -->
+	<h4 class="mb-2 text-sm font-semibold text-base-content/60">作業内容:</h4>
 		<div class="mb-4 min-h-0 flex-1 overflow-y-auto">
 			{#if item.description}
 				<div class="prose prose-sm max-w-none">

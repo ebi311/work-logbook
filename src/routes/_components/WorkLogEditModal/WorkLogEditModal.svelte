@@ -7,6 +7,7 @@
 	import DateTimeField from './DateTimeField.svelte';
 	import DescriptionField from './DescriptionField.svelte';
 	import ErrorAlert from './ErrorAlert.svelte';
+	import TagInput from '../TagInput/TagInput.svelte';
 
 	// 親からは最小限のフィールドのみ受け取れるようにする（構造的部分型）
 	type EditableWorkLog = {
@@ -14,6 +15,7 @@
 		startedAt: Date;
 		endedAt: Date | null;
 		description: string;
+		tags: string[];
 	};
 
 	type Props = {
@@ -21,9 +23,10 @@
 		open: boolean;
 		onclose?: () => void;
 		onupdated?: (workLog: WorkLog) => void;
+		tagSuggestions: Array<{ tag: string; count: number }>;
 	};
 
-	let { workLog, open = $bindable(false), onclose, onupdated }: Props = $props();
+	let { workLog, open = $bindable(false), onclose, onupdated, tagSuggestions }: Props = $props();
 
 	// dialogの参照
 	let dialog: HTMLDialogElement | undefined = $state();
@@ -35,6 +38,7 @@
 	let startedAt = $state('');
 	let endedAt = $state('');
 	let description = $state('');
+	let tags = $state<string[]>([]);
 
 	// バリデーションエラー
 	let errors = $state<Record<string, string>>({});
@@ -45,6 +49,7 @@
 		startedAt = toDatetimeLocal(workLog.startedAt);
 		endedAt = workLog.endedAt ? toDatetimeLocal(workLog.endedAt) : '';
 		description = workLog.description;
+		tags = [...workLog.tags];
 		errors = {};
 	});
 
@@ -78,6 +83,18 @@
 		const descValidation = validateDescription(description);
 		if (!descValidation.valid && descValidation.error) {
 			newErrors.description = descValidation.error;
+		}
+
+		// タグのバリデーション
+		if (tags.length > 20) {
+			newErrors.tags = 'タグは最大20個までです';
+		}
+
+		for (const tag of tags) {
+			if (tag.length > 100) {
+				newErrors.tags = 'タグ名は100文字以内にしてください';
+				break;
+			}
 		}
 
 		errors = newErrors;
@@ -240,6 +257,15 @@
 
 				<!-- 作業内容エラー -->
 				<ErrorAlert message={errors.description} />
+
+				<!-- タグ -->
+				<div class="form-control">
+					<TagInput bind:tags suggestions={tagSuggestions} placeholder="開発 PJ-A 会議" />
+					<input type="hidden" name="tags" value={tags.join(' ')} />
+				</div>
+
+				<!-- タグエラー -->
+				<ErrorAlert message={errors.tags} />
 
 				<!-- 全般エラー -->
 				<ErrorAlert message={errors.general} />

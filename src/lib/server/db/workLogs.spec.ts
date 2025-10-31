@@ -23,6 +23,9 @@ vi.mock('./index', () => ({
 			workLogs: {
 				findFirst: vi.fn(),
 			},
+			workLogTags: {
+				findMany: vi.fn(),
+			},
 		},
 		insert: vi.fn(),
 		update: vi.fn(),
@@ -125,6 +128,8 @@ describe('WorkLogs DB Functions', () => {
 
 			// モック: 進行中の作業を返す
 			vi.mocked(db.query.workLogs.findFirst).mockResolvedValue(mockDbWorkLog);
+			// モック: タグを空配列で返す
+			vi.mocked(db.query.workLogTags.findMany).mockResolvedValue([]);
 
 			const active = await getActiveWorkLog(testUserId);
 
@@ -261,6 +266,8 @@ describe('WorkLogs DB Functions', () => {
 
 			// 2. 進行中の作業を取得のモック
 			vi.mocked(db.query.workLogs.findFirst).mockResolvedValue(createdDbWorkLog);
+			// モック: タグを空配列で返す
+			vi.mocked(db.query.workLogTags.findMany).mockResolvedValue([]);
 			const active = await getActiveWorkLog(testUserId);
 			expect(active).toBeInstanceOf(WorkLog);
 			expect(active?.id).toBe(created.id);

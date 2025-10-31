@@ -10,10 +10,12 @@
 			items: {
 				control: 'object',
 				description: '作業ログのアイテム配列',
+				tags: [],
 			},
 			serverNow: {
 				control: 'text',
 				description: 'サーバー時刻（ISO形式）',
+				tags: [],
 			},
 		},
 	});
@@ -50,12 +52,14 @@
 			startedAt: '2025-10-25T09:00:00.000Z',
 			endedAt: '2025-10-25T10:30:00.000Z',
 			description: 'データベース設計の見直しとスキーマ変更',
+			tags: [],
 		},
 		{
 			id: '2',
 			startedAt: '2025-10-25T11:00:00.000Z',
 			endedAt: '2025-10-25T12:00:00.000Z',
 			description: 'コードレビュー対応',
+			tags: [],
 		},
 	];
 
@@ -66,6 +70,7 @@
 			startedAt: '2025-10-25T09:00:00.000Z',
 			endedAt: '2025-10-25T10:30:00.000Z',
 			description: 'バグ修正: ログイン画面でのエラーハンドリング改善',
+			tags: [],
 		},
 		{
 			id: '2',
@@ -73,6 +78,7 @@
 			endedAt: null, // 進行中
 			description:
 				'新機能開発: ユーザー設定画面の実装中。レスポンシブデザイン対応とアクセシビリティの考慮を行っています。',
+			tags: [],
 		},
 	];
 
@@ -87,6 +93,7 @@
 				: i % 3 === 1
 					? `タスク${i + 1}`
 					: '',
+		tags: [],
 	}));
 </script>
 
@@ -121,6 +128,7 @@
 				startedAt: '2025-10-25T09:00:00.000Z',
 				endedAt: '2025-10-25T17:30:00.000Z',
 				description: 'テスト実装とドキュメント作成',
+				tags: [],
 			},
 		],
 		serverNow,
@@ -139,6 +147,7 @@
 				startedAt: '2025-10-25T09:00:00.000Z',
 				endedAt: null,
 				description: '機能開発中',
+				tags: [],
 			},
 		],
 		serverNow,

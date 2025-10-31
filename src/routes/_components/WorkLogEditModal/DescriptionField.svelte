@@ -25,7 +25,7 @@
 	<textarea
 		{id}
 		{name}
-		class="textarea-bordered textarea min-h-32 w-full"
+		class="textarea-bordered textarea min-h-24 w-full"
 		bind:value
 		{disabled}
 		aria-describedby={countId}

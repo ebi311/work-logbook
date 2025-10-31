@@ -15,6 +15,7 @@ export type UpdateActionSuccess = {
 		startedAt: string;
 		endedAt: string;
 		description: string;
+		tags: string[];
 		updatedAt: string;
 	};
 	serverNow: string;
@@ -46,6 +47,13 @@ export const handleUpdateAction = async ({ locals, request }: RequestEvent) => {
 		const startedAtStr = formData.get('startedAt') as string;
 		const endedAtStr = formData.get('endedAt') as string;
 		const description = (formData.get('description') as string) || '';
+		const tagsStr = (formData.get('tags') as string) || '';
+
+		// タグをパース（スペース区切り）
+		const tags = tagsStr
+			.split(/\s+/)
+			.map((tag) => tag.trim())
+			.filter((tag) => tag.length > 0);
 
 		// 作業記録を取得
 		const workLog = await getWorkLogById(id);
@@ -88,6 +96,18 @@ export const handleUpdateAction = async ({ locals, request }: RequestEvent) => {
 			errors.description = descriptionResult.error!;
 		}
 
+		// タグのバリデーション
+		if (tags.length > 20) {
+			errors.tags = 'タグは最大20個までです';
+		}
+
+		for (const tag of tags) {
+			if (tag.length > 100) {
+				errors.tags = 'タグ名は100文字以内にしてください';
+				break;
+			}
+		}
+
 		// バリデーションエラーがある場合
 		if (Object.keys(errors).length > 0) {
 			return fail(400, {
@@ -104,6 +124,7 @@ export const handleUpdateAction = async ({ locals, request }: RequestEvent) => {
 			startedAt,
 			endedAt,
 			description,
+			tags,
 		});
 
 		if (!updatedWorkLog) {
@@ -123,6 +144,7 @@ export const handleUpdateAction = async ({ locals, request }: RequestEvent) => {
 				startedAt: updatedWorkLog.startedAt.toISOString(),
 				endedAt: updatedWorkLog.endedAt!.toISOString(),
 				description: updatedWorkLog.description,
+				tags: updatedWorkLog.tags || [],
 				updatedAt: updatedWorkLog.updatedAt.toISOString(),
 			},
 			serverNow: serverNow.toISOString(),

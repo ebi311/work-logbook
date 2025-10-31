@@ -192,14 +192,13 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 					description: '',
 					createdAt: new Date(),
 					updatedAt: new Date(),
+					tags: [],
 				},
 			];
 			vi.mocked(listWorkLogs).mockResolvedValue({
 				items: mockItems,
 				hasNext: false,
-			});
-
-			// モック: 月次合計
+			}); // モック: 月次合計
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(7200); // 2時間
 			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
 

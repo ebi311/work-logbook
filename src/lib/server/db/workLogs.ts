@@ -53,7 +53,10 @@ export const getActiveWorkLog = async (userId: string): Promise<WorkLog | null> 
 		return null;
 	}
 
-	return toWorkLog(dbWorkLog);
+	// タグを取得
+	const tags = await getWorkLogTags(dbWorkLog.id);
+
+	return WorkLog.from({ ...dbWorkLog, tags });
 };
 
 /**
@@ -159,7 +162,7 @@ export const listWorkLogs = async (
 		to?: Date;
 	},
 ): Promise<{
-	items: DbWorkLog[];
+	items: Array<DbWorkLog & { tags: string[] }>;
 	hasNext: boolean;
 }> => {
 	// Zodでバリデーション
@@ -187,7 +190,15 @@ export const listWorkLogs = async (
 
 	// limit+1 件取得できた場合は次ページあり
 	const hasNext = results.length > limit;
-	const items = hasNext ? results.slice(0, limit) : results;
+	const workLogsSlice = hasNext ? results.slice(0, limit) : results;
+
+	// 各作業記録のタグを並列取得
+	const items = await Promise.all(
+		workLogsSlice.map(async (workLog) => {
+			const tags = await getWorkLogTags(workLog.id);
+			return { ...workLog, tags };
+		}),
+	);
 
 	return { items, hasNext };
 };
@@ -207,12 +218,16 @@ export const getWorkLogById = async (id: string): Promise<WorkLog | null> => {
 		return null;
 	}
 
-	return toWorkLog(dbWorkLog);
+	// タグを取得
+	const tags = await getWorkLogTags(dbWorkLog.id);
+
+	return WorkLog.from({ ...dbWorkLog, tags });
 };
 
 /**
  * 作業記録を更新
  * F-004: 編集機能のために追加
+ * F-003.1: タグの更新をサポート
  * @param id - 作業記録ID
  * @param updates - 更新するフィールド
  * @returns 更新後の作業記録、または null（見つからない場合）
@@ -223,14 +238,18 @@ export const updateWorkLog = async (
 		startedAt?: Date;
 		endedAt?: Date | null;
 		description?: string;
+		tags?: string[];
 	},
 ): Promise<WorkLog | null> => {
 	const now = new Date();
 
+	// タグを別で処理
+	const { tags, ...workLogUpdates } = updates;
+
 	const result = await db
 		.update(workLogs)
 		.set({
-			...updates,
+			...workLogUpdates,
 			updatedAt: now,
 		})
 		.where(eq(workLogs.id, id))
@@ -240,7 +259,19 @@ export const updateWorkLog = async (
 		return null;
 	}
 
-	return toWorkLog(result[0]);
+	// タグが指定されている場合は保存
+	if (tags !== undefined) {
+		await saveWorkLogTags(id, tags);
+	}
+
+	// タグを含めて返す
+	const workLogTags = await getWorkLogTags(id);
+	const dbWorkLog = result[0];
+
+	return WorkLog.from({
+		...dbWorkLog,
+		tags: workLogTags,
+	});
 };
 
 /**

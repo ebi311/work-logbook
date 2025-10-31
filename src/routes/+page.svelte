@@ -172,6 +172,7 @@
 		startedAt: string;
 		endedAt: string | null;
 		description: string;
+		tags: string[];
 	};
 	type ListData = {
 		items: ListItem[];
@@ -190,6 +191,7 @@
 		startedAt: Date;
 		endedAt: Date | null;
 		description: string;
+		tags: string[];
 	} | null = $state(null);
 
 	const openEditModal = (item: ListItem) => {
@@ -199,6 +201,7 @@
 			startedAt: new Date(item.startedAt),
 			endedAt: item.endedAt ? new Date(item.endedAt) : null,
 			description: item.description,
+			tags: item.tags || [],
 		};
 		editOpen = true;
 	};
@@ -345,6 +348,7 @@
 			bind:open={editOpen}
 			onclose={handleEditClose}
 			onupdated={handleEditUpdate}
+			tagSuggestions={data.tagSuggestions}
 		/>
 	{/if}
 </div>

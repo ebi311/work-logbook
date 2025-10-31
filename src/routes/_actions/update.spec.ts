@@ -29,6 +29,7 @@ describe('Server Actions: update', () => {
 			const startedAt = new Date('2025-10-20T12:00:00.000Z');
 			const endedAt = new Date('2025-10-20T13:00:00.000Z');
 			const description = '更新された作業内容';
+			const tags = ['開発', 'PJ-A'];
 
 			// モック: 作業記録が存在
 			const mockWorkLog = {
@@ -37,6 +38,7 @@ describe('Server Actions: update', () => {
 				startedAt: new Date('2025-10-20T11:00:00.000Z'),
 				endedAt: new Date('2025-10-20T12:00:00.000Z'),
 				description: '元の作業内容',
+				tags: ['開発'],
 				createdAt: new Date('2025-10-20T11:00:00.000Z'),
 				updatedAt: new Date('2025-10-20T11:00:00.000Z'),
 				isActive: () => false,
@@ -51,6 +53,7 @@ describe('Server Actions: update', () => {
 				startedAt,
 				endedAt,
 				description,
+				tags,
 				createdAt: new Date('2025-10-20T11:00:00.000Z'),
 				updatedAt: new Date(),
 				isActive: () => false,
@@ -67,6 +70,7 @@ describe('Server Actions: update', () => {
 			formData.set('startedAt', startedAt.toISOString());
 			formData.set('endedAt', endedAt.toISOString());
 			formData.set('description', description);
+			formData.set('tags', tags.join(' '));
 
 			const request = {
 				formData: async () => formData,
@@ -83,6 +87,7 @@ describe('Server Actions: update', () => {
 			expect((result as any).workLog.startedAt).toBe(startedAt.toISOString());
 			expect((result as any).workLog.endedAt).toBe(endedAt.toISOString());
 			expect((result as any).workLog.description).toBe(description);
+			expect((result as any).workLog.tags).toEqual(tags);
 
 			// モック呼び出しの検証
 			expect(getWorkLogById).toHaveBeenCalledWith(testWorkLogId);
@@ -90,6 +95,7 @@ describe('Server Actions: update', () => {
 				startedAt,
 				endedAt,
 				description,
+				tags,
 			});
 		});
 	});
@@ -329,6 +335,156 @@ describe('Server Actions: update', () => {
 
 			// update アクションを呼び出し
 			await expect(handleUpdateAction({ locals, request } as any)).rejects.toThrow();
+		});
+	});
+
+	describe('TC9: 正常系 - タグなしで更新', () => {
+		it('タグが指定されていない場合、空配列でタグを更新する', async () => {
+			const startedAt = new Date('2025-10-20T12:00:00.000Z');
+			const endedAt = new Date('2025-10-20T13:00:00.000Z');
+			const description = '作業内容';
+
+			// モック: 作業記録が存在
+			const mockWorkLog = {
+				id: testWorkLogId,
+				userId: testUserId,
+				startedAt: new Date('2025-10-20T11:00:00.000Z'),
+				endedAt: new Date('2025-10-20T12:00:00.000Z'),
+				description: '元の作業内容',
+				tags: ['開発'],
+				isActive: () => false,
+			} as WorkLog;
+
+			vi.mocked(getWorkLogById).mockResolvedValue(mockWorkLog);
+
+			// モック: 更新後の作業記録
+			const updatedWorkLog = {
+				id: testWorkLogId,
+				userId: testUserId,
+				startedAt,
+				endedAt,
+				description,
+				tags: [],
+				createdAt: new Date('2025-10-20T11:00:00.000Z'),
+				updatedAt: new Date(),
+				isActive: () => false,
+			} as any as WorkLog;
+
+			vi.mocked(updateWorkLog).mockResolvedValue(updatedWorkLog);
+
+			// モック: locals
+			const locals = { user: { id: testUserId } };
+
+			// モック: request (FormData) - tagsを空文字列で指定
+			const formData = new FormData();
+			formData.set('id', testWorkLogId);
+			formData.set('startedAt', startedAt.toISOString());
+			formData.set('endedAt', endedAt.toISOString());
+			formData.set('description', description);
+			formData.set('tags', '');
+
+			const request = {
+				formData: async () => formData,
+			};
+
+			// update アクションを呼び出し
+			const result = await handleUpdateAction({ locals, request } as any);
+
+			// 検証
+			expect(result).toHaveProperty('ok', true);
+			expect((result as any).workLog.tags).toEqual([]);
+
+			// モック呼び出しの検証
+			expect(updateWorkLog).toHaveBeenCalledWith(testWorkLogId, {
+				startedAt,
+				endedAt,
+				description,
+				tags: [],
+			});
+		});
+	});
+
+	describe('TC10: 異常系 - タグ数が20個を超過', () => {
+		it('タグが21個の場合、400エラーを返却する', async () => {
+			const tags = Array.from({ length: 21 }, (_, i) => `tag${i}`);
+
+			// モック: 作業記録が存在
+			const mockWorkLog = {
+				id: testWorkLogId,
+				userId: testUserId,
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: new Date('2025-10-20T13:00:00.000Z'),
+				description: '',
+				tags: [],
+				isActive: () => false,
+			} as any as WorkLog;
+
+			vi.mocked(getWorkLogById).mockResolvedValue(mockWorkLog);
+
+			// モック: locals
+			const locals = { user: { id: testUserId } };
+
+			// モック: request (FormData)
+			const formData = new FormData();
+			formData.set('id', testWorkLogId);
+			formData.set('startedAt', new Date('2025-10-20T12:00:00.000Z').toISOString());
+			formData.set('endedAt', new Date('2025-10-20T13:00:00.000Z').toISOString());
+			formData.set('description', '');
+			formData.set('tags', tags.join(' '));
+
+			const request = {
+				formData: async () => formData,
+			};
+
+			// update アクションを呼び出し
+			const result = await handleUpdateAction({ locals, request } as any);
+
+			// 検証
+			expect(result).toHaveProperty('status', 400);
+			expect((result as any).data).toHaveProperty('reason', 'VALIDATION_ERROR');
+			expect((result as any).data.errors).toHaveProperty('tags');
+		});
+	});
+
+	describe('TC11: 異常系 - タグ名が100文字を超過', () => {
+		it('タグ名が101文字の場合、400エラーを返却する', async () => {
+			const longTag = 'a'.repeat(101);
+
+			// モック: 作業記録が存在
+			const mockWorkLog = {
+				id: testWorkLogId,
+				userId: testUserId,
+				startedAt: new Date('2025-10-20T12:00:00.000Z'),
+				endedAt: new Date('2025-10-20T13:00:00.000Z'),
+				description: '',
+				tags: [],
+				isActive: () => false,
+			} as any as WorkLog;
+
+			vi.mocked(getWorkLogById).mockResolvedValue(mockWorkLog);
+
+			// モック: locals
+			const locals = { user: { id: testUserId } };
+
+			// モック: request (FormData)
+			const formData = new FormData();
+			formData.set('id', testWorkLogId);
+			formData.set('startedAt', new Date('2025-10-20T12:00:00.000Z').toISOString());
+			formData.set('endedAt', new Date('2025-10-20T13:00:00.000Z').toISOString());
+			formData.set('description', '');
+			formData.set('tags', longTag);
+
+			const request = {
+				formData: async () => formData,
+			};
+
+			// update アクションを呼び出し
+			const result = await handleUpdateAction({ locals, request } as any);
+
+			// 検証
+			expect(result).toHaveProperty('status', 400);
+			expect((result as any).data).toHaveProperty('reason', 'VALIDATION_ERROR');
+			expect((result as any).data.errors).toHaveProperty('tags');
 		});
 	});
 });

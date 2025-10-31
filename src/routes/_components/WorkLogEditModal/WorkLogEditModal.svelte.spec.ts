@@ -14,6 +14,11 @@ describe('WorkLogEditModal', () => {
 		updatedAt: new Date('2024-10-27T08:00:00.000Z'),
 	});
 
+	const mockTagSuggestions = [
+		{ tag: '開発', count: 5 },
+		{ tag: 'PJ-A', count: 3 },
+	];
+
 	beforeEach(() => {
 		// dialogのメソッドをモック
 		HTMLDialogElement.prototype.showModal = vi.fn();
@@ -26,6 +31,7 @@ describe('WorkLogEditModal', () => {
 			props: {
 				workLog: mockWorkLog,
 				open: true,
+				tagSuggestions: mockTagSuggestions,
 			},
 		});
 
@@ -39,6 +45,7 @@ describe('WorkLogEditModal', () => {
 			props: {
 				workLog: mockWorkLog,
 				open: false,
+				tagSuggestions: mockTagSuggestions,
 			},
 		});
 
@@ -52,6 +59,7 @@ describe('WorkLogEditModal', () => {
 			props: {
 				workLog: mockWorkLog,
 				open: true,
+				tagSuggestions: mockTagSuggestions,
 			},
 		});
 
@@ -76,6 +84,7 @@ describe('WorkLogEditModal', () => {
 			props: {
 				workLog: mockWorkLog,
 				open: true,
+				tagSuggestions: mockTagSuggestions,
 			},
 		});
 
@@ -101,6 +110,7 @@ describe('WorkLogEditModal', () => {
 			props: {
 				workLog: mockWorkLog,
 				open: true,
+				tagSuggestions: mockTagSuggestions,
 			},
 		});
 
@@ -120,6 +130,7 @@ describe('WorkLogEditModal', () => {
 			props: {
 				workLog: mockWorkLog,
 				open: true,
+				tagSuggestions: mockTagSuggestions,
 			},
 		});
 
@@ -149,6 +160,7 @@ describe('WorkLogEditModal', () => {
 				open: true,
 				onupdated: handleUpdated,
 				onclose: handleClose,
+				tagSuggestions: mockTagSuggestions,
 			},
 		});
 
@@ -178,6 +190,7 @@ describe('WorkLogEditModal', () => {
 				workLog: mockWorkLog,
 				open: true,
 				onclose: handleClose,
+				tagSuggestions: mockTagSuggestions,
 			},
 		});
 
@@ -196,6 +209,7 @@ describe('WorkLogEditModal', () => {
 				workLog: mockWorkLog,
 				open: true,
 				onclose: handleClose,
+				tagSuggestions: mockTagSuggestions,
 			},
 		});
 
@@ -215,6 +229,7 @@ describe('WorkLogEditModal', () => {
 			props: {
 				workLog: mockWorkLog,
 				open: true,
+				tagSuggestions: mockTagSuggestions,
 			},
 		});
 
@@ -225,5 +240,58 @@ describe('WorkLogEditModal', () => {
 
 		// ユニットテストでは実際のフォーム送信は行わない
 		// E2Eテストでキーボードショートカットをテストする
+	});
+
+	// TC12: タグの初期表示
+	it('should display initial tags correctly', () => {
+		const workLogWithTags = WorkLog.from({
+			...mockWorkLog,
+			tags: ['開発', 'PJ-A'],
+		});
+
+		render(WorkLogEditModal, {
+			props: {
+				workLog: workLogWithTags,
+				open: true,
+				tagSuggestions: mockTagSuggestions,
+			},
+		});
+
+		// タグが表示される
+		expect(screen.getByText('開発')).toBeInTheDocument();
+		expect(screen.getByText('PJ-A')).toBeInTheDocument();
+	});
+
+	// TC13: タグのラベルとヒント
+	it('should display tag label and hint', async () => {
+		render(WorkLogEditModal, {
+			props: {
+				workLog: mockWorkLog,
+				open: true,
+				tagSuggestions: mockTagSuggestions,
+			},
+		});
+
+		expect(screen.getByText('タグ')).toBeInTheDocument();
+		expect(screen.getByText('スペースまたはEnterで確定、Backspaceで削除')).toBeInTheDocument();
+	});
+
+	// TC14: タグなしの場合
+	it('should handle work log without tags', () => {
+		const workLogWithoutTags = WorkLog.from({
+			...mockWorkLog,
+			tags: [],
+		});
+
+		render(WorkLogEditModal, {
+			props: {
+				workLog: workLogWithoutTags,
+				open: true,
+				tagSuggestions: mockTagSuggestions,
+			},
+		});
+
+		// エラーなく表示される
+		expect(screen.getByText('作業記録の編集')).toBeInTheDocument();
 	});
 });

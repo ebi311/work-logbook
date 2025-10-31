@@ -69,6 +69,7 @@ const fetchListData = async (
 			endedAt: item.endedAt ? item.endedAt.toISOString() : null,
 			durationSec,
 			description: item.description,
+			tags: item.tags || [],
 		};
 	});
 
@@ -102,6 +103,7 @@ type WorkLogItem = {
 	endedAt: string | null;
 	durationSec: number | null;
 	description: string;
+	tags: string[];
 };
 
 type LoadData = {

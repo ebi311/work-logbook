@@ -28,6 +28,11 @@ vi.mock('./index', () => {
 			orderBy: mockOrderBy,
 			limit: mockLimit,
 			offset: mockOffset,
+			query: {
+				workLogTags: {
+					findMany: vi.fn(),
+				},
+			},
 		},
 	};
 });
@@ -44,6 +49,8 @@ describe('listWorkLogs', () => {
 		vi.clearAllMocks();
 		// デフォルトの返り値を設定（空配列）
 		mockDb.offset.mockResolvedValue([]);
+		// タグのモックをデフォルトで空配列に設定
+		vi.mocked(db.query.workLogTags.findMany).mockResolvedValue([]);
 	});
 
 	it('基本的な一覧取得（フィルタなし、デフォルトページング）', async () => {
@@ -53,6 +60,7 @@ describe('listWorkLogs', () => {
 				startedAt: new Date('2025-10-25T10:00:00Z'),
 				endedAt: new Date('2025-10-25T12:00:00Z'),
 				userId: testUserId,
+				tags: [],
 			},
 		];
 		mockDb.offset.mockResolvedValue(mockData);
@@ -116,12 +124,14 @@ describe('listWorkLogs', () => {
 				startedAt: new Date('2025-10-25T10:00:00Z'),
 				endedAt: null,
 				userId: testUserId,
+				tags: [],
 			},
 			{
 				id: 'log-2',
 				startedAt: new Date('2025-10-24T10:00:00Z'),
 				endedAt: new Date('2025-10-24T12:00:00Z'),
 				userId: testUserId,
+				tags: [],
 			},
 		];
 		mockDb.offset.mockResolvedValue(mockData);

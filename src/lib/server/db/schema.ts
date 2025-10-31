@@ -9,6 +9,7 @@ import {
 	varchar,
 	index,
 } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 
 // NF-001: ユーザーテーブル
@@ -65,6 +66,18 @@ export const workLogTags = pgTable(
 		index('work_log_tags_work_log_id_idx').on(table.workLogId),
 	],
 );
+
+// リレーション定義
+export const workLogsRelations = relations(workLogs, ({ many }) => ({
+	tags: many(workLogTags),
+}));
+
+export const workLogTagsRelations = relations(workLogTags, ({ one }) => ({
+	workLog: one(workLogs, {
+		fields: [workLogTags.workLogId],
+		references: [workLogs.id],
+	}),
+}));
 
 // 型エクスポート
 export type User = typeof users.$inferSelect;

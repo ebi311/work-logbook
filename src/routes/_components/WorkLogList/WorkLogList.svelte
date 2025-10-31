@@ -10,6 +10,7 @@
 			startedAt: string; // ISO
 			endedAt: string | null; // ISO
 			description: string; // 作業内容
+			tags: string[]; // タグ
 		}>;
 		serverNow: string; // ISO（進行中の作業時間計算用）
 		onedit?: (item: Props['items'][number]) => void;

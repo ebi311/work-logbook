@@ -69,18 +69,6 @@
 			</div>
 		</div>
 
-		<!-- タグ -->
-		{#if item.tags && item.tags.length > 0}
-			<div class="mb-4 flex-shrink-0">
-				<h4 class="mb-2 text-sm font-semibold text-base-content/60">タグ:</h4>
-				<div class="flex flex-wrap gap-2">
-					{#each item.tags as tag}
-						<TagBadge {tag} />
-					{/each}
-				</div>
-			</div>
-		{/if}
-
 		<!-- 作業内容 (スクロール可能) -->
 		<h4 class="mb-2 text-sm font-semibold text-base-content/60">作業内容:</h4>
 		<div class="mb-4 min-h-0 flex-1 overflow-y-auto">
@@ -92,6 +80,18 @@
 				<p class="text-base-content/40">（作業内容なし）</p>
 			{/if}
 		</div>
+
+		<!-- タグ -->
+		{#if item.tags && item.tags.length > 0}
+			<div class="mb-4 flex-shrink-0">
+				<h4 class="mb-2 text-sm font-semibold text-base-content/60">タグ:</h4>
+				<div class="flex flex-wrap gap-2">
+					{#each item.tags as tag}
+						<TagBadge {tag} />
+					{/each}
+				</div>
+			</div>
+		{/if}
 
 		<!-- アクション -->
 		<div class="modal-action flex-shrink-0">

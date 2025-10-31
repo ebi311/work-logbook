@@ -13,6 +13,7 @@ describe('WorkLogList', () => {
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
 					description: 'テスト',
+					tags: [],
 				},
 			];
 
@@ -49,6 +50,7 @@ describe('WorkLogList', () => {
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
 					description: '',
+					tags: [],
 				},
 			];
 
@@ -71,6 +73,7 @@ describe('WorkLogList', () => {
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: null,
 					description: '',
+					tags: [],
 				},
 			];
 
@@ -93,18 +96,21 @@ describe('WorkLogList', () => {
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
 					description: '',
+					tags: [],
 				},
 				{
 					id: '2',
 					startedAt: '2025-10-25T11:00:00.000Z',
 					endedAt: '2025-10-25T12:00:00.000Z',
 					description: '',
+					tags: [],
 				},
 				{
 					id: '3',
 					startedAt: '2025-10-25T13:00:00.000Z',
 					endedAt: null,
 					description: '',
+					tags: [],
 				},
 			];
 
@@ -127,6 +133,7 @@ describe('WorkLogList', () => {
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
 					description: 'テスト作業内容',
+					tags: [],
 				},
 			];
 
@@ -147,6 +154,7 @@ describe('WorkLogList', () => {
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
 					description: '',
+					tags: [],
 				},
 			];
 
@@ -185,12 +193,14 @@ describe('WorkLogList', () => {
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
 					description: '',
+					tags: [],
 				},
 				{
 					id: '2',
 					startedAt: '2025-10-25T11:00:00.000Z',
 					endedAt: null,
 					description: '',
+					tags: [],
 				},
 			];
 
@@ -215,6 +225,7 @@ describe('WorkLogList', () => {
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
 					description: 'テスト作業',
+					tags: [],
 				},
 			];
 
@@ -237,6 +248,7 @@ describe('WorkLogList', () => {
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
 					description: 'テスト作業',
+					tags: [],
 				},
 			];
 
@@ -260,6 +272,7 @@ describe('WorkLogList', () => {
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
 					description: 'テスト作業',
+					tags: [],
 				},
 			];
 
@@ -285,6 +298,7 @@ describe('WorkLogList', () => {
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: null,
 					description: 'テスト作業',
+					tags: [],
 				},
 			];
 
@@ -309,12 +323,14 @@ describe('WorkLogList', () => {
 					startedAt: '2025-10-25T09:00:00.000Z',
 					endedAt: '2025-10-25T10:30:00.000Z',
 					description: 'テスト作業1',
+					tags: [],
 				},
 				{
 					id: '2',
 					startedAt: '2025-10-25T11:00:00.000Z',
 					endedAt: '2025-10-25T12:00:00.000Z',
 					description: 'テスト作業2',
+					tags: [],
 				},
 			];
 

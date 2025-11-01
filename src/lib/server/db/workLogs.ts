@@ -1,12 +1,25 @@
 import { db } from './index';
 import { workLogs, workLogTags, type DbWorkLog } from './schema';
-import { eq, and, isNull, sql, lt, gt, isNotNull, gte, lte, desc, like } from 'drizzle-orm';
+import {
+	eq,
+	and,
+	isNull,
+	sql,
+	lt,
+	gt,
+	isNotNull,
+	gte,
+	lte,
+	desc,
+	like,
+	inArray,
+} from 'drizzle-orm';
 import { WorkLog } from '../../../models/workLog';
 import { getMonthRange } from '../../utils/dateRange';
 import { z } from 'zod';
 
 /**
- * listWorkLogs オプションのバリデーションスキーマ
+ * ListWorkLogs の引数オプションスキーマ
  */
 const ListWorkLogsOptionsSchema = z
 	.object({
@@ -14,10 +27,10 @@ const ListWorkLogsOptionsSchema = z
 		offset: z.number().int().min(0),
 		from: z.date().optional(),
 		to: z.date().optional(),
+		tags: z.array(z.string()).optional(),
 	})
 	.refine(
 		(data) => {
-			// from と to の両方が指定されている場合、from <= to を検証
 			if (data.from && data.to) {
 				return data.from <= data.to;
 			}
@@ -149,7 +162,7 @@ export const aggregateMonthlyWorkLogDuration = async (
 /**
  * 作業ログを一覧取得（降順・ページング）
  * @param userId - ユーザーID
- * @param options - { limit: 件数(10〜100), offset: オフセット(0以上), from?: 開始日時, to?: 終了日時 }
+ * @param options - { limit: 件数(10〜100), offset: オフセット(0以上), from?: 開始日時, to?: 終了日時, tags?: タグ配列 }
  * @returns { items: 作業ログ配列, hasNext: 次ページの有無 }
  * @throws ZodError - バリデーション失敗時（limit/offset範囲外、from > to）
  */
@@ -160,6 +173,7 @@ export const listWorkLogs = async (
 		offset: number;
 		from?: Date;
 		to?: Date;
+		tags?: string[];
 	},
 ): Promise<{
 	items: Array<DbWorkLog & { tags: string[] }>;
@@ -167,9 +181,9 @@ export const listWorkLogs = async (
 }> => {
 	// Zodでバリデーション
 	const validatedOptions = ListWorkLogsOptionsSchema.parse(options);
-	const { limit, offset, from, to } = validatedOptions;
+	const { limit, offset, from, to, tags } = validatedOptions;
 
-	// limit+1 件取得して hasNext を判定
+	// 基本条件
 	const conditions = [eq(workLogs.userId, userId)];
 
 	// from/to 範囲フィルタ（指定がある場合）
@@ -180,10 +194,42 @@ export const listWorkLogs = async (
 		conditions.push(lte(workLogs.startedAt, to));
 	}
 
+	// タグフィルタがない場合は従来のロジックを使用
+	if (!tags || tags.length === 0) {
+		const results = await db
+			.select()
+			.from(workLogs)
+			.where(and(...conditions))
+			.orderBy(desc(workLogs.startedAt))
+			.limit(limit + 1)
+			.offset(offset);
+
+		// limit+1 件取得できた場合は次ページあり
+		const hasNext = results.length > limit;
+		const workLogsSlice = hasNext ? results.slice(0, limit) : results;
+
+		// 各作業記録のタグを並列取得
+		const items = await Promise.all(
+			workLogsSlice.map(async (workLog) => {
+				const workLogTagsArray = await getWorkLogTags(workLog.id);
+				return { ...workLog, tags: workLogTagsArray };
+			}),
+		);
+
+		return { items, hasNext };
+	}
+
+	// タグフィルタがある場合：AND検索（指定したすべてのタグを含む作業記録のみ）
+	// サブクエリで各作業記録のマッチタグ数をカウントし、それが指定タグ数と一致するものを選択
 	const results = await db
-		.select()
+		.select({
+			workLog: workLogs,
+		})
 		.from(workLogs)
-		.where(and(...conditions))
+		.innerJoin(workLogTags, eq(workLogTags.workLogId, workLogs.id))
+		.where(and(...conditions, inArray(workLogTags.tag, tags)))
+		.groupBy(workLogs.id)
+		.having(sql`COUNT(DISTINCT ${workLogTags.tag}) = ${tags.length}`)
 		.orderBy(desc(workLogs.startedAt))
 		.limit(limit + 1)
 		.offset(offset);
@@ -194,9 +240,9 @@ export const listWorkLogs = async (
 
 	// 各作業記録のタグを並列取得
 	const items = await Promise.all(
-		workLogsSlice.map(async (workLog) => {
-			const tags = await getWorkLogTags(workLog.id);
-			return { ...workLog, tags };
+		workLogsSlice.map(async (result) => {
+			const workLogTagsArray = await getWorkLogTags(result.workLog.id);
+			return { ...result.workLog, tags: workLogTagsArray };
 		}),
 	);
 

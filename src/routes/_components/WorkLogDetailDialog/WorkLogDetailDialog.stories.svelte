@@ -19,6 +19,10 @@
 				action: 'close',
 				description: 'ダイアログを閉じる際のコールバック',
 			},
+			onedit: {
+				action: 'edit',
+				description: '編集ボタンがクリックされた際のコールバック',
+			},
 		},
 	});
 </script>
@@ -248,5 +252,27 @@ export const users = pgTable('users', {
 		item: listItem,
 		duration: 5400000, // 1時間30分（ミリ秒）
 		onClose: noop,
+	}}
+/>
+
+<!-- 編集ボタンあり -->
+<Story
+	name="WithEditButton"
+	args={{
+		item: normalItem,
+		duration: 5400000, // 1時間30分（ミリ秒）
+		onClose: noop,
+		onedit: noop,
+	}}
+/>
+
+<!-- 編集ボタンあり（進行中の作業 - 編集ボタンは表示されない） -->
+<Story
+	name="WithEditButton_Active"
+	args={{
+		item: activeItem,
+		duration: null,
+		onClose: noop,
+		onedit: noop,
 	}}
 />

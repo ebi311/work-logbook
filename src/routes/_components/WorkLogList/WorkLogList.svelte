@@ -148,7 +148,12 @@
 
 <!-- ダイアログ -->
 {#if selectedItem}
-	<WorkLogDetailDialog item={selectedItem} duration={selectedDuration} onClose={closeDialog} />
+	<WorkLogDetailDialog
+		item={selectedItem}
+		duration={selectedDuration}
+		onClose={closeDialog}
+		{onedit}
+	/>
 {/if}
 
 <style>

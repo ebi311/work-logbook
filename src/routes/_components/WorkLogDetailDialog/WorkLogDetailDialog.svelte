@@ -14,9 +14,10 @@
 		};
 		duration: number | null;
 		onClose: () => void;
+		onedit?: (item: Props['item']) => void;
 	};
 
-	let { item, duration, onClose }: Props = $props();
+	let { item, duration, onClose, onedit }: Props = $props();
 
 	// Markdownレンダリング
 	let renderedHtml = $derived(renderMarkdown(item.description));
@@ -37,6 +38,15 @@
 
 	// dialogのcloseイベント（Escapeキーとbackdropクリック時）
 	const handleDialogClose = () => {
+		onClose();
+	};
+
+	// 編集ボタンのクリック
+	const handleEdit = () => {
+		if (item.endedAt === null) return; // 進行中は編集不可
+		// oneditを先に呼び出してからダイアログを閉じる
+		onedit?.(item);
+		dialog?.close();
 		onClose();
 	};
 </script>
@@ -95,6 +105,9 @@
 
 		<!-- アクション -->
 		<div class="modal-action flex-shrink-0">
+			{#if item.endedAt !== null && onedit}
+				<button class="btn btn-primary" onclick={handleEdit}>編集</button>
+			{/if}
 			<button class="btn" onclick={handleClose}>閉じる</button>
 		</div>
 	</div>

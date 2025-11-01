@@ -4,14 +4,11 @@
 	import WorkLogStatus from './_components/WorkLogStatus/WorkLogStatus.svelte';
 	import WorkLogToggleButton from './_components/WorkLogToggleButton/WorkLogToggleButton.svelte';
 	import KeyboardShortcutHelp from './_components/KeyboardShortcutHelp/KeyboardShortcutHelp.svelte';
-	import WorkLogList from './_components/WorkLogList/WorkLogList.svelte';
-	import WorkLogListSkeleton from './_components/WorkLogList/WorkLogListSkeleton.svelte';
-	import MonthlyTotal from './_components/MonthlyTotal/MonthlyTotal.svelte';
-	import Pagination from './_components/Pagination/Pagination.svelte';
+	import WorkLogHistory from './_components/WorkLogHistory/WorkLogHistory.svelte';
 	import TagInput from './_components/TagInput/TagInput.svelte';
 	import { enhance } from '$app/forms';
 	import WorkLogEditModal from './_components/WorkLogEditModal/WorkLogEditModal.svelte';
-	import { invalidate, invalidateAll, refreshAll } from '$app/navigation';
+	import { invalidate, invalidateAll, refreshAll, goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { toastSuccess, toastError } from '$lib/utils/toast';
 
@@ -40,6 +37,29 @@
 		description = currentActive?.description || '';
 		tags = currentActive?.tags || [];
 	});
+
+	// F-006: フィルタ用のタグ（URLから取得）
+	let filterTags = $state<string[]>([]);
+	$effect(() => {
+		const tagsParam = page.url.searchParams.get('tags');
+		filterTags = tagsParam ? tagsParam.split(',').filter(Boolean) : [];
+	});
+
+	// F-006: フィルタタグ変更ハンドラー
+	const handleFilterTagsChange = (newTags: string[]) => {
+		const url = new URL(page.url);
+
+		if (newTags.length > 0) {
+			url.searchParams.set('tags', newTags.join(','));
+		} else {
+			url.searchParams.delete('tags');
+		}
+
+		// ページをリセット
+		url.searchParams.set('page', '1');
+
+		goto(url.toString(), { replaceState: false });
+	};
 
 	// 作業開始成功時の処理
 	const handleStartSuccess = (form: NonNullable<ActionData>) => {
@@ -308,35 +328,15 @@
 	</div>
 
 	<!-- 作業一覧セクション -->
-	<div class="card mb-8 border border-neutral-300 bg-base-100">
-		<div class="card-body">
-			<h2 class="card-title">作業履歴</h2>
-
-			{#await listDataPromise}
-				<!-- ローディング中 -->
-				<WorkLogListSkeleton rows={5} />
-			{:then listData}
-				<div class="grid grid-cols-[1fr_auto] items-end">
-					<MonthlyTotal totalSec={listData.monthlyTotalSec} />
-					<Pagination currentPage={listData.page} hasNext={listData.hasNext} size={listData.size} />
-				</div>
-				<!-- データ表示 -->
-				<WorkLogList
-					items={listData.items}
-					serverNow={currentServerNow}
-					onedit={(item) => openEditModal(item)}
-					ondelete={(item) => handleDeleteClick(item)}
-				/>
-
-				<!-- フッター: 月次合計とページネーション -->
-			{:catch error}
-				<!-- エラー表示 -->
-				<div class="alert alert-error">
-					<span>データの読み込みに失敗しました</span>
-				</div>
-			{/await}
-		</div>
-	</div>
+	<WorkLogHistory
+		{listDataPromise}
+		{filterTags}
+		tagSuggestions={data.tagSuggestions}
+		serverNow={currentServerNow}
+		onFilterTagsChange={handleFilterTagsChange}
+		onEdit={openEditModal}
+		onDelete={handleDeleteClick}
+	/>
 
 	<!-- キーボードショートカットヘルプ -->
 	<KeyboardShortcutHelp />

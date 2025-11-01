@@ -18,6 +18,7 @@ UC-001で単一タグでの絞り込みを実装済み。UC-002では、複数�
 ### 実装範囲
 
 UC-002では以下を実装:
+
 - 複数タグの追加・削除UI操作
 - タグバッジの×ボタンでの個別削除
 - 入力欄での複数タグ追加
@@ -39,16 +40,19 @@ UC-002では以下を実装:
 **目的**: 既存のTagInputコンポーネントが複数タグの追加・削除をサポートしているか確認
 
 **確認項目**:
+
 1. 複数タグの追加が可能か
 2. 各タグバッジに×ボタンがあるか
 3. `on:change` イベントで全タグ配列が渡されるか
 
 **実装**: 必要に応じて以下を追加
+
 - タグバッジの×ボタンクリックハンドラ
 - Backspace キーで最後のタグを削除
 - Enter キーでタグを追加
 
 **合格基準**:
+
 - 複数タグを追加・削除できる
 - タグ変更時に `on:change` イベントが発火し、全タグ配列が渡される
 - 既存のテストが成功
@@ -68,10 +72,11 @@ UC-002では以下を実装:
    - スクロール位置を保持
 
 2. **個別タグ削除ハンドラの追加**（必要に応じて）
+
    ```typescript
    const handleTagRemove = (tagToRemove: string) => {
-     const newTags = filterTags.filter(t => t !== tagToRemove);
-     handleFilterTagsChange(newTags);
+   	const newTags = filterTags.filter((t) => t !== tagToRemove);
+   	handleFilterTagsChange(newTags);
    };
    ```
 
@@ -80,6 +85,7 @@ UC-002では以下を実装:
    - 必要に応じて `onTagRemove` を追加
 
 **合格基準**:
+
 - 複数タグを追加できる
 - 各タグを個別に削除できる
 - URL が `?tags=tag1,tag2` 形式で更新される
@@ -99,12 +105,13 @@ UC-002では以下を実装:
    - 既存の `onFilterTagsChange: (tags: string[]) => void` を使用
 
 2. **TagInput への Props 伝播**
+
    ```svelte
    <TagInput
-     tags={filterTags}
-     suggestions={tagSuggestions}
-     placeholder="タグで絞り込み..."
-     on:change={(e) => onFilterTagsChange(e.detail)}
+   	tags={filterTags}
+   	suggestions={tagSuggestions}
+   	placeholder="タグで絞り込み..."
+   	on:change={(e) => onFilterTagsChange(e.detail)}
    />
    ```
 
@@ -113,6 +120,7 @@ UC-002では以下を実装:
    - ×ボタンクリックで該当タグを削除
 
 **合格基準**:
+
 - 複数タグがバッジとして表示される
 - 各バッジの×ボタンでタグを削除できる
 - タグ入力欄で新しいタグを追加できる
@@ -121,7 +129,8 @@ UC-002では以下を実装:
 
 **目的**: 複数タグでの絞り込みが正しく動作することを確認
 
-**実装箇所**: 
+**実装箇所**:
+
 - `src/routes/page.svelte.spec.ts`
 - `src/routes/_components/WorkLogHistory/WorkLogHistory.svelte.spec.ts`（必要に応じて）
 
@@ -134,14 +143,14 @@ describe('F-006 UC-002: 複数タグでの絞り込み', () => {
   it('複数タグを追加すると、URLに反映される', async () => {
     // Given: ページを表示
     const { component } = render(/* ... */);
-    
+
     // When: 複数タグを選択
     const tagInput = screen.getByPlaceholderText('タグで絞り込み...');
     // タグ1を追加
     await fireEvent.change(tagInput, { detail: ['開発'] });
     // タグ2を追加
     await fireEvent.change(tagInput, { detail: ['開発', 'PJ-A'] });
-    
+
     // Then: URLが更新される
     expect(mockGoto).toHaveBeenCalledWith(
       expect.stringContaining('tags=開発,PJ-A'),
@@ -154,10 +163,10 @@ describe('F-006 UC-002: 複数タグでの絞り込み', () => {
     const { component } = render(/* ... */, {
       data: { /* tags=開発,PJ-A */ }
     });
-    
+
     // When: 1つのタグを削除
     await fireEvent.change(tagInput, { detail: ['開発'] }); // PJ-Aを削除
-    
+
     // Then: URLが更新される
     expect(mockGoto).toHaveBeenCalledWith(
       expect.stringContaining('tags=開発'),
@@ -168,10 +177,10 @@ describe('F-006 UC-002: 複数タグでの絞り込み', () => {
   it('全てのタグを削除すると、tagsパラメータが削除される', async () => {
     // Given: タグでフィルタリング中
     const { component } = render(/* ... */);
-    
+
     // When: 全タグを削除
     await fireEvent.change(tagInput, { detail: [] });
-    
+
     // Then: tagsパラメータが削除される
     expect(mockGoto).toHaveBeenCalledWith(
       expect.not.stringContaining('tags='),
@@ -182,10 +191,10 @@ describe('F-006 UC-002: 複数タグでの絞り込み', () => {
   it('タグ追加時、ページが1にリセットされる', async () => {
     // Given: ページ2を表示中
     const { component } = render(/* page=2 */);
-    
+
     // When: タグを追加
     await fireEvent.change(tagInput, { detail: ['開発'] });
-    
+
     // Then: page=1に戻る
     expect(mockGoto).toHaveBeenCalledWith(
       expect.stringContaining('page=1'),
@@ -196,10 +205,10 @@ describe('F-006 UC-002: 複数タグでの絞り込み', () => {
   it('タグ追加時、スクロール位置が保持される', async () => {
     // Given: ページを表示
     const { component } = render(/* ... */);
-    
+
     // When: タグを追加
     await fireEvent.change(tagInput, { detail: ['開発', 'PJ-A'] });
-    
+
     // Then: noScroll, keepFocusオプションが設定される
     expect(mockGoto).toHaveBeenCalledWith(
       expect.anything(),
@@ -213,12 +222,14 @@ describe('F-006 UC-002: 複数タグでの絞り込み', () => {
 ```
 
 **合格基準**:
+
 - 全テストケースが成功
 - 既存の31テストケースも引き続き成功
 
 ### Step 5: 動作確認とコミット
 
 **確認項目**:
+
 1. 複数タグを追加できる
 2. 各タグを個別に削除できる
 3. URL が正しく更新される
@@ -227,6 +238,7 @@ describe('F-006 UC-002: 複数タグでの絞り込み', () => {
 6. 複数タグでのAND検索が正しく動作する
 
 **コミット**:
+
 ```bash
 git add -A
 git commit -m "F-006 UC-002: 複数タグでの絞り込み機能を実装

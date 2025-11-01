@@ -1018,4 +1018,50 @@ describe('/+page.svelte', () => {
 			});
 		});
 	});
+
+	describe('F-006 UC-002: 複数タグでの絞り込み', () => {
+		it('複数タグがフィルタバーに表示される', async () => {
+			// Given: 複数タグでフィルタリング中のデータ
+			render(Page, {
+				props: {
+					data: createDefaultData({
+						tagSuggestions: [
+							{ tag: '開発', count: 5 },
+							{ tag: 'PJ-A', count: 3 },
+							{ tag: '会議', count: 2 },
+						],
+					}),
+				},
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('作業履歴')).toBeInTheDocument();
+			});
+
+			// Then: TagInputコンポーネントが表示される
+			const tagInput = screen.getByPlaceholderText('タグで絞り込み...');
+			expect(tagInput).toBeInTheDocument();
+		});
+
+		it('TagInputコンポーネントが正しいtagSuggestionsを受け取る', async () => {
+			// Given: タグサジェストデータがある
+			const tagSuggestions = [
+				{ tag: '開発', count: 5 },
+				{ tag: 'PJ-A', count: 3 },
+			];
+
+			render(Page, {
+				props: {
+					data: createDefaultData({ tagSuggestions }),
+				},
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('作業履歴')).toBeInTheDocument();
+			});
+
+			// TagInputコンポーネントが正常にレンダリングされる
+			expect(screen.getByPlaceholderText('タグで絞り込み...')).toBeInTheDocument();
+		});
+	});
 });

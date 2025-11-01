@@ -377,7 +377,7 @@ src/lib/components/
 ### NF-001: GitHub OAuth認証
 
 - GitHub アカウントでのログイン
-- セッション管理（Heroku Key-Value Store使用）
+- セッション管理（Redis使用）
 - 自動ログアウト機能
 
 ## 🎯 今後の実装予定

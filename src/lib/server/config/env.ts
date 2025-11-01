@@ -9,7 +9,7 @@ import {
 	GITHUB_CALLBACK_URL,
 	SESSION_SECRET,
 	ALLOWED_GITHUB_IDS,
-	HEROKU_REDIS_URL,
+	REDIS_URL,
 } from '$env/static/private';
 
 // 環境変数の型定義
@@ -57,8 +57,8 @@ export const getEnvConfig = (): EnvConfig => {
 		.filter((id) => id.length > 0);
 
 	// Redis URL
-	if (!HEROKU_REDIS_URL) {
-		throw new Error('HEROKU_REDIS_URL is not set');
+	if (!REDIS_URL) {
+		throw new Error('REDIS_URL is not set');
 	}
 
 	return {
@@ -72,7 +72,7 @@ export const getEnvConfig = (): EnvConfig => {
 		},
 		allowedGithubIds,
 		redis: {
-			url: HEROKU_REDIS_URL,
+			url: REDIS_URL,
 		},
 	};
 };

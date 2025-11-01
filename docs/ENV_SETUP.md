@@ -80,17 +80,18 @@ GitHub IDの確認方法:
 
 **注意**: この設定が空の場合、誰もログインできません。
 
-### HEROKU_REDIS_URL
+### REDIS_URL
 
 Redisの接続URL（セッション管理用）
 
 - **開発環境**: `redis://localhost:6379` (Docker Composeで起動)
-- **本番環境**: Heroku Key-Value Store アドオンが自動で設定
+- **本番環境 (Vercel)**: Vercel KV (Redis) が自動で設定
+- **本番環境 (Heroku)**: Heroku Key-Value Store アドオンが自動で設定
 
 ## セキュリティに関する注意
 
 - `.env` ファイルは `.gitignore` に含まれており、Gitにコミットされません
-- 本番環境の環境変数は Heroku の Config Vars で管理してください
+- 本番環境の環境変数は Vercel の Environment Variables または Heroku の Config Vars で管理してください
 - `GITHUB_CLIENT_SECRET` と `SESSION_SECRET` は絶対に公開しないでください
 
 ## トラブルシューティング

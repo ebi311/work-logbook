@@ -32,6 +32,8 @@
 		serverNow: string;
 		/** フィルタタグ変更ハンドラー */
 		onFilterTagsChange: (tags: string[]) => void;
+		/** タグクリックハンドラー */
+		onTagClick: (tag: string) => void;
 		/** 編集ハンドラー */
 		onEdit: (item: ListItem) => void;
 		/** 削除ハンドラー */
@@ -44,6 +46,7 @@
 		tagSuggestions,
 		serverNow,
 		onFilterTagsChange,
+		onTagClick,
 		onEdit,
 		onDelete,
 	}: Props = $props();
@@ -73,8 +76,13 @@
 				<Pagination currentPage={listData.page} hasNext={listData.hasNext} size={listData.size} />
 			</div>
 			<!-- データ表示 -->
-			<WorkLogList items={listData.items} {serverNow} onedit={onEdit} ondelete={onDelete} />
-
+			<WorkLogList
+				items={listData.items}
+				{serverNow}
+				onedit={onEdit}
+				ondelete={onDelete}
+				ontagclick={onTagClick}
+			/>
 			<!-- フッター: 月次合計とページネーション -->
 		{:catch error}
 			<!-- エラー表示 -->

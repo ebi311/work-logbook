@@ -3,6 +3,7 @@
 	import classNames from 'classnames';
 	import { fade } from 'svelte/transition';
 	import WorkLogDetailDialog from '../WorkLogDetailDialog/WorkLogDetailDialog.svelte';
+	import TagBadge from '../TagBadge/TagBadge.svelte';
 
 	type Props = {
 		items: Array<{
@@ -15,9 +16,10 @@
 		serverNow: string; // ISO（進行中の作業時間計算用）
 		onedit?: (item: Props['items'][number]) => void;
 		ondelete?: (item: Props['items'][number]) => void;
+		ontagclick?: (tag: string) => void;
 	};
 
-	let { items, serverNow, onedit, ondelete }: Props = $props();
+	let { items, serverNow, onedit, ondelete, ontagclick }: Props = $props();
 
 	// 選択されたアイテム
 	let selectedItem: (typeof items)[0] | null = $state(null);
@@ -131,12 +133,37 @@
 								</button>
 							{/if}
 						</div>
-						<!-- 2行目: 作業内容 -->
-						<div class="col-span-3 mt-2 flex items-start justify-between gap-2 text-sm">
+						<!-- 2行目: 作業内容とタグ -->
+						<div class="col-span-3 mt-2 space-y-2 text-sm">
 							{#if item.description}
 								<div class="line-clamp-2">{item.description}</div>
 							{:else}
 								<span class="text-base-content/40">—</span>
+							{/if}
+
+							<!-- タグ -->
+							{#if item.tags && item.tags.length > 0}
+								<div class="flex flex-wrap gap-1">
+									{#each item.tags as tag}
+										<span
+											role="button"
+											tabindex="0"
+											onclick={(e) => {
+												e.stopPropagation();
+												ontagclick?.(tag);
+											}}
+											onkeydown={(e) => {
+												if (e.key === 'Enter' || e.key === ' ') {
+													e.preventDefault();
+													e.stopPropagation();
+													ontagclick?.(tag);
+												}
+											}}
+										>
+											<TagBadge {tag} />
+										</span>
+									{/each}
+								</div>
 							{/if}
 						</div>
 					</div>

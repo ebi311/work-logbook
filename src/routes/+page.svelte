@@ -61,6 +61,18 @@
 		goto(url.toString(), { replaceState: false, noScroll: true, keepFocus: true });
 	};
 
+	// F-006 UC-003: タグバッジクリックハンドラー
+	const handleTagClick = (tag: string) => {
+		// 既に選択されている場合はスキップ
+		if (filterTags.includes(tag)) {
+			return;
+		}
+
+		// 新しいタグを追加
+		const newTags = [...filterTags, tag];
+		handleFilterTagsChange(newTags);
+	};
+
 	// 作業開始成功時の処理
 	const handleStartSuccess = (form: NonNullable<ActionData>) => {
 		if (!('workLog' in form) || !form.workLog) return;
@@ -334,6 +346,7 @@
 		tagSuggestions={data.tagSuggestions}
 		serverNow={currentServerNow}
 		onFilterTagsChange={handleFilterTagsChange}
+		onTagClick={handleTagClick}
 		onEdit={openEditModal}
 		onDelete={handleDeleteClick}
 	/>

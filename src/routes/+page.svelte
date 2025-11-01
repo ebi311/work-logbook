@@ -45,6 +45,14 @@
 		filterTags = tagsParam ? tagsParam.split(',').filter(Boolean) : [];
 	});
 
+	// F-006: 日付フィルタ（URLから取得）
+	let currentMonth = $state<string | undefined>(undefined);
+	let currentDate = $state<string | undefined>(undefined);
+	$effect(() => {
+		currentMonth = page.url.searchParams.get('month') ?? undefined;
+		currentDate = page.url.searchParams.get('date') ?? undefined;
+	});
+
 	// F-006: フィルタタグ変更ハンドラー
 	const handleFilterTagsChange = (newTags: string[]) => {
 		const url = new URL(page.url);
@@ -53,6 +61,29 @@
 			url.searchParams.set('tags', newTags.join(','));
 		} else {
 			url.searchParams.delete('tags');
+		}
+
+		// ページをリセット
+		url.searchParams.set('page', '1');
+
+		goto(url.toString(), { replaceState: false, noScroll: true, keepFocus: true });
+	};
+
+	// F-006: 日付フィルタ変更ハンドラー
+	const handleDateFilterChange = (filter: { month?: string; date?: string }) => {
+		const url = new URL(page.url);
+
+		// 既存の日付パラメータをクリア
+		url.searchParams.delete('month');
+		url.searchParams.delete('date');
+		url.searchParams.delete('from');
+		url.searchParams.delete('to');
+
+		// 新しいフィルタを設定
+		if (filter.month) {
+			url.searchParams.set('month', filter.month);
+		} else if (filter.date) {
+			url.searchParams.set('date', filter.date);
 		}
 
 		// ページをリセット
@@ -343,9 +374,12 @@
 	<WorkLogHistory
 		{listDataPromise}
 		{filterTags}
+		{currentMonth}
+		{currentDate}
 		tagSuggestions={data.tagSuggestions}
 		serverNow={currentServerNow}
 		onFilterTagsChange={handleFilterTagsChange}
+		onDateFilterChange={handleDateFilterChange}
 		onTagClick={handleTagClick}
 		onEdit={openEditModal}
 		onDelete={handleDeleteClick}

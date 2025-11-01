@@ -1507,4 +1507,197 @@ describe('/+page.svelte', () => {
 			expect(screen.getByText('PJ-A')).toBeInTheDocument();
 		});
 	});
+
+	describe('F-006: 日付フィルタUI', () => {
+		it('月選択ドロップダウンが表示される', async () => {
+			// Given: ページが表示されている
+			const listData = Promise.resolve({
+				items: [],
+				page: 1,
+				size: 10,
+				hasNext: false,
+				monthlyTotalSec: 0,
+			});
+
+			render(Page, {
+				props: {
+					data: createDefaultData({ listData, tagSuggestions: [] }),
+				},
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('作業履歴')).toBeInTheDocument();
+			});
+
+			// Then: 月選択ドロップダウンが存在する
+			expect(screen.getByRole('combobox', { name: /月を選択/i })).toBeInTheDocument();
+		});
+
+		it('「今日」ボタンが表示される', async () => {
+			// Given: ページが表示されている
+			const listData = Promise.resolve({
+				items: [],
+				page: 1,
+				size: 10,
+				hasNext: false,
+				monthlyTotalSec: 0,
+			});
+
+			render(Page, {
+				props: {
+					data: createDefaultData({ listData, tagSuggestions: [] }),
+				},
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('作業履歴')).toBeInTheDocument();
+			});
+
+			// Then: 「今日」ボタンが存在する
+			expect(screen.getByRole('button', { name: '今日' })).toBeInTheDocument();
+		});
+
+		it('「今月」ボタンが表示される', async () => {
+			// Given: ページが表示されている
+			const listData = Promise.resolve({
+				items: [],
+				page: 1,
+				size: 10,
+				hasNext: false,
+				monthlyTotalSec: 0,
+			});
+
+			render(Page, {
+				props: {
+					data: createDefaultData({ listData, tagSuggestions: [] }),
+				},
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('作業履歴')).toBeInTheDocument();
+			});
+
+			// Then: 「今月」ボタンが存在する
+			expect(screen.getByRole('button', { name: '今月' })).toBeInTheDocument();
+		});
+
+		it('月を選択すると、handleDateFilterChangeが呼ばれる', async () => {
+			// Given: ページが表示されている
+			const { goto } = await import('$app/navigation');
+			const mockGoto = vi.mocked(goto);
+			mockGoto.mockClear();
+
+			const listData = Promise.resolve({
+				items: [],
+				page: 1,
+				size: 10,
+				hasNext: false,
+				monthlyTotalSec: 0,
+			});
+
+			render(Page, {
+				props: {
+					data: createDefaultData({ listData, tagSuggestions: [] }),
+				},
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('作業履歴')).toBeInTheDocument();
+			});
+
+			// When: 月選択ドロップダウンから "2025-01" を選択
+			const monthSelect = screen.getByRole('combobox', { name: /月を選択/i });
+			await fireEvent.change(monthSelect, { target: { value: '2025-01' } });
+
+			// Then: gotoが呼ばれ、month パラメータが設定される
+			expect(mockGoto).toHaveBeenCalledWith(
+				expect.stringContaining('month=2025-01'),
+				expect.objectContaining({
+					replaceState: false,
+					noScroll: true,
+					keepFocus: true,
+				}),
+			);
+		});
+
+		it('「今日」ボタンをクリックすると、date パラメータが設定される', async () => {
+			// Given: ページが表示されている
+			const { goto } = await import('$app/navigation');
+			const mockGoto = vi.mocked(goto);
+			mockGoto.mockClear();
+
+			const listData = Promise.resolve({
+				items: [],
+				page: 1,
+				size: 10,
+				hasNext: false,
+				monthlyTotalSec: 0,
+			});
+
+			render(Page, {
+				props: {
+					data: createDefaultData({ listData, tagSuggestions: [] }),
+				},
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('作業履歴')).toBeInTheDocument();
+			});
+
+			// When: 「今日」ボタンをクリック
+			const todayButton = screen.getByRole('button', { name: '今日' });
+			await fireEvent.click(todayButton);
+
+			// Then: gotoが呼ばれ、date パラメータが設定される
+			const today = new Date().toISOString().slice(0, 10);
+			expect(mockGoto).toHaveBeenCalledWith(
+				expect.stringContaining(`date=${today}`),
+				expect.objectContaining({
+					replaceState: false,
+					noScroll: true,
+					keepFocus: true,
+				}),
+			);
+		});
+
+		it('「今月」ボタンをクリックすると、month パラメータが設定される', async () => {
+			// Given: ページが表示されている
+			const { goto } = await import('$app/navigation');
+			const mockGoto = vi.mocked(goto);
+			mockGoto.mockClear();
+
+			const listData = Promise.resolve({
+				items: [],
+				page: 1,
+				size: 10,
+				hasNext: false,
+				monthlyTotalSec: 0,
+			});
+
+			render(Page, {
+				props: {
+					data: createDefaultData({ listData, tagSuggestions: [] }),
+				},
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('作業履歴')).toBeInTheDocument();
+			});
+
+			// When: 「今月」ボタンをクリック
+			const thisMonthButton = screen.getByRole('button', { name: '今月' });
+			await fireEvent.click(thisMonthButton);
+
+			// Then: gotoが呼ばれ、month パラメータが設定される
+			const currentMonth = new Date().toISOString().slice(0, 7);
+			expect(mockGoto).toHaveBeenCalledWith(
+				expect.stringContaining(`month=${currentMonth}`),
+				expect.objectContaining({
+					replaceState: false,
+					noScroll: true,
+					keepFocus: true,
+				}),
+			);
+		});
+	});
 });

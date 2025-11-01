@@ -198,4 +198,32 @@ describe('normalizeWorkLogQuery', () => {
 			expect(result.month).toBe('2026-06');
 		});
 	});
+
+	describe('タグフィルタ', () => {
+		it('tags が指定されている場合、そのまま使用', () => {
+			const result = normalizeWorkLogQuery({
+				month: '2025-10',
+				tags: ['backend', 'api'],
+			});
+
+			expect(result.tags).toEqual(['backend', 'api']);
+		});
+
+		it('tags が未指定の場合、undefined', () => {
+			const result = normalizeWorkLogQuery({
+				month: '2025-10',
+			});
+
+			expect(result.tags).toBeUndefined();
+		});
+
+		it('tags が空配列の場合、そのまま使用', () => {
+			const result = normalizeWorkLogQuery({
+				month: '2025-10',
+				tags: [],
+			});
+
+			expect(result.tags).toEqual([]);
+		});
+	});
 });

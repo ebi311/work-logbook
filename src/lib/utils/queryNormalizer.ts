@@ -27,6 +27,7 @@ export const WorkLogQueryParamsSchema = z.object({
 		.optional(), // YYYY-MM-DD
 	page: z.number().int().positive().optional(),
 	size: z.number().int().min(10).max(100).optional(),
+	tags: z.array(z.string()).optional(), // F-006: タグフィルタ
 });
 
 /**
@@ -47,6 +48,7 @@ export const NormalizedWorkLogQuerySchema = z.object({
 		.string()
 		.regex(/^\d{4}-\d{2}$/)
 		.optional(),
+	tags: z.array(z.string()).optional(), // F-006: タグフィルタ
 });
 
 /**
@@ -170,5 +172,6 @@ export const normalizeWorkLogQuery = (params: WorkLogQueryParams): NormalizedWor
 		size,
 		offset,
 		month,
+		tags: params.tags, // F-006: タグフィルタ
 	};
 };

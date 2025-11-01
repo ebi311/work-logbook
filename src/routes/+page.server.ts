@@ -16,6 +16,16 @@ import { handleDeleteAction } from './_actions/delete';
  * URLからクエリパラメータをパース
  */
 const parseQueryParams = (url: URL) => {
+	// タグフィルタの取得（カンマ区切り）
+	const tagsParam = url.searchParams.get('tags');
+	const tags = tagsParam
+		? tagsParam
+				.split(',')
+				.map((t) => t.trim())
+				.filter((t) => t.length > 0 && t.length <= 100)
+				.slice(0, 10) // 最大10個
+		: undefined;
+
 	return {
 		month: url.searchParams.get('month') ?? undefined,
 		date: url.searchParams.get('date') ?? undefined,
@@ -23,6 +33,7 @@ const parseQueryParams = (url: URL) => {
 		to: url.searchParams.get('to') ?? undefined,
 		page: url.searchParams.get('page') ? parseInt(url.searchParams.get('page')!, 10) : undefined,
 		size: url.searchParams.get('size') ? parseInt(url.searchParams.get('size')!, 10) : undefined,
+		tags,
 	};
 };
 
@@ -38,6 +49,7 @@ const fetchListData = async (
 		size: number;
 		offset: number;
 		month?: string;
+		tags?: string[];
 	},
 ) => {
 	// テスト用の遅延（2秒）
@@ -51,6 +63,7 @@ const fetchListData = async (
 		listWorkLogs(userId, {
 			from: normalized.from,
 			to: normalized.to,
+			tags: normalized.tags,
 			limit: normalized.size,
 			offset: normalized.offset,
 		}),

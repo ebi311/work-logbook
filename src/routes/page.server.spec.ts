@@ -327,4 +327,115 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			await expect(load({ locals, url } as unknown as ServerLoadEvent)).rejects.toThrow();
 		});
 	});
+
+	describe('TC5: タグフィルタ', () => {
+		it('URLに tags パラメータがある場合、タグフィルタが適用される', async () => {
+			// モック設定
+			vi.mocked(getActiveWorkLog).mockResolvedValue(null);
+			vi.mocked(listWorkLogs).mockResolvedValue({ items: [], hasNext: false });
+			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(0);
+			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
+
+			// モック: locals
+			const locals = {
+				user: {
+					id: testUserId,
+				},
+			};
+
+			// モック: URL with tags parameter
+			const url = new URL('http://localhost:5173/?tags=backend,api');
+
+			// load関数を呼び出し
+			const result = await load({ locals, url } as unknown as ServerLoadEvent);
+
+			// listData を await
+			await result?.listData;
+
+			// listWorkLogs が tags パラメータで呼ばれたことを確認
+			expect(listWorkLogs).toHaveBeenCalledWith(
+				testUserId,
+				expect.objectContaining({
+					tags: ['backend', 'api'],
+				}),
+			);
+		});
+
+		it('URLに tags パラメータがない場合、タグフィルタは undefined', async () => {
+			// モック設定
+			vi.mocked(getActiveWorkLog).mockResolvedValue(null);
+			vi.mocked(listWorkLogs).mockResolvedValue({ items: [], hasNext: false });
+			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(0);
+			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
+
+			// モック: locals
+			const locals = {
+				user: {
+					id: testUserId,
+				},
+			};
+
+			// モック: URL without tags parameter
+			const url = new URL('http://localhost:5173/');
+
+			// load関数を呼び出し
+			const result = await load({ locals, url } as unknown as ServerLoadEvent);
+
+			// listData を await
+			await result?.listData;
+
+			// listWorkLogs が tags: undefined で呼ばれたことを確認
+			expect(listWorkLogs).toHaveBeenCalledWith(
+				testUserId,
+				expect.objectContaining({
+					tags: undefined,
+				}),
+			);
+		});
+
+		it('tags パラメータのバリデーション（トリム、長さ制限、個数制限）', async () => {
+			// モック設定
+			vi.mocked(getActiveWorkLog).mockResolvedValue(null);
+			vi.mocked(listWorkLogs).mockResolvedValue({ items: [], hasNext: false });
+			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(0);
+			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
+
+			// モック: locals
+			const locals = {
+				user: {
+					id: testUserId,
+				},
+			};
+
+			// モック: URL with many tags (空文字、スペース含む)
+			const url = new URL(
+				'http://localhost:5173/?tags= backend , api , , frontend ,db,test1,test2,test3,test4,test5,test6,test7 ',
+			);
+
+			// load関数を呼び出し
+			const result = await load({ locals, url } as unknown as ServerLoadEvent);
+
+			// listData を await
+			await result?.listData;
+
+			// 空文字は除外、トリム、最大10個に制限
+			expect(listWorkLogs).toHaveBeenCalledWith(
+				testUserId,
+				expect.objectContaining({
+					tags: [
+						'backend',
+						'api',
+						'frontend',
+						'db',
+						'test1',
+						'test2',
+						'test3',
+						'test4',
+						'test5',
+						'test6',
+					],
+				}),
+			);
+		});
+	});
 });

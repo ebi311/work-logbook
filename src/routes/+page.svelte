@@ -58,7 +58,7 @@
 		// ページをリセット
 		url.searchParams.set('page', '1');
 
-		goto(url.toString(), { replaceState: false });
+		goto(url.toString(), { replaceState: false, noScroll: true, keepFocus: true });
 	};
 
 	// 作業開始成功時の処理

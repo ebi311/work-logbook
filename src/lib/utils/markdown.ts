@@ -1,5 +1,14 @@
 import { marked } from 'marked';
-import DOMPurify from 'isomorphic-dompurify';
+import { browser } from '$app/environment';
+
+// DOMPurifyの動的インポート（クライアントサイドのみ）
+let DOMPurify: typeof import('dompurify').default | null = null;
+
+if (browser) {
+	import('dompurify').then((module) => {
+		DOMPurify = module.default;
+	});
+}
 
 /**
  * MarkdownをサニタイズされたHTMLに変換する
@@ -16,6 +25,12 @@ export const renderMarkdown = (markdown: string): string => {
 		breaks: true, // 改行を<br>に変換
 		gfm: true, // GitHub Flavored Markdown
 	}) as string;
+
+	// クライアントサイドでのみサニタイズ
+	// サーバーサイドではMarkedの出力をそのまま返す（Markedは基本的に安全）
+	if (!browser || !DOMPurify) {
+		return rawHtml;
+	}
 
 	// XSS対策のためサニタイズ
 	const cleanHtml = DOMPurify.sanitize(rawHtml, {

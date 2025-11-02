@@ -27,6 +27,35 @@ vi.mock('./index', () => ({
 				findMany: vi.fn(),
 			},
 		},
+		select: vi.fn(() => ({
+			from: vi.fn(() => ({
+				leftJoin: vi.fn(() => ({
+					where: vi.fn(() => ({
+						orderBy: vi.fn(() => Promise.resolve([])),
+					})),
+				})),
+				innerJoin: vi.fn(() => ({
+					where: vi.fn(() => ({
+						groupBy: vi.fn(() => ({
+							having: vi.fn(() => ({
+								orderBy: vi.fn(() => ({
+									limit: vi.fn(() => ({
+										offset: vi.fn(() => Promise.resolve([])),
+									})),
+								})),
+							})),
+						})),
+					})),
+				})),
+				where: vi.fn(() => ({
+					orderBy: vi.fn(() => ({
+						limit: vi.fn(() => ({
+							offset: vi.fn(() => Promise.resolve([])),
+						})),
+					})),
+				})),
+			})),
+		})),
 		insert: vi.fn(),
 		update: vi.fn(),
 		delete: vi.fn(),
@@ -105,13 +134,23 @@ describe('WorkLogs DB Functions', () => {
 
 	describe('getActiveWorkLog()', () => {
 		it('進行中の作業がない場合、nullを返す', async () => {
-			// モック: 検索結果なし
-			vi.mocked(db.query.workLogs.findFirst).mockResolvedValue(undefined);
+			// モック: 検索結果なし (db.select().from()...の最終結果)
+			const mockSelect = vi.fn(() => ({
+				from: vi.fn(() => ({
+					leftJoin: vi.fn(() => ({
+						where: vi.fn(() => ({
+							orderBy: vi.fn(() => Promise.resolve([])),
+						})),
+					})),
+				})),
+			}));
+			// @ts-expect-error - モックの型定義が複雑なため
+			vi.mocked(db.select).mockImplementation(mockSelect);
 
 			const active = await getActiveWorkLog(testUserId);
 
 			expect(active).toBeNull();
-			expect(db.query.workLogs.findFirst).toHaveBeenCalledOnce();
+			expect(db.select).toHaveBeenCalledOnce();
 		});
 
 		it('進行中の作業がある場合、WorkLogインスタンスを返す', async () => {
@@ -126,10 +165,25 @@ describe('WorkLogs DB Functions', () => {
 				updatedAt: serverNow,
 			};
 
-			// モック: 進行中の作業を返す
-			vi.mocked(db.query.workLogs.findFirst).mockResolvedValue(mockDbWorkLog);
-			// モック: タグを空配列で返す
-			vi.mocked(db.query.workLogTags.findMany).mockResolvedValue([]);
+			// モック: 進行中の作業を返す (タグなし)
+			const mockResults = [
+				{
+					workLog: mockDbWorkLog,
+					tag: null,
+				},
+			];
+
+			const mockSelect = vi.fn(() => ({
+				from: vi.fn(() => ({
+					leftJoin: vi.fn(() => ({
+						where: vi.fn(() => ({
+							orderBy: vi.fn(() => Promise.resolve(mockResults)),
+						})),
+					})),
+				})),
+			}));
+			// @ts-expect-error - モックの型定義が複雑なため
+			vi.mocked(db.select).mockImplementation(mockSelect);
 
 			const active = await getActiveWorkLog(testUserId);
 
@@ -265,14 +319,27 @@ describe('WorkLogs DB Functions', () => {
 			expect(created.isActive()).toBe(true);
 
 			// 2. 進行中の作業を取得のモック
-			vi.mocked(db.query.workLogs.findFirst).mockResolvedValue(createdDbWorkLog);
-			// モック: タグを空配列で返す
-			vi.mocked(db.query.workLogTags.findMany).mockResolvedValue([]);
+			const mockResults = [
+				{
+					workLog: createdDbWorkLog,
+					tag: null,
+				},
+			];
+			const mockSelect1 = vi.fn(() => ({
+				from: vi.fn(() => ({
+					leftJoin: vi.fn(() => ({
+						where: vi.fn(() => ({
+							orderBy: vi.fn(() => Promise.resolve(mockResults)),
+						})),
+					})),
+				})),
+			}));
+			// @ts-expect-error - モックの型定義が複雑なため
+			vi.mocked(db.select).mockImplementation(mockSelect1);
+
 			const active = await getActiveWorkLog(testUserId);
 			expect(active).toBeInstanceOf(WorkLog);
-			expect(active?.id).toBe(created.id);
-
-			// 3. 作業終了のモック
+			expect(active?.id).toBe(created.id); // 3. 作業終了のモック
 			const stoppedDbWorkLog: DbWorkLog = {
 				...createdDbWorkLog,
 				endedAt,
@@ -289,7 +356,18 @@ describe('WorkLogs DB Functions', () => {
 			expect(stopped?.getDuration()).toBe(5);
 
 			// 4. 進行中の作業を取得 → null のモック
-			vi.mocked(db.query.workLogs.findFirst).mockResolvedValue(undefined);
+			const mockSelect2 = vi.fn(() => ({
+				from: vi.fn(() => ({
+					leftJoin: vi.fn(() => ({
+						where: vi.fn(() => ({
+							orderBy: vi.fn(() => Promise.resolve([])),
+						})),
+					})),
+				})),
+			}));
+			// @ts-expect-error - モックの型定義が複雑なため
+			vi.mocked(db.select).mockImplementation(mockSelect2);
+
 			const noActive = await getActiveWorkLog(testUserId);
 			expect(noActive).toBeNull();
 		});

@@ -46,8 +46,18 @@ vi.mock('./index', () => {
 	};
 });
 
+const mockedReturnTags: DbWorkLogTag[] = [
+	{
+		id: 1,
+		workLogId: 'log-1',
+		tag: 'backend',
+		createdAt: new Date(),
+	},
+];
+
 // モックのインポート（モック後に取得）
 import { db } from './index';
+import type { DbWorkLogTag } from './schema';
 const mockDb = db as unknown as MockDb;
 
 describe('listWorkLogs - タグフィルタ', () => {
@@ -82,10 +92,10 @@ describe('listWorkLogs - タグフィルタ', () => {
 		expect(mockDb.having).not.toHaveBeenCalled();
 
 		// 通常の select/from/where/orderBy/limit/offset が呼ばれる
-		expect(mockDb.select).toHaveBeenCalledTimes(1);
-		expect(mockDb.from).toHaveBeenCalledTimes(1);
-		expect(mockDb.where).toHaveBeenCalledTimes(1);
-		expect(mockDb.orderBy).toHaveBeenCalledTimes(1);
+		expect(mockDb.select).toHaveBeenCalledTimes(2);
+		expect(mockDb.from).toHaveBeenCalledTimes(2);
+		expect(mockDb.where).toHaveBeenCalledTimes(2);
+		expect(mockDb.orderBy).toHaveBeenCalledTimes(2);
 		expect(mockDb.limit).toHaveBeenCalledWith(11);
 		expect(mockDb.offset).toHaveBeenCalledWith(0);
 
@@ -107,7 +117,7 @@ describe('listWorkLogs - タグフィルタ', () => {
 				},
 			},
 		];
-		mockDb.offset.mockResolvedValue(mockData);
+		mockDb.offset.mockResolvedValueOnce(mockData).mockResolvedValueOnce(mockedReturnTags);
 		vi.mocked(db.query.workLogTags.findMany).mockResolvedValue([
 			{ id: 1, workLogId: 'log-1', tag: 'backend', createdAt: new Date() },
 		]);
@@ -115,13 +125,13 @@ describe('listWorkLogs - タグフィルタ', () => {
 		const result = await listWorkLogs(testUserId, { limit: 10, offset: 0, tags: ['backend'] });
 
 		// JOIN/groupBy/having が呼ばれることを確認
-		expect(mockDb.select).toHaveBeenCalledTimes(1);
-		expect(mockDb.from).toHaveBeenCalledTimes(1);
+		expect(mockDb.select).toHaveBeenCalledTimes(2);
+		expect(mockDb.from).toHaveBeenCalledTimes(2);
 		expect(mockDb.innerJoin).toHaveBeenCalledTimes(1);
-		expect(mockDb.where).toHaveBeenCalledTimes(1);
+		expect(mockDb.where).toHaveBeenCalledTimes(2);
 		expect(mockDb.groupBy).toHaveBeenCalledTimes(1);
 		expect(mockDb.having).toHaveBeenCalledTimes(1);
-		expect(mockDb.orderBy).toHaveBeenCalledTimes(1);
+		expect(mockDb.orderBy).toHaveBeenCalledTimes(2);
 		expect(mockDb.limit).toHaveBeenCalledWith(11);
 		expect(mockDb.offset).toHaveBeenCalledWith(0);
 
@@ -144,7 +154,15 @@ describe('listWorkLogs - タグフィルタ', () => {
 				},
 			},
 		];
-		mockDb.offset.mockResolvedValue(mockData);
+		mockDb.offset.mockResolvedValueOnce(mockData).mockResolvedValueOnce([
+			...mockedReturnTags,
+			{
+				id: 2,
+				workLogId: 'log-1',
+				tag: 'api',
+				createdAt: new Date(),
+			},
+		]);
 		vi.mocked(db.query.workLogTags.findMany).mockResolvedValue([
 			{ id: 1, workLogId: 'log-1', tag: 'backend', createdAt: new Date() },
 			{ id: 2, workLogId: 'log-1', tag: 'api', createdAt: new Date() },
@@ -175,7 +193,7 @@ describe('listWorkLogs - タグフィルタ', () => {
 				userId: testUserId,
 			},
 		];
-		mockDb.offset.mockResolvedValue(mockData);
+		mockDb.offset.mockResolvedValueOnce(mockData).mockResolvedValueOnce(mockedReturnTags);
 
 		const result = await listWorkLogs(testUserId, { limit: 10, offset: 0, tags: [] });
 

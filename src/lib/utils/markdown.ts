@@ -1,10 +1,18 @@
 import { marked } from 'marked';
 import { browser } from '$app/environment';
+import { NODE_ENV } from '$env/static/private';
 
-// DOMPurifyの動的インポート（クライアントサイドのみ）
-let DOMPurify: typeof import('dompurify').default | null = null;
+// DOMPurifyの型定義
+type DOMPurifyType = typeof import('dompurify').default;
+let DOMPurify: DOMPurifyType | null = null;
 
-if (browser) {
+if (NODE_ENV === 'test') {
+	// テスト環境では isomorphic-dompurify を同期的にインポート
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	const isomorphicDOMPurify = require('isomorphic-dompurify');
+	DOMPurify = isomorphicDOMPurify as DOMPurifyType;
+} else if (browser) {
+	// ブラウザ環境では非同期インポート(クラウドサービスの制限対応)
 	import('dompurify').then((module) => {
 		DOMPurify = module.default;
 	});

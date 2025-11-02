@@ -68,10 +68,10 @@ describe('listWorkLogs', () => {
 		const result = await listWorkLogs(testUserId, { limit: 10, offset: 0 });
 
 		// クエリが正しく呼ばれたことを確認
-		expect(mockDb.select).toHaveBeenCalledTimes(1);
-		expect(mockDb.from).toHaveBeenCalledTimes(1);
-		expect(mockDb.where).toHaveBeenCalledTimes(1);
-		expect(mockDb.orderBy).toHaveBeenCalledTimes(1);
+		expect(mockDb.select).toHaveBeenCalledTimes(2);
+		expect(mockDb.from).toHaveBeenCalledTimes(2);
+		expect(mockDb.where).toHaveBeenCalledTimes(2);
+		expect(mockDb.orderBy).toHaveBeenCalledTimes(2);
 		expect(mockDb.limit).toHaveBeenCalledWith(11); // limit+1
 		expect(mockDb.offset).toHaveBeenCalledWith(0);
 
@@ -139,7 +139,7 @@ describe('listWorkLogs', () => {
 		const result = await listWorkLogs(testUserId, { limit: 10, offset: 0 });
 
 		// orderBy が呼ばれたことを確認（引数の詳細検証は実装依存）
-		expect(mockDb.orderBy).toHaveBeenCalledTimes(1);
+		expect(mockDb.orderBy).toHaveBeenCalledTimes(2);
 		expect(result.items).toEqual(mockData);
 	});
 

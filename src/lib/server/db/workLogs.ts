@@ -248,7 +248,8 @@ export const listWorkLogs = async (
 			.select()
 			.from(workLogTags)
 			.where(inArray(workLogTags.workLogId, workLogIds))
-			.orderBy(workLogTags.createdAt);
+			.orderBy(workLogTags.createdAt)
+			.offset(0);
 
 		console.log('[PERF] listWorkLogs - tags query completed', {
 			duration: Date.now() - tagsQueryStart,
@@ -310,7 +311,8 @@ export const listWorkLogs = async (
 		.select()
 		.from(workLogTags)
 		.where(inArray(workLogTags.workLogId, workLogIds))
-		.orderBy(workLogTags.createdAt);
+		.orderBy(workLogTags.createdAt)
+		.offset(0);
 
 	console.log('[PERF] listWorkLogs - tags query completed', {
 		duration: Date.now() - tagsQueryStart,

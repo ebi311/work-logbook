@@ -52,10 +52,6 @@ const fetchListData = async (
 		tags?: string[];
 	},
 ) => {
-	// テスト用の遅延（2秒）
-	if (process.env.NODE_ENV === 'development') {
-		await new Promise<void>((resolve) => setTimeout(() => resolve(), 2000));
-	}
 	// 並列で取得
 	const monthForAggregate = normalized.month ?? new Date().toISOString().slice(0, 7);
 

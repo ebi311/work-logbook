@@ -194,7 +194,7 @@ export const listWorkLogs = async (
 		conditions.push(lte(workLogs.startedAt, to));
 	}
 
-	// タグフィルタがない場合
+	// タグフィルタがない場合は従来のロジックを使用
 	if (!tags || tags.length === 0) {
 		const results = await db
 			.select()
@@ -208,50 +208,27 @@ export const listWorkLogs = async (
 		const hasNext = results.length > limit;
 		const workLogsSlice = hasNext ? results.slice(0, limit) : results;
 
-		// タグを一括取得（N+1問題を回避）
-		if (workLogsSlice.length === 0) {
-			return { items: [], hasNext: false };
-		}
-
-		const workLogIds = workLogsSlice.map((w) => w.id);
-		
-		// 生SQLでタグを一括取得
-		const tagRows = await db.execute<{ work_log_id: string; tag: string }>(
-			sql`SELECT work_log_id, tag FROM work_log_tags WHERE work_log_id = ANY(${workLogIds}) ORDER BY created_at`
+		// 各作業記録のタグを並列取得
+		const items = await Promise.all(
+			workLogsSlice.map(async (workLog) => {
+				const workLogTagsArray = await getWorkLogTags(workLog.id);
+				return { ...workLog, tags: workLogTagsArray };
+			}),
 		);
-
-		// 作業記録IDごとにタグをグループ化
-		const tagsByWorkLogId = new Map<string, string[]>();
-		for (const row of tagRows.rows) {
-			const existing = tagsByWorkLogId.get(row.work_log_id) ?? [];
-			existing.push(row.tag);
-			tagsByWorkLogId.set(row.work_log_id, existing);
-		}
-
-		// 各作業記録にタグを追加
-		const items = workLogsSlice.map((workLog) => ({
-			...workLog,
-			tags: tagsByWorkLogId.get(workLog.id) ?? [],
-		}));
 
 		return { items, hasNext };
 	}
 
 	// タグフィルタがある場合：AND検索（指定したすべてのタグを含む作業記録のみ）
+	// サブクエリで各作業記録のマッチタグ数をカウントし、それが指定タグ数と一致するものを選択
 	const results = await db
 		.select({
-			id: workLogs.id,
-			createdAt: workLogs.createdAt,
-			updatedAt: workLogs.updatedAt,
-			userId: workLogs.userId,
-			startedAt: workLogs.startedAt,
-			endedAt: workLogs.endedAt,
-			description: workLogs.description,
+			workLog: workLogs,
 		})
 		.from(workLogs)
 		.innerJoin(workLogTags, eq(workLogTags.workLogId, workLogs.id))
 		.where(and(...conditions, inArray(workLogTags.tag, tags)))
-		.groupBy(workLogs.id, workLogs.createdAt, workLogs.updatedAt, workLogs.userId, workLogs.startedAt, workLogs.endedAt, workLogs.description)
+		.groupBy(workLogs.id)
 		.having(sql`COUNT(DISTINCT ${workLogTags.tag}) = ${tags.length}`)
 		.orderBy(desc(workLogs.startedAt))
 		.limit(limit + 1)
@@ -261,31 +238,13 @@ export const listWorkLogs = async (
 	const hasNext = results.length > limit;
 	const workLogsSlice = hasNext ? results.slice(0, limit) : results;
 
-	// タグを一括取得（N+1問題を回避）
-	if (workLogsSlice.length === 0) {
-		return { items: [], hasNext: false };
-	}
-
-	const workLogIds = workLogsSlice.map((w) => w.id);
-	
-	// 生SQLでタグを一括取得
-	const tagRows = await db.execute<{ work_log_id: string; tag: string }>(
-		sql`SELECT work_log_id, tag FROM work_log_tags WHERE work_log_id = ANY(${workLogIds}) ORDER BY created_at`
+	// 各作業記録のタグを並列取得
+	const items = await Promise.all(
+		workLogsSlice.map(async (result) => {
+			const workLogTagsArray = await getWorkLogTags(result.workLog.id);
+			return { ...result.workLog, tags: workLogTagsArray };
+		}),
 	);
-
-	// 作業記録IDごとにタグをグループ化
-	const tagsByWorkLogId = new Map<string, string[]>();
-	for (const row of tagRows.rows) {
-		const existing = tagsByWorkLogId.get(row.work_log_id) ?? [];
-		existing.push(row.tag);
-		tagsByWorkLogId.set(row.work_log_id, existing);
-	}
-
-	// 各作業記録にタグを追加
-	const items = workLogsSlice.map((workLog) => ({
-		...workLog,
-		tags: tagsByWorkLogId.get(workLog.id) ?? [],
-	}));
 
 	return { items, hasNext };
 };

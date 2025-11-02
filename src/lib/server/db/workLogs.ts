@@ -57,17 +57,38 @@ export const toWorkLog = (dbWorkLog: DbWorkLog): WorkLog => {
  * @returns 進行中の作業、または null
  */
 export const getActiveWorkLog = async (userId: string): Promise<WorkLog | null> => {
-	const dbWorkLog = await db.query.workLogs.findFirst({
-		where: (workLogs, { eq, and, isNull }) =>
-			and(eq(workLogs.userId, userId), isNull(workLogs.endedAt)),
+	const perfStart = Date.now();
+
+	// 作業ログとタグを1回のクエリで取得
+	const results = await db
+		.select({
+			workLog: workLogs,
+			tag: workLogTags.tag,
+		})
+		.from(workLogs)
+		.leftJoin(workLogTags, eq(workLogTags.workLogId, workLogs.id))
+		.where(and(eq(workLogs.userId, userId), isNull(workLogs.endedAt)))
+		.orderBy(workLogTags.createdAt);
+
+	console.log('[PERF] getActiveWorkLog - DB query completed', {
+		duration: Date.now() - perfStart,
+		resultCount: results.length,
 	});
 
-	if (!dbWorkLog) {
+	if (results.length === 0) {
 		return null;
 	}
 
-	// タグを取得
-	const tags = await getWorkLogTags(dbWorkLog.id);
+	// 最初の行から作業ログ情報を取得
+	const dbWorkLog = results[0].workLog;
+
+	// タグを集約
+	const tags = results.map((r) => r.tag).filter((tag): tag is string => tag !== null);
+
+	console.log('[PERF] getActiveWorkLog - data aggregation completed', {
+		duration: Date.now() - perfStart,
+		tagCount: tags.length,
+	});
 
 	return WorkLog.from({ ...dbWorkLog, tags });
 };
@@ -160,11 +181,11 @@ export const aggregateMonthlyWorkLogDuration = async (
 };
 
 /**
- * 作業ログを一覧取得（降順・ページング）
+ * 作業ログを一覧取得(降順・ページング)
  * @param userId - ユーザーID
  * @param options - { limit: 件数(10〜100), offset: オフセット(0以上), from?: 開始日時, to?: 終了日時, tags?: タグ配列 }
  * @returns { items: 作業ログ配列, hasNext: 次ページの有無 }
- * @throws ZodError - バリデーション失敗時（limit/offset範囲外、from > to）
+ * @throws ZodError - バリデーション失敗時(limit/offset範囲外、from > to)
  */
 export const listWorkLogs = async (
 	userId: string,
@@ -179,6 +200,8 @@ export const listWorkLogs = async (
 	items: Array<DbWorkLog & { tags: string[] }>;
 	hasNext: boolean;
 }> => {
+	const perfStart = Date.now();
+
 	// Zodでバリデーション
 	const validatedOptions = ListWorkLogsOptionsSchema.parse(options);
 	const { limit, offset, from, to, tags } = validatedOptions;
@@ -186,7 +209,7 @@ export const listWorkLogs = async (
 	// 基本条件
 	const conditions = [eq(workLogs.userId, userId)];
 
-	// from/to 範囲フィルタ（指定がある場合）
+	// from/to 範囲フィルタ(指定がある場合)
 	if (from) {
 		conditions.push(gte(workLogs.startedAt, from));
 	}
@@ -194,8 +217,9 @@ export const listWorkLogs = async (
 		conditions.push(lte(workLogs.startedAt, to));
 	}
 
-	// タグフィルタがない場合は従来のロジックを使用
+	// タグフィルタがない場合
 	if (!tags || tags.length === 0) {
+		const queryStart = Date.now();
 		const results = await db
 			.select()
 			.from(workLogs)
@@ -204,23 +228,55 @@ export const listWorkLogs = async (
 			.limit(limit + 1)
 			.offset(offset);
 
+		console.log('[PERF] listWorkLogs - main query completed (no tag filter)', {
+			duration: Date.now() - queryStart,
+			resultCount: results.length,
+		});
+
 		// limit+1 件取得できた場合は次ページあり
 		const hasNext = results.length > limit;
 		const workLogsSlice = hasNext ? results.slice(0, limit) : results;
 
-		// 各作業記録のタグを並列取得
-		const items = await Promise.all(
-			workLogsSlice.map(async (workLog) => {
-				const workLogTagsArray = await getWorkLogTags(workLog.id);
-				return { ...workLog, tags: workLogTagsArray };
-			}),
-		);
+		if (workLogsSlice.length === 0) {
+			return { items: [], hasNext: false };
+		}
+
+		// すべての作業ログIDに対してタグを1回のクエリで取得
+		const tagsQueryStart = Date.now();
+		const workLogIds = workLogsSlice.map((w) => w.id);
+		const allTags = await db
+			.select()
+			.from(workLogTags)
+			.where(inArray(workLogTags.workLogId, workLogIds))
+			.orderBy(workLogTags.createdAt);
+
+		console.log('[PERF] listWorkLogs - tags query completed', {
+			duration: Date.now() - tagsQueryStart,
+			tagCount: allTags.length,
+		});
+
+		// 作業ログIDごとにタグをグループ化
+		const tagsByWorkLogId = new Map<string, string[]>();
+		for (const tagRow of allTags) {
+			const existing = tagsByWorkLogId.get(tagRow.workLogId) || [];
+			existing.push(tagRow.tag);
+			tagsByWorkLogId.set(tagRow.workLogId, existing);
+		}
+
+		const items = workLogsSlice.map((workLog) => ({
+			...workLog,
+			tags: tagsByWorkLogId.get(workLog.id) || [],
+		}));
+
+		console.log('[PERF] listWorkLogs - total duration (no tag filter)', {
+			duration: Date.now() - perfStart,
+		});
 
 		return { items, hasNext };
 	}
 
-	// タグフィルタがある場合：AND検索（指定したすべてのタグを含む作業記録のみ）
-	// サブクエリで各作業記録のマッチタグ数をカウントし、それが指定タグ数と一致するものを選択
+	// タグフィルタがある場合: AND検索(指定したすべてのタグを含む作業記録のみ)
+	const queryStart = Date.now();
 	const results = await db
 		.select({
 			workLog: workLogs,
@@ -234,17 +290,49 @@ export const listWorkLogs = async (
 		.limit(limit + 1)
 		.offset(offset);
 
+	console.log('[PERF] listWorkLogs - main query completed (with tag filter)', {
+		duration: Date.now() - queryStart,
+		resultCount: results.length,
+	});
+
 	// limit+1 件取得できた場合は次ページあり
 	const hasNext = results.length > limit;
 	const workLogsSlice = hasNext ? results.slice(0, limit) : results;
 
-	// 各作業記録のタグを並列取得
-	const items = await Promise.all(
-		workLogsSlice.map(async (result) => {
-			const workLogTagsArray = await getWorkLogTags(result.workLog.id);
-			return { ...result.workLog, tags: workLogTagsArray };
-		}),
-	);
+	if (workLogsSlice.length === 0) {
+		return { items: [], hasNext: false };
+	}
+
+	// すべての作業ログIDに対してタグを1回のクエリで取得
+	const tagsQueryStart = Date.now();
+	const workLogIds = workLogsSlice.map((r) => r.workLog.id);
+	const allTags = await db
+		.select()
+		.from(workLogTags)
+		.where(inArray(workLogTags.workLogId, workLogIds))
+		.orderBy(workLogTags.createdAt);
+
+	console.log('[PERF] listWorkLogs - tags query completed', {
+		duration: Date.now() - tagsQueryStart,
+		tagCount: allTags.length,
+	});
+
+	// 作業ログIDごとにタグをグループ化
+	const tagsByWorkLogId = new Map<string, string[]>();
+	for (const tagRow of allTags) {
+		const existing = tagsByWorkLogId.get(tagRow.workLogId) || [];
+		existing.push(tagRow.tag);
+		tagsByWorkLogId.set(tagRow.workLogId, existing);
+	}
+
+	const items = workLogsSlice.map((result) => ({
+		...result.workLog,
+		tags: tagsByWorkLogId.get(result.workLog.id) || [],
+	}));
+
+	console.log('[PERF] listWorkLogs - total duration (with tag filter)', {
+		duration: Date.now() - perfStart,
+	});
 
 	return { items, hasNext };
 };

@@ -38,7 +38,7 @@ const parseQueryParams = (url: URL) => {
 };
 
 /**
- * 作業一覧と月次合計を取得（並列実行）
+ * 作業一覧と月次合計を取得(並列実行)
  */
 const fetchListData = async (
 	userId: string,
@@ -52,9 +52,16 @@ const fetchListData = async (
 		tags?: string[];
 	},
 ) => {
+	const fetchStart = Date.now();
+	console.log('[PERF] fetchListData - starting parallel fetch', {
+		timestamp: new Date().toISOString(),
+		params: { from: normalized.from, to: normalized.to, tags: normalized.tags },
+	});
+
 	// 並列で取得
 	const monthForAggregate = normalized.month ?? new Date().toISOString().slice(0, 7);
 
+	const parallelStart = Date.now();
 	const [{ items: dbItems, hasNext }, monthlyTotalSec] = await Promise.all([
 		listWorkLogs(userId, {
 			from: normalized.from,
@@ -65,8 +72,15 @@ const fetchListData = async (
 		}),
 		aggregateMonthlyWorkLogDuration(userId, { month: monthForAggregate }),
 	]);
+	console.log('[PERF] fetchListData - parallel DB queries completed', {
+		duration: Date.now() - parallelStart,
+		timestamp: new Date().toISOString(),
+		dbItemsCount: dbItems.length,
+		monthlyTotalSec,
+	});
 
 	// アイテムを変換
+	const transformStart = Date.now();
 	const items: WorkLogItem[] = dbItems.map((item) => {
 		const durationSec = item.endedAt
 			? Math.floor((item.endedAt.getTime() - item.startedAt.getTime()) / 1000)
@@ -80,6 +94,15 @@ const fetchListData = async (
 			description: item.description,
 			tags: item.tags || [],
 		};
+	});
+	console.log('[PERF] fetchListData - data transformation completed', {
+		duration: Date.now() - transformStart,
+		timestamp: new Date().toISOString(),
+	});
+
+	console.log('[PERF] fetchListData - total duration', {
+		duration: Date.now() - fetchStart,
+		timestamp: new Date().toISOString(),
 	});
 
 	return {
@@ -131,29 +154,68 @@ type LoadData = {
 };
 
 export const load: ServerLoad = async ({ locals, url }) => {
+	const startTime = Date.now();
+	console.log('[PERF] load started', { timestamp: new Date().toISOString() });
+
 	// 認証チェック
 	if (!locals.user) {
 		throw error(401, 'Unauthorized');
 	}
 
 	const userId = locals.user.id;
+	console.log('[PERF] auth check completed', {
+		elapsed: Date.now() - startTime,
+		timestamp: new Date().toISOString(),
+	});
 
 	try {
 		// クエリパラメータを正規化
 		const queryParams = parseQueryParams(url);
 		const normalized = normalizeWorkLogQuery(queryParams);
+		console.log('[PERF] query params normalized', {
+			elapsed: Date.now() - startTime,
+			timestamp: new Date().toISOString(),
+			normalized,
+		});
 
-		// 軽量なデータ: 進行中の作業とサーバー時刻（即座に返す）
+		// 軽量なデータ: 進行中の作業とサーバー時刻(即座に返す)
+		const activeWorkLogStart = Date.now();
 		const activeWorkLog = await getActiveWorkLog(userId);
+		console.log('[PERF] getActiveWorkLog completed', {
+			elapsed: Date.now() - startTime,
+			duration: Date.now() - activeWorkLogStart,
+			timestamp: new Date().toISOString(),
+		});
+
 		const serverNow = new Date().toISOString();
 
-		// F-003: タグ候補を取得（最大20件）
+		// F-003: タグ候補を取得(最大20件)
+		const tagSuggestionsStart = Date.now();
 		const tagSuggestions = await getUserTagSuggestions(userId, '', 20);
+		console.log('[PERF] getUserTagSuggestions completed', {
+			elapsed: Date.now() - startTime,
+			duration: Date.now() - tagSuggestionsStart,
+			timestamp: new Date().toISOString(),
+			count: tagSuggestions.length,
+		});
 
-		// 重いデータ: 一覧と月次合計（Promiseのまま返してストリーミング）
-		const listData = fetchListData(userId, normalized);
+		// 重いデータ: 一覧と月次合計(Promiseのまま返してストリーミング)
+		const listDataStart = Date.now();
+		console.log('[PERF] fetchListData started (streaming)', {
+			elapsed: Date.now() - startTime,
+			timestamp: new Date().toISOString(),
+		});
+		const listData = fetchListData(userId, normalized).then((result) => {
+			console.log('[PERF] fetchListData completed', {
+				elapsed: Date.now() - startTime,
+				duration: Date.now() - listDataStart,
+				timestamp: new Date().toISOString(),
+				itemCount: result.items.length,
+			});
+			return result;
+		});
 
-		// レスポンス構築（軽量データ + Promise）
+		// レスポンス構築(軽量データ + Promise)
 		const response: LoadData = {
 			serverNow,
 			listData,
@@ -169,8 +231,18 @@ export const load: ServerLoad = async ({ locals, url }) => {
 				tags: activeWorkLog.tags || [],
 			};
 		}
+
+		console.log('[PERF] load response ready (before streaming)', {
+			elapsed: Date.now() - startTime,
+			timestamp: new Date().toISOString(),
+		});
+
 		return response;
 	} catch (err) {
+		console.error('[PERF] load failed', {
+			elapsed: Date.now() - startTime,
+			timestamp: new Date().toISOString(),
+		});
 		console.error('Failed to load work log:', err);
 		throw error(500, 'Internal Server Error');
 	}

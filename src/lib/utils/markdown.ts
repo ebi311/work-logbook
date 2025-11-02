@@ -1,12 +1,14 @@
 import { marked } from 'marked';
 import { browser } from '$app/environment';
-import { NODE_ENV } from '$env/static/private';
 
 // DOMPurifyの型定義
 type DOMPurifyType = typeof import('dompurify').default;
 let DOMPurify: DOMPurifyType | null = null;
 
-if (NODE_ENV === 'test') {
+// Viteの環境変数を使用(ブラウザでも利用可能)
+const isTest = import.meta.env.MODE === 'test';
+
+if (isTest) {
 	// テスト環境では isomorphic-dompurify を同期的にインポート
 	// eslint-disable-next-line @typescript-eslint/no-require-imports
 	const isomorphicDOMPurify = require('isomorphic-dompurify');

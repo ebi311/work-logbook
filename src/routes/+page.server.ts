@@ -9,6 +9,7 @@ import {
 import { normalizeWorkLogQuery } from '$lib/utils/queryNormalizer';
 import { handleStartAction } from './_actions/start';
 import { handleStopAction } from './_actions/stop';
+import { handleSwitchAction } from './_actions/switch';
 import { handleUpdateAction } from './_actions/update';
 import { handleDeleteAction } from './_actions/delete';
 
@@ -263,6 +264,15 @@ export const actions: Actions = {
 			return await handleStopAction(event);
 		} catch (err) {
 			console.error('Failed to stop work log:', err);
+			throw error(500, 'Internal Server Error');
+		}
+	},
+
+	switch: async (event) => {
+		try {
+			return await handleSwitchAction(event);
+		} catch (err) {
+			console.error('Failed to switch work log:', err);
 			throw error(500, 'Internal Server Error');
 		}
 	},

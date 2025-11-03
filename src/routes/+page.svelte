@@ -131,6 +131,22 @@
 		toastSuccess(`作業を終了しました(${duration}分)`);
 	};
 
+	// 作業切り替え成功時の処理
+	const handleSwitchSuccess = (form: NonNullable<ActionData>) => {
+		if (!('started' in form) || !form.started) return;
+		if (!('stopped' in form) || !form.stopped) return;
+		currentActive = form.started;
+		// タグはクリアしない（新しい作業のタグを保持）
+		const duration =
+			'stopped' in form && form.stopped && 'durationSec' in form.stopped
+				? Math.floor(form.stopped.durationSec / 60)
+				: 0;
+		if ('serverNow' in form) {
+			currentServerNow = form.serverNow;
+		}
+		toastSuccess(`作業を切り替えました(${duration}分)`);
+	};
+
 	// エラー処理ハンドラーマップ
 	const errorHandlers: Record<string, (form: NonNullable<ActionData>) => void> = {
 		ACTIVE_EXISTS: (form) => {
@@ -166,6 +182,12 @@
 
 		// 成功時
 		if ('ok' in form && form.ok) {
+			// switch 成功時の処理
+			if ('started' in form && 'stopped' in form) {
+				handleSwitchSuccess(form);
+				return;
+			}
+
 			if (!('workLog' in form)) return;
 
 			if (form.workLog?.endedAt === null) {

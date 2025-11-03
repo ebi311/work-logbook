@@ -23,17 +23,38 @@
 		});
 		return classes;
 	});
+
+	// 切り替えボタンのクラス
+	const switchButtonClass = $derived(() => {
+		return classNames('btn', 'btn-lg', 'btn-accent');
+	});
 </script>
 
-<button
-	bind:this={buttonElement}
-	type="submit"
-	formaction={formAction}
-	disabled={isSubmitting}
-	aria-busy={isSubmitting}
-	class={buttonClass()}
-	class:active={isActive}
-	class:submitting={isSubmitting}
->
-	{buttonText}
-</button>
+<div class="flex w-full gap-2">
+	<button
+		bind:this={buttonElement}
+		type="submit"
+		formaction={formAction}
+		disabled={isSubmitting}
+		aria-busy={isSubmitting}
+		class={buttonClass()}
+		class:active={isActive}
+		class:submitting={isSubmitting}
+	>
+		{buttonText}
+	</button>
+
+	{#if isActive}
+		<button
+			type="submit"
+			formaction="?/switch"
+			disabled={isSubmitting}
+			aria-busy={isSubmitting}
+			class={switchButtonClass()}
+			class:submitting={isSubmitting}
+			title="現在の作業を終了して、新しい作業を開始します"
+		>
+			切り替え
+		</button>
+	{/if}
+</div>

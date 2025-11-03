@@ -18,8 +18,11 @@
 
 PostgreSQLデータベースの接続URL
 
-- **開発環境**: `postgres://root:mysecretpassword@localhost:5432/local`
-- **本番環境**: Herokuが自動で設定
+- **開発環境（devContainer内）**: `postgres://root:mysecretpassword@db.localtest.me:5432/local`
+  - devContainer内では Neon HTTP Proxy を経由してローカルPostgreSQLに接続します
+  - ホスト名を `db.localtest.me` にすることで、Neon SDK が開発モードで動作します
+- **開発環境（ホスト）**: `postgres://root:mysecretpassword@localhost:5432/local`
+- **本番環境**: Vercel Postgres または Neon から自動で設定
 
 ### GitHub OAuth設定
 
@@ -79,6 +82,63 @@ GitHub IDの確認方法:
 例: `ALLOWED_GITHUB_IDS="12345678,87654321"`
 
 **注意**: この設定が空の場合、誰もログインできません。
+
+### REDIS_URL
+
+Redisの接続URL（セッション管理用）
+
+- **開発環境**: `redis://localhost:6379` (Docker Composeで起動)
+- **本番環境 (Vercel)**: Vercel KV (Redis) が自動で設定
+- **本番環境 (Heroku)**: Heroku Key-Value Store アドオンが自動で設定
+
+## ローカル開発環境の構成
+
+### Neon HTTP Proxy を使用した開発環境
+
+このプロジェクトでは、本番環境で Neon Database を使用しているため、ローカル開発環境でも同じ接続方法（HTTP経由）でPostgreSQLにアクセスできるように Neon HTTP Proxy を使用しています。
+
+#### Docker Compose 構成
+
+`.devcontainer/docker-compose.yml` で以下のサービスが起動します:
+
+1. **db**: PostgreSQL データベース（ポート5432）
+2. **neon-proxy**: Neon HTTP Proxy（ポート4444）
+   - PostgreSQLへのHTTPベースのアクセスを提供
+   - Neon SDK との互換性を保つ
+3. **redis**: Redis サーバー（ポート6379）
+4. **app**: 開発用コンテナ
+
+#### 動作の仕組み
+
+1. アプリケーションコードは `@neondatabase/serverless` を使用してクエリを実行
+2. `DATABASE_URL` のホスト名が `db.localtest.me` の場合、開発モードとして認識
+3. `src/lib/server/db/index.ts` の設定により、HTTPリクエストが `neon-proxy:4444` に送信される
+4. Neon Proxy がそのリクエストを PostgreSQL に変換して実行
+5. 結果が HTTP レスポンスとして返される
+
+この構成により、本番環境と同じコード（Neon SDK）を使用しながら、ローカルのPostgreSQLで開発できます。
+
+#### 設定ファイル
+
+**`.env.local`**:
+
+```bash
+DATABASE_URL="postgres://root:mysecretpassword@db.localtest.me:5432/local"
+```
+
+**`src/lib/server/db/index.ts`** (開発環境での設定):
+
+```typescript
+if (process.env.NODE_ENV === 'development') {
+	neonConfig.fetchEndpoint = (host) => {
+		const [protocol, port] = host === 'db.localtest.me' ? ['http', 4444] : ['https', 443];
+		return `${protocol}://neon-proxy:${port}/sql`;
+	};
+	neonConfig.useSecureWebSocket = false;
+	neonConfig.wsProxy = (host) => 'neon-proxy:4444/v2';
+	neonConfig.pipelineConnect = false;
+}
+```
 
 ### REDIS_URL
 

@@ -13,6 +13,7 @@ export default defineConfig({
 		svelteTesting(),
 		VitePWA({
 			registerType: 'autoUpdate',
+			injectRegister: 'auto',
 			includeAssets: [
 				'favicon.ico',
 				'android-chrome-192x192.png',

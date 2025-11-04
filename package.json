@@ -7,7 +7,9 @@
 	"scripts": {
 		"dev": "vite dev --host 0.0.0.0",
 		"build": "vite build",
+		"build:local": "dotenv -e .env.local -- vite build",
 		"preview": "vite preview",
+		"preview:local": "dotenv -e .env.local -- vite preview --host 0.0.0.0",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
@@ -48,6 +50,7 @@
 		"@vitest/browser": "^3.2.4",
 		"@zerodevx/svelte-toast": "^0.9.6",
 		"dotenv": "^17.2.3",
+		"dotenv-cli": "^11.0.0",
 		"drizzle-kit": "^0.31.4",
 		"eslint": "^9.36.0",
 		"eslint-config-prettier": "^10.1.8",

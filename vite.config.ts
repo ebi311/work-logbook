@@ -55,7 +55,24 @@ export default defineConfig({
 				globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
 				cleanupOutdatedCaches: true,
 				clientsClaim: true,
+				navigateFallback: null, // SvelteKitはSSRなので無効化
 				runtimeCaching: [
+					{
+						// SvelteKitのナビゲーション（HTMLページ）
+						urlPattern: ({ request }) => request.mode === 'navigate',
+						handler: 'NetworkFirst',
+						options: {
+							cacheName: 'pages-cache',
+							networkTimeoutSeconds: 3,
+							expiration: {
+								maxEntries: 50,
+								maxAgeSeconds: 60 * 60 * 24, // 24 hours
+							},
+							cacheableResponse: {
+								statuses: [0, 200],
+							},
+						},
+					},
 					{
 						urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
 						handler: 'CacheFirst',

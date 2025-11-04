@@ -367,4 +367,3 @@ Phase 1は基本機能の実装が完了しました。本番環境（Vercel）�
 - 開発中は `pnpm build && pnpm preview` でPWA機能を確認できます
 - 開発サーバー (`pnpm dev`) ではService Workerは動作しません
 - 既存のアイコンファイルを活用したため、アイコン作成作業は不要でした
-

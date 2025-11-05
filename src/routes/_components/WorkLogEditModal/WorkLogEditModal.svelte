@@ -1,13 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
-	import type { WorkLog } from '../../../models/workLog';
+	import { WorkLog } from '../../../models/workLog';
 	import { validateTimeRange, validateDescription } from '$lib/utils/validation';
 	import { toDatetimeLocal } from '$lib/utils/timeFormat';
 	import DateTimeField from './DateTimeField.svelte';
 	import DescriptionField from './DescriptionField.svelte';
 	import ErrorAlert from './ErrorAlert.svelte';
 	import TagInput from '../TagInput/TagInput.svelte';
+	import { isOnline } from '$lib/client/network/status';
+	import { updateWorkLogOffline } from '$lib/client/db/workLogs';
+	import { requestSync } from '$lib/client/sync/trigger';
+	import { toastSuccess, toastError } from '$lib/utils/toast';
 
 	// 親からは最小限のフィールドのみ受け取れるようにする（構造的部分型）
 	type EditableWorkLog = {
@@ -159,11 +163,60 @@
 		}
 	};
 
+	// オフライン時の更新処理
+	const handleOfflineUpdate = async () => {
+		try {
+			if (!validateForm()) {
+				return;
+			}
+
+			await updateWorkLogOffline(workLog.id, {
+				startAt: new Date(startedAt).toISOString(),
+				endAt: new Date(endedAt).toISOString(),
+				description: description,
+				tags: [...tags],
+			});
+
+			// 成功時
+			open = false;
+			toastSuccess('作業記録を更新しました（オフライン）');
+			requestSync(); // Background Syncをリクエスト
+			
+			// 親コンポーネントに通知（ローカル状態を更新）
+			if (onupdated) {
+				const updatedWorkLog = WorkLog.from({
+					id: workLog.id,
+					userId: 'offline-user',
+					startedAt: new Date(startedAt),
+					endedAt: new Date(endedAt),
+					description: description,
+					tags: [...tags],
+					createdAt: new Date(),
+					updatedAt: new Date(),
+				});
+				onupdated(updatedWorkLog);
+			}
+			
+			onclose?.();
+		} catch (error) {
+			console.error('Offline update error:', error);
+			toastError('オフライン更新でエラーが発生しました');
+		}
+	};
+
 	// フォーム送信ハンドラー
-	const handleFormSubmit = ({ formData }: { formData: FormData }) => {
+	const handleFormSubmit = ({ formData, cancel }: { formData: FormData; cancel: () => void }) => {
 		isSubmitting = true;
 
-		// datetime-local の値をローカルタイムゾーン付きISO文字列に変換
+		// オフライン時の処理
+		if (!$isOnline) {
+			cancel();
+			handleOfflineUpdate();
+			isSubmitting = false;
+			return;
+		}
+
+		// オンライン時: datetime-local の値をローカルタイムゾーン付きISO文字列に変換
 		const startedAtLocal = formData.get('startedAt') as string;
 		const endedAtLocal = formData.get('endedAt') as string;
 

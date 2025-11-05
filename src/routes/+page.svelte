@@ -12,7 +12,7 @@
 	import { page } from '$app/state';
 	import { toastSuccess, toastError } from '$lib/utils/toast';
 	import { isOnline } from '$lib/client/network/status';
-	import { saveWorkLogOffline, updateWorkLogOffline } from '$lib/client/db/workLogs';
+	import { saveWorkLogOffline, updateWorkLogOffline, deleteWorkLogOffline } from '$lib/client/db/workLogs';
 	import { requestSync } from '$lib/client/sync/trigger';
 	import { nanoid } from 'nanoid';
 
@@ -412,7 +412,22 @@
 			return; // キャンセルされた場合は何もしない
 		}
 
-		// 削除アクションを実行
+		// オフライン時の処理
+		if (!$isOnline) {
+			try {
+				await deleteWorkLogOffline(item.id);
+				toastSuccess('作業記録を削除しました（オフライン）');
+				requestSync(); // Background Syncをリクエスト
+				// データを再取得
+				await refreshAll();
+			} catch (error) {
+				console.error('Offline delete error:', error);
+				toastError('オフライン削除でエラーが発生しました');
+			}
+			return;
+		}
+
+		// オンライン時: 削除アクションを実行
 		const formData = new FormData();
 		formData.set('id', item.id);
 

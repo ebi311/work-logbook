@@ -106,3 +106,37 @@ export const clearWorkLogsOffline = async (): Promise<void> => {
 	const db = await initDB();
 	await db.clear('workLogs');
 };
+
+/**
+ * サーバーからのデータをIndexedDBに保存（同期済みとしてマーク）
+ * オンライン操作成功後に呼び出される
+ */
+export const saveWorkLogFromServer = async (workLog: {
+	id: string;
+	userId: string;
+	startedAt: Date | string;
+	endedAt: Date | string | null;
+	description: string;
+	tags?: string[];
+}): Promise<void> => {
+	const db = await initDB();
+
+	const offlineWorkLog: OfflineWorkLog = {
+		id: workLog.id,
+		userId: workLog.userId,
+		startAt:
+			typeof workLog.startedAt === 'string' ? workLog.startedAt : workLog.startedAt.toISOString(),
+		endAt: workLog.endedAt
+			? typeof workLog.endedAt === 'string'
+				? workLog.endedAt
+				: workLog.endedAt.toISOString()
+			: null,
+		description: workLog.description,
+		tags: workLog.tags ? [...workLog.tags] : [],
+		syncStatus: 'synced', // サーバーと同期済み
+		operation: 'create',
+		localCreatedAt: Date.now(),
+	};
+
+	await db.put('workLogs', offlineWorkLog);
+};

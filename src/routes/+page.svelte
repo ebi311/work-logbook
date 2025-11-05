@@ -12,7 +12,12 @@
 	import { page } from '$app/state';
 	import { toastSuccess, toastError } from '$lib/utils/toast';
 	import { isOnline } from '$lib/client/network/status';
-	import { saveWorkLogOffline, updateWorkLogOffline, deleteWorkLogOffline } from '$lib/client/db/workLogs';
+	import {
+		saveWorkLogOffline,
+		updateWorkLogOffline,
+		deleteWorkLogOffline,
+		saveWorkLogFromServer,
+	} from '$lib/client/db/workLogs';
 	import { requestSync } from '$lib/client/sync/trigger';
 	import { nanoid } from 'nanoid';
 
@@ -109,18 +114,35 @@
 	};
 
 	// 作業開始成功時の処理
-	const handleStartSuccess = (form: NonNullable<ActionData>) => {
+	const handleStartSuccess = async (form: NonNullable<ActionData>) => {
 		if (!('workLog' in form) || !form.workLog) return;
 		if (form.workLog.endedAt !== null) return; // 型ガード
 		currentActive = form.workLog;
 		if ('serverNow' in form) {
 			currentServerNow = form.serverNow;
 		}
+
+		// サーバーからのデータをIndexedDBに保存
+		try {
+			const listData = await data.listData;
+			const userId = listData.items.length > 0 ? 'offline-user' : 'offline-user'; // TODO: 適切なuserIdを取得
+			await saveWorkLogFromServer({
+				id: form.workLog.id,
+				userId,
+				startedAt: form.workLog.startedAt,
+				endedAt: null,
+				description: form.workLog.description || '',
+				tags: form.workLog.tags || [],
+			});
+		} catch (error) {
+			console.error('Failed to save to IndexedDB:', error);
+		}
+
 		toastSuccess('作業を開始しました');
 	};
 
 	// 作業終了成功時の処理
-	const handleStopSuccess = (form: NonNullable<ActionData>) => {
+	const handleStopSuccess = async (form: NonNullable<ActionData>) => {
 		if (!('workLog' in form) || !form.workLog) return;
 		currentActive = undefined;
 		// タグをクリア
@@ -132,11 +154,28 @@
 		if ('serverNow' in form) {
 			currentServerNow = form.serverNow;
 		}
+
+		// サーバーからのデータをIndexedDBに保存
+		try {
+			const listData = await data.listData;
+			const userId = listData.items.length > 0 ? 'offline-user' : 'offline-user'; // TODO: 適切なuserIdを取得
+			await saveWorkLogFromServer({
+				id: form.workLog.id,
+				userId,
+				startedAt: form.workLog.startedAt,
+				endedAt: form.workLog.endedAt,
+				description: form.workLog.description || '',
+				tags: form.workLog.tags || [],
+			});
+		} catch (error) {
+			console.error('Failed to save to IndexedDB:', error);
+		}
+
 		toastSuccess(`作業を終了しました(${duration}分)`);
 	};
 
 	// 作業切り替え成功時の処理
-	const handleSwitchSuccess = (form: NonNullable<ActionData>) => {
+	const handleSwitchSuccess = async (form: NonNullable<ActionData>) => {
 		if (!('started' in form) || !form.started) return;
 		if (!('stopped' in form) || !form.stopped) return;
 		currentActive = form.started;
@@ -148,6 +187,37 @@
 		if ('serverNow' in form) {
 			currentServerNow = form.serverNow;
 		}
+
+		// サーバーからのデータをIndexedDBに保存（開始と終了の両方）
+		try {
+			const listData = await data.listData;
+			const userId = listData.items.length > 0 ? 'offline-user' : 'offline-user'; // TODO: 適切なuserIdを取得
+
+			// 終了した作業を保存
+			if (form.stopped) {
+				await saveWorkLogFromServer({
+					id: form.stopped.id,
+					userId,
+					startedAt: form.stopped.startedAt,
+					endedAt: form.stopped.endedAt,
+					description: form.stopped.description || '',
+					tags: form.stopped.tags || [],
+				});
+			}
+
+			// 開始した作業を保存
+			await saveWorkLogFromServer({
+				id: form.started.id,
+				userId,
+				startedAt: form.started.startedAt,
+				endedAt: null,
+				description: form.started.description || '',
+				tags: form.started.tags || [],
+			});
+		} catch (error) {
+			console.error('Failed to save to IndexedDB:', error);
+		}
+
 		toastSuccess(`作業を切り替えました(${duration}分)`);
 	};
 

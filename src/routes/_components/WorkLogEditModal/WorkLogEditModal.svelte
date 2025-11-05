@@ -9,7 +9,7 @@
 	import ErrorAlert from './ErrorAlert.svelte';
 	import TagInput from '../TagInput/TagInput.svelte';
 	import { isOnline } from '$lib/client/network/status';
-	import { updateWorkLogOffline } from '$lib/client/db/workLogs';
+	import { updateWorkLogOffline, saveWorkLogFromServer } from '$lib/client/db/workLogs';
 	import { requestSync } from '$lib/client/sync/trigger';
 	import { toastSuccess, toastError } from '$lib/utils/toast';
 
@@ -236,6 +236,20 @@
 			if (result.type === 'success' && result.data) {
 				const data = result.data as { ok?: boolean; workLog?: WorkLog };
 				if (data.ok && data.workLog) {
+					// IndexedDBにも保存（オンライン操作の結果を保存）
+					try {
+						await saveWorkLogFromServer({
+							id: data.workLog.id,
+							userId: 'offline-user', // TODO: 適切なuserIdを取得
+							startedAt: data.workLog.startedAt,
+							endedAt: data.workLog.endedAt,
+							description: data.workLog.description,
+							tags: data.workLog.tags || [],
+						});
+					} catch (error) {
+						console.error('Failed to save to IndexedDB:', error);
+					}
+
 					// 成功時
 					open = false;
 					onupdated?.(data.workLog);

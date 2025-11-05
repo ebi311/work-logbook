@@ -1,8 +1,17 @@
 import { initDB, type SyncQueueItem } from './index';
 
+/**
+ * オブジェクトからSvelteプロキシを除去してシリアライズ可能にする
+ */
+const sanitizeForIndexedDB = <T>(obj: T): T => {
+	return JSON.parse(JSON.stringify(obj));
+};
+
 export const addToSyncQueue = async (item: SyncQueueItem): Promise<void> => {
 	const db = await initDB();
-	await db.put('syncQueue', item);
+	// Svelteのプロキシオブジェクトを除去
+	const sanitizedItem = sanitizeForIndexedDB(item);
+	await db.put('syncQueue', sanitizedItem);
 };
 
 export const getSyncQueue = async (): Promise<SyncQueueItem[]> => {

@@ -8,8 +8,10 @@ export const saveWorkLogOffline = async (
 	const db = await initDB();
 	const id = nanoid();
 
+	// Svelte 5のプロキシオブジェクトを通常の配列に変換
 	const offlineWorkLog: OfflineWorkLog = {
 		...workLog,
+		tags: Array.isArray(workLog.tags) ? [...workLog.tags] : [],
 		id,
 		syncStatus: 'pending',
 		operation: 'create',
@@ -42,9 +44,11 @@ export const updateWorkLogOffline = async (
 		throw new Error(`WorkLog ${id} not found`);
 	}
 
+	// Svelte 5のプロキシオブジェクトを通常の配列に変換
 	const updated: OfflineWorkLog = {
 		...workLog,
 		...updates,
+		tags: Array.isArray(updates.tags) ? [...updates.tags] : workLog.tags,
 		syncStatus: 'pending',
 		operation: 'update',
 	};

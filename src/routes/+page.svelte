@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { PageData, ActionData } from './$types';
-	import type { WorkLog } from '../models/workLog';
 	import WorkLogStatus from './_components/WorkLogStatus/WorkLogStatus.svelte';
 	import WorkLogToggleButton from './_components/WorkLogToggleButton/WorkLogToggleButton.svelte';
 	import KeyboardShortcutHelp from './_components/KeyboardShortcutHelp/KeyboardShortcutHelp.svelte';
@@ -12,14 +11,13 @@
 	import { page } from '$app/state';
 	import { toastSuccess, toastError } from '$lib/utils/toast';
 	import { isOnline } from '$lib/client/network/status';
+	import { saveWorkLogFromServer, deleteWorkLogOffline } from '$lib/client/db/workLogs';
+	import { setSyncSuccessCallback, requestSync } from '$lib/client/sync/trigger';
 	import {
-		saveWorkLogOffline,
-		updateWorkLogOffline,
-		deleteWorkLogOffline,
-		saveWorkLogFromServer,
-	} from '$lib/client/db/workLogs';
-	import { requestSync, setSyncSuccessCallback } from '$lib/client/sync/trigger';
-	import { nanoid } from 'nanoid';
+		executeOfflineAction,
+		type ActiveWorkLog,
+		type OfflineActionContext,
+	} from '$lib/client/offline/workLogActions';
 
 	type Props = {
 		data: PageData;
@@ -248,101 +246,43 @@
 	};
 
 	// オフライン時のアクション処理
-	const handleOfflineAction = async (actionName: string) => {
-		// ユーザーIDの取得(オフライン時はactiveから、なければデータの最初のアイテムから)
-		let userId = 'offline-user';
-		if (currentActive) {
-			// currentActiveにはuserIdがないので、最初のworklogから取得を試みる
-			const listData = await data.listData;
-			if (listData.items.length > 0) {
-				// WorkLogItemにもuserIdがないため、一時的に固定値を使用
-				userId = 'offline-user';
-			}
-		}
+	const handleOfflineAction = async (actionName: 'start' | 'stop' | 'switch') => {
+		// ユーザーIDの取得(オフライン時は固定値を使用)
+		const userId = 'offline-user';
 
-		try {
-			if (actionName === 'start') {
-				// 作業開始（オフライン）
-				const id = await saveWorkLogOffline({
-					userId,
-					startAt: new Date().toISOString(),
-					endAt: null,
-					description: description,
-					tags: tags,
-				});
+		// コンテキストを構築
+		const context: OfflineActionContext = {
+			currentActive,
+			description,
+			tags,
+			userId,
+		};
 
-				// ローカル状態を更新
-				currentActive = {
-					id,
-					startedAt: new Date().toISOString(),
-					endedAt: null,
-					description: description,
-					tags: tags,
-				};
+		// オフラインアクションを実行
+		const result = await executeOfflineAction(actionName, context);
 
-				toastSuccess('作業を開始しました（オフライン）');
-				hasOfflineChanges = true; // オフライン変更フラグを立てる
-				requestSync(); // Background Syncをリクエスト
-			} else if (actionName === 'stop' && currentActive) {
-				// 作業終了（オフライン）
-				const endTime = new Date().toISOString();
-				await updateWorkLogOffline(currentActive.id, {
-					endAt: endTime,
-					description: description,
-					tags: tags,
-				});
+		if (result.success) {
+			// 状態を更新
+			currentActive = result.currentActive;
 
-				const duration = Math.floor(
-					(new Date(endTime).getTime() - new Date(currentActive.startedAt).getTime()) / 60000,
-				);
-
-				currentActive = undefined;
+			// 終了・切り替え時は入力フィールドをクリア
+			if (!result.currentActive) {
 				description = '';
 				tags = [];
-
-				toastSuccess(`作業を終了しました（オフライン、${duration}分）`);
-				hasOfflineChanges = true; // オフライン変更フラグを立てる
-				requestSync(); // Background Syncをリクエスト
-			} else if (actionName === 'switch' && currentActive) {
-				// 作業切り替え（オフライン）
-				const endTime = new Date().toISOString();
-				const oldId = currentActive.id;
-
-				// 既存の作業を終了
-				await updateWorkLogOffline(oldId, {
-					endAt: endTime,
-					description: currentActive.description,
-					tags: currentActive.tags,
-				});
-
-				// 新しい作業を開始
-				const newId = await saveWorkLogOffline({
-					userId,
-					startAt: endTime,
-					endAt: null,
-					description: description,
-					tags: tags,
-				});
-
-				const duration = Math.floor(
-					(new Date(endTime).getTime() - new Date(currentActive.startedAt).getTime()) / 60000,
-				);
-
-				currentActive = {
-					id: newId,
-					startedAt: endTime,
-					endedAt: null,
-					description: description,
-					tags: tags,
-				};
-
-				toastSuccess(`作業を切り替えました（オフライン、${duration}分）`);
-				hasOfflineChanges = true; // オフライン変更フラグを立てる
-				requestSync(); // Background Syncをリクエスト
 			}
-		} catch (error) {
-			console.error('Offline action error:', error);
-			toastError('オフライン操作でエラーが発生しました');
+
+			// オフライン変更フラグを立てる
+			hasOfflineChanges = true;
+
+			// 成功メッセージを表示
+			if (result.message) {
+				toastSuccess(result.message);
+			}
+		} else {
+			// エラーメッセージを表示
+			if (result.error) {
+				toastError(result.error);
+			}
 		}
 	};
 
@@ -488,7 +428,16 @@
 		editTarget = null;
 	};
 
-	const handleEditUpdate = async (workLog: WorkLog, wasOffline?: boolean) => {
+	const handleEditUpdate = async (
+		workLog: {
+			id: string;
+			startedAt: Date;
+			endedAt: Date | null;
+			description: string;
+			tags: string[];
+		},
+		wasOffline?: boolean,
+	) => {
 		console.log('handleEditUpdate called', { wasOffline });
 		if (wasOffline) {
 			hasOfflineChanges = true; // オフライン変更フラグを立てる
@@ -568,13 +517,11 @@
 					if (!$isOnline) {
 						cancel();
 						// action.search は "?/start" のような形式
-						const actionName = action.search.substring(2); // "?/" を取り除く
+						const actionName = action.search.substring(2) as 'start' | 'stop' | 'switch'; // "?/" を取り除く
 						handleOfflineAction(actionName);
 						isSubmitting = false;
 						return;
-					}
-
-					// オンライン時は通常の処理
+					} // オンライン時は通常の処理
 					return async ({ result, update }) => {
 						isSubmitting = false;
 						await update();

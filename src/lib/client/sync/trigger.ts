@@ -32,17 +32,26 @@ export const requestSync = async (): Promise<void> => {
 
 /**
  * 即座に同期処理を実行する
+ * @returns 同期が成功した場合true
  */
-export const syncWorkLogsNow = async (): Promise<void> => {
+export const syncWorkLogsNow = async (): Promise<boolean> => {
 	// オフライン時は何もしない
 	if (!get(isOnline)) {
 		console.log('Offline, skipping sync');
-		return;
+		return false;
 	}
 
 	try {
-		await processSyncQueue();
-		console.log('Sync completed successfully');
+		const hasSuccess = await processSyncQueue();
+		if (hasSuccess) {
+			console.log('Sync completed successfully');
+			// 同期成功時にページをリロードしてデータを更新
+			if (typeof window !== 'undefined') {
+				console.log('[Sync] Reloading page to refresh data...');
+				window.location.reload();
+			}
+		}
+		return hasSuccess;
 	} catch (error) {
 		console.error('Sync failed:', error);
 		throw error;

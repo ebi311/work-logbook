@@ -11,12 +11,10 @@ PWA Phase 2（オフライン同期機能）の実装が完了しました。こ
 ### ✅ 完了した機能
 
 1. **IndexedDB セットアップ** (Step 1-2)
-
    - `workLogs` ストア: オフラインでの作業記録
    - `syncQueue` ストア: サーバーへの同期待ちキュー
 
 2. **CRUD 操作** (Step 3)
-
    - `saveWorkLogOffline`: 新規作業記録の保存
    - `updateWorkLogOffline`: 作業記録の更新
    - `deleteWorkLogOffline`: 作業記録の削除
@@ -24,12 +22,10 @@ PWA Phase 2（オフライン同期機能）の実装が完了しました。こ
    - `addToSyncQueue`: 同期キューへの追加
 
 3. **ネットワーク状態監視** (Step 4)
-
    - `isOnline` ストア: オンライン/オフライン状態の監視
    - `NetworkStatus` コンポーネント: オフライン時の警告表示
 
 4. **Background Sync API** (Step 5)
-
    - `processSyncQueue`: 同期キューの処理（リトライロジック付き）
    - `requestSync`: Background Sync のリクエスト
    - `setupAutoSync`: オンライン復帰時の自動同期
@@ -177,12 +173,10 @@ localStorage.setItem('debug', '*');
 ### 未実装の機能
 
 1. **編集・削除のオフライン対応**
-
    - 現在は start/stop/switch のみオフライン対応
    - 編集・削除は今後の拡張で対応予定
 
 2. **ユーザー ID の永続化**
-
    - オフライン時のユーザー ID は固定値 `"offline-user"` を使用
    - 実運用では localStorage などに保存が必要
 

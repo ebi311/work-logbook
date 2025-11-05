@@ -81,9 +81,10 @@ const createFormDataFromWorkLog = (data: SyncQueueItem['data']): FormData => {
 	if (data.id) {
 		formData.set('id', data.id);
 	}
-	formData.set('startAt', data.startAt);
+	// IndexedDBのフィールド名(startAt/endAt)をサーバーの期待する名前(startedAt/endedAt)に変換
+	formData.set('startedAt', data.startAt);
 	if (data.endAt) {
-		formData.set('endAt', data.endAt);
+		formData.set('endedAt', data.endAt);
 	}
 	formData.set('description', data.description || '');
 	// タグの配列を個別に追加

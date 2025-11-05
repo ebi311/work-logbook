@@ -60,12 +60,12 @@ export const syncWorkLogsNow = async (): Promise<boolean> => {
 		const hasSuccess = await processSyncQueue();
 		if (hasSuccess) {
 			console.log('Sync completed successfully');
-			
+
 			// 同期成功時のコールバックを実行（hasOfflineChangesフラグのリセットなど）
 			if (syncSuccessCallback) {
 				await syncSuccessCallback();
 			}
-			
+
 			// データを再取得（ページリロードの代わり）
 			if (typeof window !== 'undefined') {
 				console.log('[Sync] Invalidating data to refresh...');

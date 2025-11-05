@@ -181,7 +181,7 @@
 			open = false;
 			toastSuccess('作業記録を更新しました（オフライン）');
 			requestSync(); // Background Syncをリクエスト
-			
+
 			// 親コンポーネントに通知（ローカル状態を更新）
 			if (onupdated) {
 				const updatedWorkLog = WorkLog.from({
@@ -196,7 +196,7 @@
 				});
 				onupdated(updatedWorkLog, true); // wasOffline = true
 			}
-			
+
 			onclose?.();
 		} catch (error) {
 			console.error('Offline update error:', error);

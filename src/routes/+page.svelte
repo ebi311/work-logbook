@@ -34,7 +34,7 @@
 
 	// フォーム送信中の状態
 	let isSubmitting = $state(false);
-	
+
 	// オフライン操作中フラグ（同期が完了するまでサーバーデータを無視）
 	let hasOfflineChanges = $state(false);
 

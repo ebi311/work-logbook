@@ -39,13 +39,21 @@ describe('hooks.server.ts', () => {
 
 		const resolve = vi.fn(async () => new Response('OK'));
 
-		await handle({ event, resolve });
+		const response = await handle({ event, resolve });
 
 		// セッション検証は呼ばれない
 		expect(sessionModule.validateSession).not.toHaveBeenCalled();
 
 		// resolve は呼ばれる
 		expect(resolve).toHaveBeenCalledWith(event);
+
+		// nonce が locals に設定される
+		expect(event.locals.nonce).toBeDefined();
+		expect(event.locals.nonce).toHaveLength(32);
+
+		// CSP ヘッダーに nonce が含まれる
+		const csp = response.headers.get('Content-Security-Policy');
+		expect(csp).toContain(`nonce-${event.locals.nonce}`);
 	});
 
 	it('/auth/callback もセッション検証をスキップする', async () => {
@@ -231,5 +239,81 @@ describe('hooks.server.ts', () => {
 
 		// resolve は呼ばれない
 		expect(resolve).not.toHaveBeenCalled();
+	});
+
+	describe('セキュリティヘッダー', () => {
+		it('すべてのレスポンスにセキュリティヘッダーが含まれる（認証済み）', async () => {
+			const sessionId = 'valid-session-789';
+			const userId = 'user-uuid-3';
+
+			// Mock: セッション検証成功
+			vi.mocked(sessionModule.validateSession).mockResolvedValue({
+				valid: true,
+				userId,
+			});
+
+			// Mock: DB からユーザー取得
+			const dbMock = dbModule.db as any;
+			dbMock.limit.mockResolvedValue([
+				{
+					id: userId,
+					githubId: '67890',
+					githubUsername: 'secureuser',
+					isActive: true,
+				},
+			]);
+
+			const cookies = {
+				get: vi.fn((name: string) => (name === 'session_id' ? sessionId : undefined)),
+			} as any;
+
+			const event = {
+				cookies,
+				locals: {},
+				url: new URL('http://localhost:5173/'),
+			} as any;
+
+			const resolve = vi.fn(async () => new Response('OK'));
+
+			const response = await handle({ event, resolve });
+
+			// セキュリティヘッダーが設定されている
+			expect(response.headers.get('Content-Security-Policy')).toBeTruthy();
+			expect(response.headers.get('X-Frame-Options')).toBe('DENY');
+			expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
+			expect(response.headers.get('Referrer-Policy')).toBe('strict-origin-when-cross-origin');
+			expect(response.headers.get('Permissions-Policy')).toBeTruthy();
+
+			// CSP に nonce が含まれ、unsafe-inline が含まれない
+			const csp = response.headers.get('Content-Security-Policy');
+			expect(csp).toContain(`nonce-${event.locals.nonce}`);
+			expect(csp).not.toContain('unsafe-inline');
+		});
+
+		it('認証ルートでもセキュリティヘッダーが含まれる', async () => {
+			const cookies = {
+				get: vi.fn(() => undefined),
+			} as any;
+
+			const event = {
+				cookies,
+				locals: {},
+				url: new URL('http://localhost:5173/auth/login'),
+			} as any;
+
+			const resolve = vi.fn(async () => new Response('OK'));
+
+			const response = await handle({ event, resolve });
+
+			// セキュリティヘッダーが設定されている
+			expect(response.headers.get('Content-Security-Policy')).toBeTruthy();
+			expect(response.headers.get('X-Frame-Options')).toBe('DENY');
+			expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
+
+			// CSP に nonce が含まれ、unsafe-inline が含まれない
+			const csp = response.headers.get('Content-Security-Policy');
+			expect(csp).toContain(`nonce-${event.locals.nonce}`);
+			expect(csp).not.toContain('unsafe-inline');
+		});
 	});
 });

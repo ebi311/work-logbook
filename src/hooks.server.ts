@@ -3,6 +3,8 @@ import { validateSession } from '$lib/server/auth/session';
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
+import { getSecurityHeaders } from '$lib/server/security/headers';
+import { generateNonce } from '$lib/server/security/nonce';
 
 const SESSION_COOKIE = 'session_id';
 
@@ -17,9 +19,14 @@ const isPublicPath = (pathname: string): boolean => {
 export const handle: Handle = async ({ event, resolve }) => {
 	const { locals, cookies, url } = event;
 
+	// リクエストごとにnonceを生成
+	const nonce = generateNonce();
+	locals.nonce = nonce;
+
 	// 認証ルートは常に許可
 	if (isPublicPath(url.pathname)) {
-		return await resolve(event);
+		const response = await resolve(event);
+		return applySecurityHeaders(response, nonce);
 	}
 
 	// Get session ID from cookie
@@ -51,15 +58,33 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	// 認証が必要なパスで未認証の場合、/auth/login にリダイレクト
 	if (!locals.user) {
-		return new Response(null, {
+		const response = new Response(null, {
 			status: 302,
 			headers: {
 				location: '/auth/login',
 			},
 		});
+		return applySecurityHeaders(response, nonce);
 	}
 
 	const response = await resolve(event);
+	return applySecurityHeaders(response, nonce);
+};
 
-	return response;
+/**
+ * レスポンスにセキュリティヘッダーを適用
+ */
+const applySecurityHeaders = (response: Response, nonce: string): Response => {
+	const securityHeaders = getSecurityHeaders(nonce);
+	const newHeaders = new Headers(response.headers);
+
+	for (const [key, value] of Object.entries(securityHeaders)) {
+		newHeaders.set(key, value);
+	}
+
+	return new Response(response.body, {
+		status: response.status,
+		statusText: response.statusText,
+		headers: newHeaders,
+	});
 };

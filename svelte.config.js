@@ -11,6 +11,9 @@ const config = {
 			// Node.js ランタイムを使用
 			runtime: 'nodejs20.x',
 		}),
+		csp: {
+			mode: 'auto',
+		},
 	},
 };
 

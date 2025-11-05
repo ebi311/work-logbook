@@ -9,15 +9,25 @@ const RETRY_DELAY_MS = 2000; // 初回は2秒
  */
 export const processSyncQueue = async (): Promise<void> => {
 	const queue = await getSyncQueue();
+	console.log(`[Sync] Processing ${queue.length} items in sync queue`);
+
+	if (queue.length === 0) {
+		console.log('[Sync] No items to sync');
+		return;
+	}
 
 	for (const item of queue) {
 		try {
+			console.log(`[Sync] Processing item ${item.id} (${item.operation})`);
 			await processSyncQueueItem(item);
+			console.log(`[Sync] Successfully processed item ${item.id}`);
 		} catch (error) {
 			console.error('Sync queue item processing failed:', error);
 			// エラーがあっても次のアイテムは処理を続ける
 		}
 	}
+
+	console.log('[Sync] Queue processing completed');
 };
 
 /**

@@ -63,26 +63,23 @@ const supportsBackgroundSync = (): boolean => {
 /**
  * オンライン復帰時に自動的に同期を試みる
  */
-export const setupAutoSync = (): void => {
+export const setupAutoSync = (): (() => void) => {
 	if (typeof window === 'undefined') {
-		return;
+		return () => {};
 	}
 
 	// オンライン復帰イベントで同期
-	window.addEventListener('online', () => {
+	const handleOnline = () => {
 		console.log('Network connection restored, syncing...');
 		requestSync().catch((error) => {
 			console.error('Auto sync failed:', error);
 		});
-	});
+	};
 
-	// isOnlineストアの変更を監視
-	isOnline.subscribe((online) => {
-		if (online) {
-			console.log('Online status changed to true, syncing...');
-			requestSync().catch((error) => {
-				console.error('Auto sync on status change failed:', error);
-			});
-		}
-	});
+	window.addEventListener('online', handleOnline);
+
+	// クリーンアップ関数を返す
+	return () => {
+		window.removeEventListener('online', handleOnline);
+	};
 };

@@ -34,6 +34,9 @@
 
 	// フォーム送信中の状態
 	let isSubmitting = $state(false);
+	
+	// オフライン操作中フラグ（同期が完了するまでサーバーデータを無視）
+	let hasOfflineChanges = $state(false);
 
 	// フォームとボタンへの参照
 	let formElement: HTMLFormElement | null = $state(null);
@@ -278,6 +281,7 @@
 				};
 
 				toastSuccess('作業を開始しました（オフライン）');
+				hasOfflineChanges = true; // オフライン変更フラグを立てる
 				requestSync(); // Background Syncをリクエスト
 			} else if (actionName === 'stop' && currentActive) {
 				// 作業終了（オフライン）
@@ -297,6 +301,7 @@
 				tags = [];
 
 				toastSuccess(`作業を終了しました（オフライン、${duration}分）`);
+				hasOfflineChanges = true; // オフライン変更フラグを立てる
 				requestSync(); // Background Syncをリクエスト
 			} else if (actionName === 'switch' && currentActive) {
 				// 作業切り替え（オフライン）
@@ -332,6 +337,7 @@
 				};
 
 				toastSuccess(`作業を切り替えました（オフライン、${duration}分）`);
+				hasOfflineChanges = true; // オフライン変更フラグを立てる
 				requestSync(); // Background Syncをリクエスト
 			}
 		} catch (error) {
@@ -341,9 +347,12 @@
 	};
 
 	// dataが変更されたら状態を同期
+	// ただし、オフライン変更がある場合は同期完了(ページリロード)まで無視
 	$effect(() => {
-		currentActive = data.active;
-		currentServerNow = data.serverNow;
+		if (!hasOfflineChanges) {
+			currentActive = data.active;
+			currentServerNow = data.serverNow;
+		}
 	});
 
 	// formアクション結果を処理
@@ -466,8 +475,11 @@
 		editTarget = null;
 	};
 
-	const handleEditUpdate = async () => {
-		console.log('handleEditUpdate called');
+	const handleEditUpdate = async (workLog: WorkLog, wasOffline?: boolean) => {
+		console.log('handleEditUpdate called', { wasOffline });
+		if (wasOffline) {
+			hasOfflineChanges = true; // オフライン変更フラグを立てる
+		}
 		await refreshAll();
 	};
 
@@ -487,6 +499,7 @@
 			try {
 				await deleteWorkLogOffline(item.id);
 				toastSuccess('作業記録を削除しました（オフライン）');
+				hasOfflineChanges = true; // オフライン変更フラグを立てる
 				requestSync(); // Background Syncをリクエスト
 				// データを再取得
 				await refreshAll();

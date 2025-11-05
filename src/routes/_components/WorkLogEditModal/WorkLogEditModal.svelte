@@ -26,7 +26,7 @@
 		workLog: EditableWorkLog;
 		open: boolean;
 		onclose?: () => void;
-		onupdated?: (workLog: WorkLog) => void;
+		onupdated?: (workLog: WorkLog, wasOffline?: boolean) => void;
 		tagSuggestions: Array<{ tag: string; count: number }>;
 	};
 
@@ -194,7 +194,7 @@
 					createdAt: new Date(),
 					updatedAt: new Date(),
 				});
-				onupdated(updatedWorkLog);
+				onupdated(updatedWorkLog, true); // wasOffline = true
 			}
 			
 			onclose?.();

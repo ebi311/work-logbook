@@ -59,55 +59,70 @@ const processSyncQueueItem = async (item: SyncQueueItem): Promise<void> => {
 };
 
 /**
+ * FormDataを作成する共通関数
+ */
+const createFormDataFromWorkLog = (data: SyncQueueItem['data']): FormData => {
+	const formData = new FormData();
+	if (data.id) {
+		formData.set('id', data.id);
+	}
+	formData.set('startAt', data.startAt);
+	if (data.endAt) {
+		formData.set('endAt', data.endAt);
+	}
+	formData.set('description', data.description || '');
+	// タグの配列を個別に追加
+	if (data.tags && Array.isArray(data.tags)) {
+		data.tags.forEach((tag: string) => {
+			formData.append('tags', tag);
+		});
+	}
+	return formData;
+};
+
+/**
  * サーバーAPIに同期データを送信する
  */
 const syncToServer = async (item: SyncQueueItem): Promise<void> => {
 	const { operation, data } = item;
 
 	switch (operation) {
-		case 'create':
-			await fetch('/api/worklogs', {
+		case 'create': {
+			const formData = createFormDataFromWorkLog(data);
+			const res = await fetch('/?/start', {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					startAt: data.startAt,
-					endAt: data.endAt,
-					description: data.description,
-					tags: data.tags,
-				}),
-			}).then(async (res) => {
-				if (!res.ok) {
-					throw new Error(`Server responded with ${res.status}: ${await res.text()}`);
-				}
+				body: formData,
 			});
+			if (!res.ok) {
+				throw new Error(`Server responded with ${res.status}: ${await res.text()}`);
+			}
 			break;
+		}
 
-		case 'update':
-			await fetch(`/api/worklogs/${data.id}`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					startAt: data.startAt,
-					endAt: data.endAt,
-					description: data.description,
-					tags: data.tags,
-				}),
-			}).then(async (res) => {
-				if (!res.ok) {
-					throw new Error(`Server responded with ${res.status}: ${await res.text()}`);
-				}
+		case 'update': {
+			const formData = createFormDataFromWorkLog(data);
+			const res = await fetch('/?/update', {
+				method: 'POST',
+				body: formData,
 			});
+			if (!res.ok) {
+				throw new Error(`Server responded with ${res.status}: ${await res.text()}`);
+			}
 			break;
+		}
 
-		case 'delete':
-			await fetch(`/api/worklogs/${data.id}`, {
-				method: 'DELETE',
-			}).then(async (res) => {
-				if (!res.ok) {
-					throw new Error(`Server responded with ${res.status}: ${await res.text()}`);
-				}
+		case 'delete': {
+			const formData = new FormData();
+			formData.set('id', data.id);
+			const res = await fetch('/?/delete', {
+				method: 'POST',
+				body: formData,
 			});
+			if (!res.ok) {
+				throw new Error(`Server responded with ${res.status}: ${await res.text()}`);
+			}
 			break;
+		}
 
 		default:
 			throw new Error(`Unknown operation: ${operation}`);

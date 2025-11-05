@@ -16,8 +16,11 @@ export const addToSyncQueue = async (item: SyncQueueItem): Promise<void> => {
 
 export const getSyncQueue = async (): Promise<SyncQueueItem[]> => {
 	const db = await initDB();
-	const index = db.transaction('syncQueue').store.index('timestamp');
-	return index.getAll();
+	const tx = db.transaction('syncQueue', 'readonly');
+	const index = tx.store.index('timestamp');
+	const items = await index.getAll();
+	await tx.done;
+	return items;
 };
 
 export const removeSyncQueueItem = async (id: string): Promise<void> => {

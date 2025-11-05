@@ -53,10 +53,9 @@ describe('sync/processor', () => {
 			await processSyncQueue();
 
 			expect(global.fetch).toHaveBeenCalledWith(
-				'/api/worklogs',
+				'/?/start',
 				expect.objectContaining({
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
 				}),
 			);
 
@@ -71,9 +70,9 @@ describe('sync/processor', () => {
 			await processSyncQueue();
 
 			expect(global.fetch).toHaveBeenCalledWith(
-				`/api/worklogs/${item.workLogId}`,
+				'/?/update',
 				expect.objectContaining({
-					method: 'PUT',
+					method: 'POST',
 				}),
 			);
 
@@ -87,14 +86,16 @@ describe('sync/processor', () => {
 
 			await processSyncQueue();
 
-			expect(global.fetch).toHaveBeenCalledWith(`/api/worklogs/${item.workLogId}`, {
-				method: 'DELETE',
-			});
+			expect(global.fetch).toHaveBeenCalledWith(
+				'/?/delete',
+				expect.objectContaining({
+					method: 'POST',
+				}),
+			);
 
 			const queue = await getSyncQueue();
 			expect(queue).toHaveLength(0);
 		});
-
 		it('複数のアイテムを順番に同期できる', async () => {
 			await addToSyncQueue(createTestSyncItem('sync-1', 'create'));
 			await addToSyncQueue(createTestSyncItem('sync-2', 'update'));

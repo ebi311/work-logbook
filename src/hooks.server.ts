@@ -4,7 +4,6 @@ import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { getSecurityHeaders } from '$lib/server/security/headers';
-import { generateNonce } from '$lib/server/security/nonce';
 
 const SESSION_COOKIE = 'session_id';
 
@@ -19,14 +18,10 @@ const isPublicPath = (pathname: string): boolean => {
 export const handle: Handle = async ({ event, resolve }) => {
 	const { locals, cookies, url } = event;
 
-	// リクエストごとにnonceを生成
-	const nonce = generateNonce();
-	locals.nonce = nonce;
-
 	// 認証ルートは常に許可
 	if (isPublicPath(url.pathname)) {
 		const response = await resolve(event);
-		return applySecurityHeaders(response, nonce);
+		return applySecurityHeaders(response);
 	}
 
 	// Get session ID from cookie
@@ -64,18 +59,19 @@ export const handle: Handle = async ({ event, resolve }) => {
 				location: '/auth/login',
 			},
 		});
-		return applySecurityHeaders(response, nonce);
+		return applySecurityHeaders(response);
 	}
 
 	const response = await resolve(event);
-	return applySecurityHeaders(response, nonce);
+	return applySecurityHeaders(response);
 };
 
 /**
- * レスポンスにセキュリティヘッダーを適用
+ * レスポンスにセキュリティヘッダーを適用（CSP以外）
+ * CSPはSvelteKitのcsp設定で自動的に適用される
  */
-const applySecurityHeaders = (response: Response, nonce: string): Response => {
-	const securityHeaders = getSecurityHeaders(nonce);
+const applySecurityHeaders = (response: Response): Response => {
+	const securityHeaders = getSecurityHeaders();
 	const newHeaders = new Headers(response.headers);
 
 	for (const [key, value] of Object.entries(securityHeaders)) {

@@ -10,7 +10,6 @@ declare global {
 				githubUsername: string;
 				isActive: boolean;
 			};
-			nonce?: string;
 		}
 		// interface PageData {}
 		// interface PageState {}

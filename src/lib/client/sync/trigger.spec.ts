@@ -7,6 +7,10 @@ vi.mock('./processor', () => ({
 	processSyncQueue: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock('$app/navigation', () => ({
+	invalidateAll: vi.fn().mockResolvedValue(undefined),
+}));
+
 describe('sync/trigger', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();

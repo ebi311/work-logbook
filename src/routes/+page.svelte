@@ -18,7 +18,7 @@
 		deleteWorkLogOffline,
 		saveWorkLogFromServer,
 	} from '$lib/client/db/workLogs';
-	import { requestSync } from '$lib/client/sync/trigger';
+	import { requestSync, setSyncSuccessCallback } from '$lib/client/sync/trigger';
 	import { nanoid } from 'nanoid';
 
 	type Props = {
@@ -427,6 +427,19 @@
 
 		return () => {
 			window.removeEventListener('keydown', handleKeyDown);
+		};
+	});
+
+	// 同期成功時のコールバックを設定
+	$effect(() => {
+		setSyncSuccessCallback(() => {
+			// オフライン変更フラグをリセット
+			hasOfflineChanges = false;
+			console.log('[Sync] Offline changes flag reset');
+		});
+
+		return () => {
+			setSyncSuccessCallback(null);
 		};
 	});
 

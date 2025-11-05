@@ -1,6 +1,21 @@
 import { processSyncQueue } from './processor';
 import { isOnline } from '$lib/client/network/status';
 import { get } from 'svelte/store';
+import { invalidateAll } from '$app/navigation';
+
+/**
+ * 同期成功時のコールバック関数の型
+ */
+type SyncSuccessCallback = () => void | Promise<void>;
+
+let syncSuccessCallback: SyncSuccessCallback | null = null;
+
+/**
+ * 同期成功時のコールバックを設定
+ */
+export const setSyncSuccessCallback = (callback: SyncSuccessCallback | null): void => {
+	syncSuccessCallback = callback;
+};
 
 /**
  * Background Sync APIを使用して同期をリクエストする
@@ -45,10 +60,16 @@ export const syncWorkLogsNow = async (): Promise<boolean> => {
 		const hasSuccess = await processSyncQueue();
 		if (hasSuccess) {
 			console.log('Sync completed successfully');
-			// 同期成功時にページをリロードしてデータを更新
+			
+			// 同期成功時のコールバックを実行（hasOfflineChangesフラグのリセットなど）
+			if (syncSuccessCallback) {
+				await syncSuccessCallback();
+			}
+			
+			// データを再取得（ページリロードの代わり）
 			if (typeof window !== 'undefined') {
-				console.log('[Sync] Reloading page to refresh data...');
-				window.location.reload();
+				console.log('[Sync] Invalidating data to refresh...');
+				await invalidateAll();
 			}
 		}
 		return hasSuccess;

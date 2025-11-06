@@ -34,6 +34,7 @@
 		createEditModalManager,
 		type ListItem as EditableListItem,
 	} from '$lib/client/modal/editModalManager';
+	import { createDeleteHandler } from '$lib/client/delete/deleteHandler';
 
 	type Props = {
 		data: PageData;
@@ -331,57 +332,27 @@
 	};
 
 	// F-004: 削除処理
-	const handleDeleteClick = async (item: ListItem) => {
-		// ブラウザ標準の確認ダイアログ
-		const confirmed = window.confirm(
-			'この作業記録を削除してもよろしいですか？\n\nこの操作は取り消せません。',
-		);
-
-		if (!confirmed) {
-			return; // キャンセルされた場合は何もしない
-		}
-
-		// オフライン時の処理
-		if (!$isOnline) {
-			try {
-				await deleteWorkLogOffline(item.id);
-				toastSuccess('作業記録を削除しました（オフライン）');
-				hasOfflineChanges = true; // オフライン変更フラグを立てる
-				requestSync(); // Background Syncをリクエスト
-				// データを再取得
-				await refreshAll();
-			} catch (error) {
-				console.error('Offline delete error:', error);
-				toastError('オフライン削除でエラーが発生しました');
-			}
-			return;
-		}
-
-		// オンライン時: 削除アクションを実行
-		const formData = new FormData();
-		formData.set('id', item.id);
-
-		try {
-			const response = await fetch('?/delete', {
-				method: 'POST',
-				body: formData,
-			});
-
-			const result = await response.json();
-
-			if (result.type === 'success') {
-				// 削除成功
-				toastSuccess('作業記録を削除しました');
-				// データを再取得
-				await refreshAll();
+	const deleteHandler = createDeleteHandler({
+		isOnline: $isOnline,
+		deleteOffline: deleteWorkLogOffline,
+		onSuccess: async (wasOffline: boolean) => {
+			if (wasOffline) {
+				toastSuccess('作業記録を削除しました(オフライン)');
+				hasOfflineChanges = true;
+				requestSync();
 			} else {
-				// 削除失敗
-				toastError('削除に失敗しました');
+				toastSuccess('作業記録を削除しました');
 			}
-		} catch (error) {
-			console.error('Delete error:', error);
-			toastError('削除中にエラーが発生しました');
-		}
+			await refreshAll();
+		},
+		onError: (message: string) => {
+			toastError(message);
+		},
+	});
+
+	// WorkLogHistoryコンポーネント用のラッパー関数
+	const handleDeleteClick = (item: ListItem) => {
+		deleteHandler(item.id);
 	};
 </script>
 

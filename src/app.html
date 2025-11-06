@@ -2,7 +2,10 @@
 <html lang="ja">
 	<head>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+		/>
 		<meta name="theme-color" content="#3b82f6" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -23,7 +26,7 @@
 		</script>
 		%sveltekit.head%
 	</head>
-	<body data-sveltekit-preload-data="hover" class="min-h-screen bg-base-300">
+	<body data-sveltekit-preload-data="hover" class="min-h-screen max-w-screen bg-base-300">
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>
 </html>

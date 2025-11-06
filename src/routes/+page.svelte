@@ -338,7 +338,7 @@
 	};
 </script>
 
-<div class="mx-auto prose h-full w-xl bg-base-300 py-16">
+<div class="mx-auto prose h-full max-w-xl bg-base-300 py-16">
 	<h1>作業記録</h1>
 
 	<div class="card mb-8 border border-neutral-300 bg-base-100">

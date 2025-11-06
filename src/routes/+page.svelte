@@ -23,6 +23,12 @@
 		createHandleStopSuccess,
 		createHandleSwitchSuccess,
 	} from '$lib/client/handlers/successHandlers';
+	import {
+		readFiltersFromUrl,
+		buildTagFilterUrl,
+		buildDateFilterUrl,
+		buildAddTagToFilterUrl,
+	} from '$lib/client/state/filterManager';
 
 	type Props = {
 		data: PageData;
@@ -55,68 +61,33 @@
 
 	// F-006: フィルタ用のタグ（URLから取得）
 	let filterTags = $state<string[]>([]);
-	$effect(() => {
-		const tagsParam = page.url.searchParams.get('tags');
-		filterTags = tagsParam ? tagsParam.split(',').filter(Boolean) : [];
-	});
-
-	// F-006: 日付フィルタ（URLから取得）
 	let currentMonth = $state<string | undefined>(undefined);
 	let currentDate = $state<string | undefined>(undefined);
 	$effect(() => {
-		currentMonth = page.url.searchParams.get('month') ?? undefined;
-		currentDate = page.url.searchParams.get('date') ?? undefined;
+		const filters = readFiltersFromUrl(page.url);
+		filterTags = filters.tags;
+		currentMonth = filters.month;
+		currentDate = filters.date;
 	});
 
 	// F-006: フィルタタグ変更ハンドラー
 	const handleFilterTagsChange = (newTags: string[]) => {
-		const url = new URL(page.url);
-
-		if (newTags.length > 0) {
-			url.searchParams.set('tags', newTags.join(','));
-		} else {
-			url.searchParams.delete('tags');
-		}
-
-		// ページをリセット
-		url.searchParams.set('page', '1');
-
-		goto(url.toString(), { replaceState: false, noScroll: true, keepFocus: true });
+		const url = buildTagFilterUrl(newTags, page.url);
+		goto(url, { replaceState: false, noScroll: true, keepFocus: true });
 	};
 
 	// F-006: 日付フィルタ変更ハンドラー
 	const handleDateFilterChange = (filter: { month?: string; date?: string }) => {
-		const url = new URL(page.url);
-
-		// 既存の日付パラメータをクリア
-		url.searchParams.delete('month');
-		url.searchParams.delete('date');
-		url.searchParams.delete('from');
-		url.searchParams.delete('to');
-
-		// 新しいフィルタを設定
-		if (filter.month) {
-			url.searchParams.set('month', filter.month);
-		} else if (filter.date) {
-			url.searchParams.set('date', filter.date);
-		}
-
-		// ページをリセット
-		url.searchParams.set('page', '1');
-
-		goto(url.toString(), { replaceState: false, noScroll: true, keepFocus: true });
+		const url = buildDateFilterUrl(filter, page.url);
+		goto(url, { replaceState: false, noScroll: true, keepFocus: true });
 	};
 
 	// F-006 UC-003: タグバッジクリックハンドラー
 	const handleTagClick = (tag: string) => {
-		// 既に選択されている場合はスキップ
-		if (filterTags.includes(tag)) {
-			return;
+		const url = buildAddTagToFilterUrl(tag, filterTags, page.url);
+		if (url) {
+			goto(url, { replaceState: false, noScroll: true, keepFocus: true });
 		}
-
-		// 新しいタグを追加
-		const newTags = [...filterTags, tag];
-		handleFilterTagsChange(newTags);
 	};
 
 	// 成功ハンドラーを作成

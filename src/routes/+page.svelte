@@ -30,6 +30,10 @@
 		buildAddTagToFilterUrl,
 	} from '$lib/client/state/filterManager';
 	import { createKeyboardShortcutHandler } from '$lib/client/keyboard/shortcuts';
+	import {
+		createEditModalManager,
+		type ListItem as EditableListItem,
+	} from '$lib/client/modal/editModalManager';
 
 	type Props = {
 		data: PageData;
@@ -293,30 +297,20 @@
 	let listDataPromise = $derived<Promise<ListData>>(data.listData as Promise<ListData>);
 
 	// ===== 編集モーダルの状態 =====
+	const editModalManager = createEditModalManager();
 	let editOpen = $state(false);
-	let editTarget: {
-		id: string;
-		startedAt: Date;
-		endedAt: Date | null;
-		description: string;
-		tags: string[];
-	} | null = $state(null);
+	let editTarget = $state<ReturnType<typeof editModalManager.getTarget>>(null);
 
 	const openEditModal = (item: ListItem) => {
-		if (item.endedAt === null) return; // 進行中は編集不可
-		editTarget = {
-			id: item.id,
-			startedAt: new Date(item.startedAt),
-			endedAt: item.endedAt ? new Date(item.endedAt) : null,
-			description: item.description,
-			tags: item.tags || [],
-		};
-		editOpen = true;
+		editModalManager.openModal(item as EditableListItem);
+		editOpen = editModalManager.isOpen();
+		editTarget = editModalManager.getTarget();
 	};
 
 	const handleEditClose = () => {
-		editOpen = false;
-		editTarget = null;
+		editModalManager.closeModal();
+		editOpen = editModalManager.isOpen();
+		editTarget = editModalManager.getTarget();
 	};
 
 	const handleEditUpdate = async (

@@ -29,6 +29,7 @@
 		buildDateFilterUrl,
 		buildAddTagToFilterUrl,
 	} from '$lib/client/state/filterManager';
+	import { createKeyboardShortcutHandler } from '$lib/client/keyboard/shortcuts';
 
 	type Props = {
 		data: PageData;
@@ -242,42 +243,21 @@
 	});
 
 	// キーボードショートカットのハンドラー
-	const handleKeyDown = (event: KeyboardEvent) => {
-		// Cmd/Ctrl + S
-		if ((event.metaKey || event.ctrlKey) && event.key === 's') {
-			// 入力フィールドにフォーカスがある場合は無効
-			const target = event.target as HTMLElement;
-			if (
-				target &&
-				typeof target.matches === 'function' &&
-				target.matches('input, textarea, [contenteditable="true"]')
-			) {
-				return;
-			}
-
-			// ブラウザのデフォルト動作（保存ダイアログ）を抑制
-			event.preventDefault();
-
-			// トグルボタンをクリック
-			if (toggleButtonElement && !isSubmitting) {
-				// ボタンにハイライト効果を追加
-				toggleButtonElement.classList.add('keyboard-triggered');
-				setTimeout(() => {
-					toggleButtonElement?.classList.remove('keyboard-triggered');
-				}, 300);
-
-				// ボタンをクリック
-				toggleButtonElement.click();
-			}
-		}
-	};
+	// キーボードショートカットハンドラー
+	const keyboardHandler = $derived(
+		createKeyboardShortcutHandler({
+			toggleButton: toggleButtonElement,
+			isSubmitting,
+			onToggleClick: () => toggleButtonElement?.click(),
+		}),
+	);
 
 	// キーボードイベントリスナーの登録・解除
 	$effect(() => {
-		window.addEventListener('keydown', handleKeyDown);
+		window.addEventListener('keydown', keyboardHandler);
 
 		return () => {
-			window.removeEventListener('keydown', handleKeyDown);
+			window.removeEventListener('keydown', keyboardHandler);
 		};
 	});
 

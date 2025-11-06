@@ -4,7 +4,8 @@
 	import WorkLogToggleButton from './_components/WorkLogToggleButton/WorkLogToggleButton.svelte';
 	import KeyboardShortcutHelp from './_components/KeyboardShortcutHelp/KeyboardShortcutHelp.svelte';
 	import WorkLogHistory from './_components/WorkLogHistory/WorkLogHistory.svelte';
-	import TagInput from './_components/TagInput/TagInput.svelte';
+	import DescriptionInput from './_components/DescriptionInput/DescriptionInput.svelte';
+	import WorkLogTagInput from './_components/WorkLogTagInput/WorkLogTagInput.svelte';
 	import { enhance } from '$app/forms';
 	import WorkLogEditModal from './_components/WorkLogEditModal/WorkLogEditModal.svelte';
 	import { invalidate, invalidateAll, refreshAll, goto } from '$app/navigation';
@@ -385,29 +386,10 @@
 				}}
 			>
 				<!-- 作業内容入力フィールド -->
-				<div class="form-control flex w-full flex-col">
-					<label for="description" class="label">
-						<span class="label-text">作業内容（Markdown対応）</span>
-					</label>
-					<textarea
-						id="description"
-						name="description"
-						bind:value={description}
-						placeholder="作業内容を入力..."
-						class="textarea-bordered textarea w-full font-mono text-sm"
-						rows="3"
-						disabled={isSubmitting}
-					></textarea>
-				</div>
+				<DescriptionInput bind:value={description} disabled={isSubmitting} />
 
 				<!-- タグ入力フィールド -->
-				<div class="form-control flex w-full flex-col">
-					<TagInput bind:tags suggestions={data.tagSuggestions} placeholder="例: 開発 PJ-A" />
-					<!-- 隠しフィールドでタグを送信 -->
-					{#each tags as tag}
-						<input type="hidden" name="tags" value={tag} />
-					{/each}
-				</div>
+				<WorkLogTagInput bind:tags suggestions={data.tagSuggestions} />
 
 				<WorkLogToggleButton
 					bind:buttonElement={toggleButtonElement}

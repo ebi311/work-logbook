@@ -14,8 +14,11 @@
 		placeholder?: string;
 	};
 
-	let { value = $bindable(''), disabled = false, placeholder = '作業内容を入力...' }: Props =
-		$props();
+	let {
+		value = $bindable(''),
+		disabled = false,
+		placeholder = '作業内容を入力...',
+	}: Props = $props();
 </script>
 
 <div class="form-control flex w-full flex-col">

@@ -24,6 +24,7 @@
 		createHandleStopSuccess,
 		createHandleSwitchSuccess,
 	} from '$lib/client/handlers/successHandlers';
+	import { createFormResponseHandler } from '$lib/client/handlers/formResponseHandler';
 	import {
 		readFiltersFromUrl,
 		buildTagFilterUrl,
@@ -214,38 +215,17 @@
 	});
 
 	// formアクション結果を処理
+	const processFormResponse = $derived(
+		createFormResponseHandler({
+			onStartSuccess: handleStartSuccess,
+			onStopSuccess: handleStopSuccess,
+			onSwitchSuccess: handleSwitchSuccess,
+			errorHandlers,
+		}),
+	);
+
 	$effect(() => {
-		if (!form) return;
-
-		// 成功時
-		if ('ok' in form && form.ok) {
-			// switch 成功時の処理
-			if ('started' in form && 'stopped' in form) {
-				handleSwitchSuccess(form);
-				return;
-			}
-
-			if (!('workLog' in form)) return;
-
-			if (form.workLog?.endedAt === null) {
-				handleStartSuccess(form);
-			} else {
-				// durationSec が存在するのは stop 成功時
-				if ('durationSec' in form) {
-					handleStopSuccess(form);
-				}
-				// update 成功時は、モーダルから onupdated コールバックで処理される
-			}
-			return;
-		}
-
-		// エラー時
-		if (!('reason' in form) || typeof form.reason !== 'string') return;
-
-		const handler = errorHandlers[form.reason];
-		if (handler) {
-			handler(form);
-		}
+		processFormResponse(form);
 	});
 
 	// キーボードショートカットのハンドラー

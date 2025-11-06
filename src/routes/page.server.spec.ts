@@ -16,6 +16,7 @@ vi.mock('$lib/server/db/workLogs', () => ({
 	getActiveWorkLog: vi.fn(),
 	listWorkLogs: vi.fn(),
 	aggregateMonthlyWorkLogDuration: vi.fn(),
+	aggregateDailyWorkLogDuration: vi.fn(),
 	getUserTagSuggestions: vi.fn(),
 }));
 
@@ -24,6 +25,7 @@ import {
 	getActiveWorkLog,
 	listWorkLogs,
 	aggregateMonthlyWorkLogDuration,
+	aggregateDailyWorkLogDuration,
 	getUserTagSuggestions,
 } from '$lib/server/db/workLogs';
 import type { ServerLoadEvent } from '@sveltejs/kit';
@@ -54,6 +56,8 @@ describe('Server Actions: load', () => {
 			vi.mocked(getActiveWorkLog).mockResolvedValue(mockWorkLog);
 			vi.mocked(listWorkLogs).mockResolvedValue({ items: [], hasNext: false });
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(0);
+			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
+			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
 
 			// モック: locals と URL
@@ -88,6 +92,7 @@ describe('Server Actions: load', () => {
 			expect(listData).toHaveProperty('size');
 			expect(listData).toHaveProperty('hasNext');
 			expect(listData).toHaveProperty('monthlyTotalSec');
+			expect(listData).toHaveProperty('dailyTotalSec');
 		});
 	});
 
@@ -97,6 +102,8 @@ describe('Server Actions: load', () => {
 			vi.mocked(getActiveWorkLog).mockResolvedValue(null);
 			vi.mocked(listWorkLogs).mockResolvedValue({ items: [], hasNext: false });
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(0);
+			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
+			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
 
 			// モック: locals と URL
@@ -200,6 +207,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 				hasNext: false,
 			}); // モック: 月次合計
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(7200); // 2時間
+			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
 
 			// モック: locals
@@ -221,6 +229,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			// 検証
 			expect(listData).toHaveProperty('items');
 			expect(listData).toHaveProperty('monthlyTotalSec', 7200);
+			expect(listData).toHaveProperty('dailyTotalSec', 0);
 			expect(listData).toHaveProperty('page', 1);
 			expect(listData).toHaveProperty('size', 20);
 			expect(listData).toHaveProperty('hasNext', false);
@@ -242,6 +251,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 
 			// モック: 月次合計
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(3600); // 1時間
+			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
 
 			// モック: locals
@@ -265,6 +275,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 				month: '2025-09',
 			});
 			expect(listData.monthlyTotalSec).toBe(3600);
+			expect(listData.dailyTotalSec).toBe(0);
 		});
 	});
 
@@ -281,6 +292,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 
 			// モック: 月次合計
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(0);
+			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
 
 			// モック: locals
@@ -334,6 +346,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			vi.mocked(getActiveWorkLog).mockResolvedValue(null);
 			vi.mocked(listWorkLogs).mockResolvedValue({ items: [], hasNext: false });
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(0);
+			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
 
 			// モック: locals
@@ -366,6 +379,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			vi.mocked(getActiveWorkLog).mockResolvedValue(null);
 			vi.mocked(listWorkLogs).mockResolvedValue({ items: [], hasNext: false });
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(0);
+			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
 
 			// モック: locals
@@ -398,6 +412,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			vi.mocked(getActiveWorkLog).mockResolvedValue(null);
 			vi.mocked(listWorkLogs).mockResolvedValue({ items: [], hasNext: false });
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(0);
+			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
 
 			// モック: locals

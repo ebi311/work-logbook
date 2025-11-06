@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
-import { aggregateMonthlyWorkLogDuration } from './workLogs';
+import { aggregateMonthlyWorkLogDuration, aggregateDailyWorkLogDuration } from './workLogs';
 
 // モック用のヘルパー型
 type MockDb = {
@@ -120,5 +120,62 @@ describe('aggregateMonthlyWorkLogDuration', () => {
 
 		// DBクエリは実行されない
 		expect(mockDb.select).not.toHaveBeenCalled();
+	});
+});
+
+describe('aggregateDailyWorkLogDuration', () => {
+	const testUserId = 'test-user-id';
+
+	beforeEach(() => {
+		// モックをリセット
+		vi.clearAllMocks();
+		// デフォルトの返り値を設定
+		mockDb.where.mockResolvedValue([{ totalSec: 0 }]);
+	});
+
+	it('正しいクエリパラメータで呼び出される（通常日）', async () => {
+		mockDb.where.mockResolvedValue([{ totalSec: 3600 }]);
+
+		const total = await aggregateDailyWorkLogDuration(testUserId, { date: '2025-11-06' });
+
+		// select が呼ばれたことを確認
+		expect(mockDb.select).toHaveBeenCalledTimes(1);
+		// from が work_logs テーブルで呼ばれたことを確認
+		expect(mockDb.from).toHaveBeenCalledTimes(1);
+		// where が呼ばれたことを確認
+		expect(mockDb.where).toHaveBeenCalledTimes(1);
+
+		// 結果の検証
+		expect(total).toBe(3600);
+	});
+
+	it('レコードが0件の場合は0を返す', async () => {
+		mockDb.where.mockResolvedValue([{ totalSec: 0 }]);
+
+		const total = await aggregateDailyWorkLogDuration(testUserId, { date: '2025-11-06' });
+
+		expect(total).toBe(0);
+	});
+
+	it('小数点以下は切り捨てられる', async () => {
+		mockDb.where.mockResolvedValue([{ totalSec: 7200.9 }]);
+
+		const total = await aggregateDailyWorkLogDuration(testUserId, { date: '2025-11-06' });
+
+		expect(total).toBe(7200); // Math.floor適用
+	});
+
+	it('複数回呼び出しても正しく動作する', async () => {
+		// 1回目
+		mockDb.where.mockResolvedValueOnce([{ totalSec: 1000 }]);
+		const total1 = await aggregateDailyWorkLogDuration(testUserId, { date: '2025-11-06' });
+		expect(total1).toBe(1000);
+
+		// 2回目
+		mockDb.where.mockResolvedValueOnce([{ totalSec: 2000 }]);
+		const total2 = await aggregateDailyWorkLogDuration(testUserId, { date: '2025-11-07' });
+		expect(total2).toBe(2000);
+
+		expect(mockDb.select).toHaveBeenCalledTimes(2);
 	});
 });

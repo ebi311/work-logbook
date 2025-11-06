@@ -145,7 +145,7 @@ export const stopWorkLog = async (
 };
 
 /**
- * 指定月の作業時間合計を集計（境界クリップ、進行中除外）
+ * 指定月の作業時間合計を集計(境界クリップ、進行中除外)
  * @param userId - ユーザーID
  * @param options - { month: YYYY-MM }
  * @returns 月次合計作業秒数
@@ -158,6 +158,43 @@ export const aggregateMonthlyWorkLogDuration = async (
 
 	// SQLで境界クリップを実行: GREATEST/LEASTで範囲内の寄与時間を算出
 	// contribSec = EXTRACT(EPOCH FROM (LEAST(ended_at, toExclusive) - GREATEST(started_at, from)))
+	const result = await db
+		.select({
+			totalSec: sql<number>`COALESCE(SUM(
+				EXTRACT(EPOCH FROM (
+					LEAST(${workLogs.endedAt}, ${toExclusive.toISOString()}::timestamptz)
+					- GREATEST(${workLogs.startedAt}, ${from.toISOString()}::timestamptz)
+				))
+			), 0)`,
+		})
+		.from(workLogs)
+		.where(
+			and(
+				eq(workLogs.userId, userId),
+				isNotNull(workLogs.endedAt),
+				lt(workLogs.startedAt, toExclusive),
+				gt(workLogs.endedAt, from),
+			),
+		);
+
+	return Math.floor(result[0].totalSec);
+};
+
+/**
+ * 指定日の作業時間合計を集計(境界クリップ、進行中除外)
+ * @param userId - ユーザーID
+ * @param options - { date: YYYY-MM-DD }
+ * @returns 日次合計作業秒数
+ */
+export const aggregateDailyWorkLogDuration = async (
+	userId: string,
+	{ date }: { date: string },
+): Promise<number> => {
+	// 日付の開始時刻と終了時刻を生成 (UTC)
+	const from = new Date(date + 'T00:00:00.000Z');
+	const toExclusive = new Date(date + 'T23:59:59.999Z');
+
+	// SQLで境界クリップを実行
 	const result = await db
 		.select({
 			totalSec: sql<number>`COALESCE(SUM(

@@ -2,6 +2,7 @@
 	import TagInput from '../TagInput/TagInput.svelte';
 	import WorkLogListSkeleton from '../WorkLogList/WorkLogListSkeleton.svelte';
 	import MonthlyTotal from '../MonthlyTotal/MonthlyTotal.svelte';
+	import DailyTotal from '../DailyTotal/DailyTotal.svelte';
 	import Pagination from '../Pagination/Pagination.svelte';
 	import WorkLogList from '../WorkLogList/WorkLogList.svelte';
 
@@ -19,6 +20,7 @@
 		size: number;
 		hasNext: boolean;
 		monthlyTotalSec: number;
+		dailyTotalSec: number;
 	};
 
 	type Props = {
@@ -146,8 +148,15 @@
 			<!-- ローディング中 -->
 			<WorkLogListSkeleton rows={5} />
 		{:then listData}
-			<div class="grid grid-cols-[1fr_auto] items-end">
-				<MonthlyTotal totalSec={listData.monthlyTotalSec} />
+			<div class="mb-4 grid grid-cols-2 gap-4">
+				<div class="stats border border-neutral-300 shadow">
+					<DailyTotal totalSec={listData.dailyTotalSec} />
+				</div>
+				<div class="stats border border-neutral-300 shadow">
+					<MonthlyTotal totalSec={listData.monthlyTotalSec} />
+				</div>
+			</div>
+			<div class="mb-4 flex justify-end">
 				<Pagination currentPage={listData.page} hasNext={listData.hasNext} size={listData.size} />
 			</div>
 			<!-- データ表示 -->

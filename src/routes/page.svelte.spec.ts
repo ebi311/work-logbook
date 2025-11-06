@@ -69,6 +69,7 @@ describe('/+page.svelte', () => {
 			size: 10,
 			hasNext: false,
 			monthlyTotalSec: 0,
+			dailyTotalSec: 0,
 		});
 
 	// テストデータヘルパー: デフォルトのdataオブジェクトを生成
@@ -658,8 +659,9 @@ describe('/+page.svelte', () => {
 			// 日付ヘッダーが表示されている
 			expect(screen.getByText('日付')).toBeInTheDocument();
 
-			// 月次合計が表示されている
-			expect(screen.getByText(/合計/)).toBeInTheDocument();
+			// 月次合計と日次合計が表示されている
+			expect(screen.getByText(/今日の合計/)).toBeInTheDocument();
+			expect(screen.getByText(/今月の合計/)).toBeInTheDocument();
 		});
 
 		it('ページネーションが機能する', async () => {
@@ -677,6 +679,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: true,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -716,6 +719,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 0,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -761,6 +765,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -792,6 +797,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -828,6 +834,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -892,6 +899,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -923,6 +931,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -964,6 +973,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -1012,6 +1022,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -1103,6 +1114,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -1139,6 +1151,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			// URLパラメータでフィルタを設定
@@ -1184,6 +1197,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -1219,6 +1233,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -1254,6 +1269,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -1291,6 +1307,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -1329,6 +1346,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -1366,6 +1384,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -1416,6 +1435,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -1457,6 +1477,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -1489,6 +1510,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 5400,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -1517,6 +1539,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 0,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -1541,6 +1564,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 0,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -1565,6 +1589,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 0,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -1593,6 +1618,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 0,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -1632,6 +1658,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 0,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {
@@ -1672,6 +1699,7 @@ describe('/+page.svelte', () => {
 				size: 10,
 				hasNext: false,
 				monthlyTotalSec: 0,
+				dailyTotalSec: 0,
 			});
 
 			render(Page, {

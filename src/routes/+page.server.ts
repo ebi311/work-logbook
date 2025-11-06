@@ -4,6 +4,7 @@ import {
 	getActiveWorkLog,
 	listWorkLogs,
 	aggregateMonthlyWorkLogDuration,
+	aggregateDailyWorkLogDuration,
 	getUserTagSuggestions,
 } from '$lib/server/db/workLogs';
 import { normalizeWorkLogQuery } from '$lib/utils/queryNormalizer';
@@ -61,9 +62,10 @@ const fetchListData = async (
 
 	// 並列で取得
 	const monthForAggregate = normalized.month ?? new Date().toISOString().slice(0, 7);
+	const todayDate = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 
 	const parallelStart = Date.now();
-	const [{ items: dbItems, hasNext }, monthlyTotalSec] = await Promise.all([
+	const [{ items: dbItems, hasNext }, monthlyTotalSec, dailyTotalSec] = await Promise.all([
 		listWorkLogs(userId, {
 			from: normalized.from,
 			to: normalized.to,
@@ -72,12 +74,14 @@ const fetchListData = async (
 			offset: normalized.offset,
 		}),
 		aggregateMonthlyWorkLogDuration(userId, { month: monthForAggregate }),
+		aggregateDailyWorkLogDuration(userId, { date: todayDate }),
 	]);
 	console.log('[PERF] fetchListData - parallel DB queries completed', {
 		duration: Date.now() - parallelStart,
 		timestamp: new Date().toISOString(),
 		dbItemsCount: dbItems.length,
 		monthlyTotalSec,
+		dailyTotalSec,
 	});
 
 	// アイテムを変換
@@ -112,6 +116,7 @@ const fetchListData = async (
 		size: normalized.size,
 		hasNext,
 		monthlyTotalSec,
+		dailyTotalSec,
 	};
 };
 
@@ -142,13 +147,14 @@ type WorkLogItem = {
 type LoadData = {
 	active?: ActiveWorkLog;
 	serverNow: string;
-	// F-005/F-006: 一覧と月次合計（Promiseでストリーミング）
+	// F-005/F-006: 一覧と月次合計(Promiseでストリーミング)
 	listData: Promise<{
 		items: WorkLogItem[];
 		page: number;
 		size: number;
 		hasNext: boolean;
 		monthlyTotalSec: number;
+		dailyTotalSec: number;
 	}>;
 	// F-003: タグ候補
 	tagSuggestions: { tag: string; count: number }[];

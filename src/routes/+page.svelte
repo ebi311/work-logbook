@@ -274,6 +274,7 @@
 		size: number;
 		hasNext: boolean;
 		monthlyTotalSec: number;
+		dailyTotalSec: number;
 	};
 
 	let listDataPromise = $derived<Promise<ListData>>(data.listData as Promise<ListData>);

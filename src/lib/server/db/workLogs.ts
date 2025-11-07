@@ -1,21 +1,8 @@
 import { db } from './index';
 import { workLogs, workLogTags, type DbWorkLog } from './schema';
-import {
-	eq,
-	and,
-	isNull,
-	sql,
-	lt,
-	gt,
-	isNotNull,
-	gte,
-	lte,
-	desc,
-	like,
-	inArray,
-} from 'drizzle-orm';
+import { eq, and, isNull, sql, isNotNull, gte, lte, desc, like, inArray } from 'drizzle-orm';
 import { WorkLog } from '../../../models/workLog';
-import { getMonthRange } from '../../utils/dateRange';
+import { getMonthRange } from '../../utils/timezone';
 import { z } from 'zod';
 import dayjs from 'dayjs';
 
@@ -146,25 +133,25 @@ export const stopWorkLog = async (
 };
 
 /**
- * 指定月の作業時間合計を集計(境界クリップ、進行中除外)
+ * 月次作業時間の合計を集計(境界クリップ、進行中除外)
  * @param userId - ユーザーID
- * @param options - { month: YYYY-MM }
+ * @param options - { month: YYYY-MM, timezone: タイムゾーン }
  * @returns 月次合計作業秒数
  */
 export const aggregateMonthlyWorkLogDuration = async (
 	userId: string,
-	{ month }: { month: string },
+	{ month, timezone }: { month: string; timezone: string },
 ): Promise<number> => {
-	const { from, toExclusive } = getMonthRange(month);
+	const { from, to } = getMonthRange(month, timezone);
 
 	// SQLで境界クリップを実行: GREATEST/LEASTで範囲内の寄与時間を算出
-	// contribSec = EXTRACT(EPOCH FROM (LEAST(ended_at, toExclusive) - GREATEST(started_at, from)))
+	// contribSec = EXTRACT(EPOCH FROM (LEAST(ended_at, to) - GREATEST(started_at, from)))
 	const result = await db
 		.select({
 			totalSec: sql<number>`COALESCE(SUM(
 				EXTRACT(EPOCH FROM (
-					LEAST(${workLogs.endedAt}, ${toExclusive.toISOString()}::timestamptz)
-					- GREATEST(${workLogs.startedAt}, ${from.toISOString()}::timestamptz)
+					LEAST(${workLogs.endedAt}, ${to}::timestamptz)
+					- GREATEST(${workLogs.startedAt}, ${from}::timestamptz)
 				))
 			), 0)`,
 		})
@@ -173,8 +160,8 @@ export const aggregateMonthlyWorkLogDuration = async (
 			and(
 				eq(workLogs.userId, userId),
 				isNotNull(workLogs.endedAt),
-				lt(workLogs.startedAt, toExclusive),
-				gt(workLogs.endedAt, from),
+				sql`${workLogs.startedAt} < ${to}::timestamptz`,
+				sql`${workLogs.endedAt} > ${from}::timestamptz`,
 			),
 		);
 
@@ -210,8 +197,8 @@ export const aggregateDailyWorkLogDuration = async (
 			and(
 				eq(workLogs.userId, userId),
 				isNotNull(workLogs.endedAt),
-				lt(workLogs.startedAt, to.toDate()),
-				gt(workLogs.endedAt, from.toDate()),
+				sql`${workLogs.startedAt} < ${to.toISOString()}::timestamptz`,
+				sql`${workLogs.endedAt} > ${from.toISOString()}::timestamptz`,
 			),
 		);
 

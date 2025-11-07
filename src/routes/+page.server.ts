@@ -76,7 +76,7 @@ const fetchListData = async (
 			limit: normalized.size,
 			offset: normalized.offset,
 		}),
-		aggregateMonthlyWorkLogDuration(userId, { month: monthForAggregate }),
+		aggregateMonthlyWorkLogDuration(userId, { month: monthForAggregate, timezone }),
 		aggregateDailyWorkLogDuration(userId, { fromDate: todayStartISO }),
 	]);
 	console.log('[PERF] fetchListData - parallel DB queries completed', {

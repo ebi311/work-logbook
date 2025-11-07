@@ -64,6 +64,7 @@ describe('Server Actions: load', () => {
 			const locals = {
 				user: {
 					id: testUserId,
+					timezone: 'Asia/Tokyo',
 				},
 			};
 			const url = new URL('http://localhost:5173/');
@@ -110,6 +111,7 @@ describe('Server Actions: load', () => {
 			const locals = {
 				user: {
 					id: testUserId,
+					timezone: 'Asia/Tokyo',
 				},
 			};
 			const url = new URL('http://localhost:5173/');
@@ -159,6 +161,7 @@ describe('Server Actions: load', () => {
 			const locals = {
 				user: {
 					id: testUserId,
+					timezone: 'Asia/Tokyo',
 				},
 			};
 			const url = new URL('http://localhost:5173/');
@@ -214,6 +217,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			const locals = {
 				user: {
 					id: testUserId,
+					timezone: 'Asia/Tokyo',
 				},
 			};
 
@@ -258,6 +262,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			const locals = {
 				user: {
 					id: testUserId,
+					timezone: 'Asia/Tokyo',
 				},
 			};
 
@@ -273,6 +278,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			// 検証: aggregateMonthlyWorkLogDuration が month='2025-09' で呼ばれる
 			expect(aggregateMonthlyWorkLogDuration).toHaveBeenCalledWith(testUserId, {
 				month: '2025-09',
+				timezone: 'Asia/Tokyo',
 			});
 			expect(listData.monthlyTotalSec).toBe(3600);
 			expect(listData.dailyTotalSec).toBe(0);
@@ -299,6 +305,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			const locals = {
 				user: {
 					id: testUserId,
+					timezone: 'Asia/Tokyo',
 				},
 			};
 
@@ -353,6 +360,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			const locals = {
 				user: {
 					id: testUserId,
+					timezone: 'Asia/Tokyo',
 				},
 			};
 
@@ -386,6 +394,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			const locals = {
 				user: {
 					id: testUserId,
+					timezone: 'Asia/Tokyo',
 				},
 			};
 
@@ -419,6 +428,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			const locals = {
 				user: {
 					id: testUserId,
+					timezone: 'Asia/Tokyo',
 				},
 			};
 

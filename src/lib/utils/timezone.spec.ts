@@ -4,6 +4,7 @@ import {
 	getDateStart,
 	getMonthStart,
 	formatInTimezone,
+	getMonthRange,
 	DEFAULT_TIMEZONE,
 } from './timezone';
 
@@ -106,6 +107,38 @@ describe('timezone utilities', () => {
 	describe('DEFAULT_TIMEZONE', () => {
 		it('デフォルトタイムゾーンは Asia/Tokyo', () => {
 			expect(DEFAULT_TIMEZONE).toBe('Asia/Tokyo');
+		});
+	});
+
+	describe('getMonthRange', () => {
+		it('JST で指定月の範囲を取得', () => {
+			const result = getMonthRange('2025-10', 'Asia/Tokyo');
+			expect(result.from).toBe('2025-10-01T00:00:00+09:00');
+			expect(result.to).toBe('2025-11-01T00:00:00+09:00');
+		});
+
+		it('UTC で指定月の範囲を取得', () => {
+			const result = getMonthRange('2025-10', 'UTC');
+			expect(result.from).toBe('2025-10-01T00:00:00Z');
+			expect(result.to).toBe('2025-11-01T00:00:00Z');
+		});
+
+		it('12月の範囲を取得(翌年1月になる)', () => {
+			const result = getMonthRange('2025-12', 'Asia/Tokyo');
+			expect(result.from).toBe('2025-12-01T00:00:00+09:00');
+			expect(result.to).toBe('2026-01-01T00:00:00+09:00');
+		});
+
+		it('異なるタイムゾーンで月の範囲を取得', () => {
+			const result = getMonthRange('2025-10', 'America/New_York');
+			// EDT (UTC-4)
+			expect(result.from).toBe('2025-10-01T00:00:00-04:00');
+			expect(result.to).toBe('2025-11-01T00:00:00-04:00');
+		});
+
+		it('不正な形式の場合はエラー', () => {
+			expect(() => getMonthRange('2025/10', 'Asia/Tokyo')).toThrow('Invalid month format: 2025/10');
+			expect(() => getMonthRange('202510', 'Asia/Tokyo')).toThrow('Invalid month format');
 		});
 	});
 });

@@ -37,10 +37,13 @@ describe('aggregateMonthlyWorkLogDuration', () => {
 		mockDb.where.mockResolvedValue([{ totalSec: 0 }]);
 	});
 
-	it('正しいクエリパラメータで呼び出される（通常月）', async () => {
+	it('正しいクエリパラメータで呼び出される(通常月)', async () => {
 		mockDb.where.mockResolvedValue([{ totalSec: 7200 }]);
 
-		const total = await aggregateMonthlyWorkLogDuration(testUserId, { month: '2025-10' });
+		const total = await aggregateMonthlyWorkLogDuration(testUserId, {
+			month: '2025-10',
+			timezone: 'Asia/Tokyo',
+		});
 
 		// select が呼ばれたことを確認
 		expect(mockDb.select).toHaveBeenCalledTimes(1);
@@ -49,7 +52,7 @@ describe('aggregateMonthlyWorkLogDuration', () => {
 		// where が呼ばれたことを確認
 		expect(mockDb.where).toHaveBeenCalledTimes(1);
 
-		// where の引数を検証（userId, isNotNull, 範囲チェック）
+		// where の引数を検証(userId, isNotNull, 範囲チェック)
 		const whereArg = mockDb.where.mock.calls[0][0];
 		expect(whereArg).toBeDefined();
 
@@ -57,12 +60,15 @@ describe('aggregateMonthlyWorkLogDuration', () => {
 		expect(total).toBe(7200);
 	});
 
-	it('月境界が正しく計算される（2月うるう年）', async () => {
+	it('月境界が正しく計算される(2月うるう年)', async () => {
 		mockDb.where.mockResolvedValue([{ totalSec: 86400 }]);
 
-		const total = await aggregateMonthlyWorkLogDuration(testUserId, { month: '2024-02' });
+		const total = await aggregateMonthlyWorkLogDuration(testUserId, {
+			month: '2024-02',
+			timezone: 'Asia/Tokyo',
+		});
 
-		// 2024-02-01 00:00:00Z 〜 2024-03-01 00:00:00Z の範囲でクエリされることを期待
+		// 2024-02-01 00:00:00+09:00 〜 2024-03-01 00:00:00+09:00 の範囲でクエリされることを期待
 		expect(mockDb.select).toHaveBeenCalledTimes(1);
 		expect(mockDb.from).toHaveBeenCalledTimes(1);
 		expect(mockDb.where).toHaveBeenCalledTimes(1);
@@ -70,12 +76,15 @@ describe('aggregateMonthlyWorkLogDuration', () => {
 		expect(total).toBe(86400);
 	});
 
-	it('月境界が正しく計算される（年末）', async () => {
+	it('月境界が正しく計算される(年末)', async () => {
 		mockDb.where.mockResolvedValue([{ totalSec: 3600 }]);
 
-		const total = await aggregateMonthlyWorkLogDuration(testUserId, { month: '2025-12' });
+		const total = await aggregateMonthlyWorkLogDuration(testUserId, {
+			month: '2025-12',
+			timezone: 'Asia/Tokyo',
+		});
 
-		// 2025-12-01 00:00:00Z 〜 2026-01-01 00:00:00Z の範囲でクエリされることを期待
+		// 2025-12-01 00:00:00+09:00 〜 2026-01-01 00:00:00+09:00 の範囲でクエリされることを期待
 		expect(mockDb.select).toHaveBeenCalledTimes(1);
 		expect(mockDb.from).toHaveBeenCalledTimes(1);
 		expect(mockDb.where).toHaveBeenCalledTimes(1);
@@ -86,7 +95,10 @@ describe('aggregateMonthlyWorkLogDuration', () => {
 	it('レコードが0件の場合は0を返す', async () => {
 		mockDb.where.mockResolvedValue([{ totalSec: 0 }]);
 
-		const total = await aggregateMonthlyWorkLogDuration(testUserId, { month: '2025-10' });
+		const total = await aggregateMonthlyWorkLogDuration(testUserId, {
+			month: '2025-10',
+			timezone: 'Asia/Tokyo',
+		});
 
 		expect(total).toBe(0);
 	});
@@ -94,7 +106,10 @@ describe('aggregateMonthlyWorkLogDuration', () => {
 	it('小数点以下は切り捨てられる', async () => {
 		mockDb.where.mockResolvedValue([{ totalSec: 7200.9 }]);
 
-		const total = await aggregateMonthlyWorkLogDuration(testUserId, { month: '2025-10' });
+		const total = await aggregateMonthlyWorkLogDuration(testUserId, {
+			month: '2025-10',
+			timezone: 'Asia/Tokyo',
+		});
 
 		expect(total).toBe(7200); // Math.floor適用
 	});
@@ -102,12 +117,18 @@ describe('aggregateMonthlyWorkLogDuration', () => {
 	it('複数回呼び出しても正しく動作する', async () => {
 		// 1回目
 		mockDb.where.mockResolvedValueOnce([{ totalSec: 1000 }]);
-		const total1 = await aggregateMonthlyWorkLogDuration(testUserId, { month: '2025-10' });
+		const total1 = await aggregateMonthlyWorkLogDuration(testUserId, {
+			month: '2025-10',
+			timezone: 'Asia/Tokyo',
+		});
 		expect(total1).toBe(1000);
 
 		// 2回目
 		mockDb.where.mockResolvedValueOnce([{ totalSec: 2000 }]);
-		const total2 = await aggregateMonthlyWorkLogDuration(testUserId, { month: '2025-11' });
+		const total2 = await aggregateMonthlyWorkLogDuration(testUserId, {
+			month: '2025-11',
+			timezone: 'Asia/Tokyo',
+		});
 		expect(total2).toBe(2000);
 
 		expect(mockDb.select).toHaveBeenCalledTimes(2);
@@ -115,7 +136,7 @@ describe('aggregateMonthlyWorkLogDuration', () => {
 
 	it('不正な月形式では getMonthRange が例外を投げる', async () => {
 		await expect(
-			aggregateMonthlyWorkLogDuration(testUserId, { month: 'invalid' }),
+			aggregateMonthlyWorkLogDuration(testUserId, { month: 'invalid', timezone: 'Asia/Tokyo' }),
 		).rejects.toThrow();
 
 		// DBクエリは実行されない

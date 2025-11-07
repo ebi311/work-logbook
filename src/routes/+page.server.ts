@@ -1,5 +1,8 @@
 import { error } from '@sveltejs/kit';
 import type { ServerLoad, Actions } from '@sveltejs/kit';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import {
 	getActiveWorkLog,
 	listWorkLogs,
@@ -8,6 +11,10 @@ import {
 	getUserTagSuggestions,
 } from '$lib/server/db/workLogs';
 import { normalizeWorkLogQuery } from '$lib/utils/queryNormalizer';
+
+// Day.jsのプラグインを有効化
+dayjs.extend(utc);
+dayjs.extend(timezone);
 import { handleStartAction } from './_actions/start';
 import { handleStopAction } from './_actions/stop';
 import { handleSwitchAction } from './_actions/switch';
@@ -62,7 +69,9 @@ const fetchListData = async (
 
 	// 並列で取得
 	const monthForAggregate = normalized.month ?? new Date().toISOString().slice(0, 7);
-	const todayDate = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+	// クライアントのタイムゾーン(デフォルトはAsia/Tokyo)で今日の開始時刻を取得
+	const defaultTimezone = 'Asia/Tokyo';
+	const todayStartISO = dayjs().tz(defaultTimezone).startOf('day').toISOString();
 
 	const parallelStart = Date.now();
 	const [{ items: dbItems, hasNext }, monthlyTotalSec, dailyTotalSec] = await Promise.all([
@@ -74,7 +83,7 @@ const fetchListData = async (
 			offset: normalized.offset,
 		}),
 		aggregateMonthlyWorkLogDuration(userId, { month: monthForAggregate }),
-		aggregateDailyWorkLogDuration(userId, { date: todayDate }),
+		aggregateDailyWorkLogDuration(userId, { fromDate: todayStartISO }),
 	]);
 	console.log('[PERF] fetchListData - parallel DB queries completed', {
 		duration: Date.now() - parallelStart,

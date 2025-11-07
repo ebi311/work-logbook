@@ -133,10 +133,12 @@ describe('aggregateDailyWorkLogDuration', () => {
 		mockDb.where.mockResolvedValue([{ totalSec: 0 }]);
 	});
 
-	it('正しいクエリパラメータで呼び出される（通常日）', async () => {
+	it('正しいクエリパラメータで呼び出される(通常日)', async () => {
 		mockDb.where.mockResolvedValue([{ totalSec: 3600 }]);
 
-		const total = await aggregateDailyWorkLogDuration(testUserId, { date: '2025-11-06' });
+		const total = await aggregateDailyWorkLogDuration(testUserId, {
+			fromDate: '2025-11-06T00:00:00+09:00',
+		});
 
 		// select が呼ばれたことを確認
 		expect(mockDb.select).toHaveBeenCalledTimes(1);
@@ -152,7 +154,9 @@ describe('aggregateDailyWorkLogDuration', () => {
 	it('レコードが0件の場合は0を返す', async () => {
 		mockDb.where.mockResolvedValue([{ totalSec: 0 }]);
 
-		const total = await aggregateDailyWorkLogDuration(testUserId, { date: '2025-11-06' });
+		const total = await aggregateDailyWorkLogDuration(testUserId, {
+			fromDate: '2025-11-06T00:00:00+09:00',
+		});
 
 		expect(total).toBe(0);
 	});
@@ -160,7 +164,9 @@ describe('aggregateDailyWorkLogDuration', () => {
 	it('小数点以下は切り捨てられる', async () => {
 		mockDb.where.mockResolvedValue([{ totalSec: 7200.9 }]);
 
-		const total = await aggregateDailyWorkLogDuration(testUserId, { date: '2025-11-06' });
+		const total = await aggregateDailyWorkLogDuration(testUserId, {
+			fromDate: '2025-11-06T00:00:00+09:00',
+		});
 
 		expect(total).toBe(7200); // Math.floor適用
 	});
@@ -168,12 +174,16 @@ describe('aggregateDailyWorkLogDuration', () => {
 	it('複数回呼び出しても正しく動作する', async () => {
 		// 1回目
 		mockDb.where.mockResolvedValueOnce([{ totalSec: 1000 }]);
-		const total1 = await aggregateDailyWorkLogDuration(testUserId, { date: '2025-11-06' });
+		const total1 = await aggregateDailyWorkLogDuration(testUserId, {
+			fromDate: '2025-11-06T00:00:00+09:00',
+		});
 		expect(total1).toBe(1000);
 
 		// 2回目
 		mockDb.where.mockResolvedValueOnce([{ totalSec: 2000 }]);
-		const total2 = await aggregateDailyWorkLogDuration(testUserId, { date: '2025-11-07' });
+		const total2 = await aggregateDailyWorkLogDuration(testUserId, {
+			fromDate: '2025-11-07T00:00:00+09:00',
+		});
 		expect(total2).toBe(2000);
 
 		expect(mockDb.select).toHaveBeenCalledTimes(2);

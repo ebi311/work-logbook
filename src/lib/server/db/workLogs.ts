@@ -17,6 +17,7 @@ import {
 import { WorkLog } from '../../../models/workLog';
 import { getMonthRange } from '../../utils/dateRange';
 import { z } from 'zod';
+import dayjs from 'dayjs';
 
 /**
  * ListWorkLogs の引数オプションスキーマ
@@ -183,23 +184,23 @@ export const aggregateMonthlyWorkLogDuration = async (
 /**
  * 指定日の作業時間合計を集計(境界クリップ、進行中除外)
  * @param userId - ユーザーID
- * @param options - { date: YYYY-MM-DD }
+ * @param options - { fromDate: ISO8601形式のタイムゾーン付き日付開始時刻 }
  * @returns 日次合計作業秒数
  */
 export const aggregateDailyWorkLogDuration = async (
 	userId: string,
-	{ date }: { date: string },
+	{ fromDate }: { fromDate: string },
 ): Promise<number> => {
-	// 日付の開始時刻と終了時刻を生成 (UTC)
-	const from = new Date(date + 'T00:00:00.000Z');
-	const toExclusive = new Date(date + 'T23:59:59.999Z');
+	// ISO8601形式のタイムゾーン付き日付開始時刻から24時間後を計算
+	const from = dayjs(fromDate);
+	const to = from.add(24, 'hour');
 
 	// SQLで境界クリップを実行
 	const result = await db
 		.select({
 			totalSec: sql<number>`COALESCE(SUM(
 				EXTRACT(EPOCH FROM (
-					LEAST(${workLogs.endedAt}, ${toExclusive.toISOString()}::timestamptz)
+					LEAST(${workLogs.endedAt}, ${to.toISOString()}::timestamptz)
 					- GREATEST(${workLogs.startedAt}, ${from.toISOString()}::timestamptz)
 				))
 			), 0)`,
@@ -209,8 +210,8 @@ export const aggregateDailyWorkLogDuration = async (
 			and(
 				eq(workLogs.userId, userId),
 				isNotNull(workLogs.endedAt),
-				lt(workLogs.startedAt, toExclusive),
-				gt(workLogs.endedAt, from),
+				lt(workLogs.startedAt, to.toDate()),
+				gt(workLogs.endedAt, from.toDate()),
 			),
 		);
 

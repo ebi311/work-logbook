@@ -117,9 +117,8 @@ describe('hooks.server.ts', () => {
 			githubId: '12345',
 			githubUsername: 'testuser',
 			isActive: true,
-		});
-
-		// resolve が呼ばれた
+			timezone: 'Asia/Tokyo', // デフォルトタイムゾーン
+		}); // resolve が呼ばれた
 		expect(resolve).toHaveBeenCalledWith(event);
 	});
 

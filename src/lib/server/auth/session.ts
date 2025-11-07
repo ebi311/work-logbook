@@ -3,6 +3,7 @@ import { getRedisClient } from '../config/redis';
 export type SessionRecord = {
 	userId: string;
 	createdAt: string; // ISO string
+	timezone?: string; // ユーザーのタイムゾーン
 };
 
 export const SESSION_PREFIX = 'session:';
@@ -33,7 +34,7 @@ export const createSession = async (userId: string): Promise<string> => {
 
 export const validateSession = async (
 	sessionId: string,
-): Promise<{ valid: true; userId: string } | { valid: false }> => {
+): Promise<{ valid: true; userId: string; timezone?: string } | { valid: false }> => {
 	const client = await getRedisClient();
 	const key = buildKey(sessionId);
 	const raw = await client.get(key);
@@ -45,7 +46,7 @@ export const validateSession = async (
 	try {
 		const parsed = JSON.parse(raw) as SessionRecord;
 		if (!parsed?.userId) return { valid: false };
-		return { valid: true, userId: parsed.userId };
+		return { valid: true, userId: parsed.userId, timezone: parsed.timezone };
 	} catch {
 		return { valid: false };
 	}
@@ -56,6 +57,25 @@ export const refreshSession = async (sessionId: string): Promise<boolean> => {
 	const key = buildKey(sessionId);
 	const ok = await client.expire(key, SESSION_TTL_SECONDS);
 	return !!ok;
+};
+
+export const updateSessionTimezone = async (
+	sessionId: string,
+	timezone: string,
+): Promise<boolean> => {
+	const client = await getRedisClient();
+	const key = buildKey(sessionId);
+	const raw = await client.get(key);
+	if (!raw) return false;
+
+	try {
+		const parsed = JSON.parse(raw) as SessionRecord;
+		parsed.timezone = timezone;
+		await client.set(key, JSON.stringify(parsed), { EX: SESSION_TTL_SECONDS });
+		return true;
+	} catch {
+		return false;
+	}
 };
 
 export const deleteSession = async (sessionId: string): Promise<boolean> => {

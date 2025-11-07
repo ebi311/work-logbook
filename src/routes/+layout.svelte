@@ -13,8 +13,25 @@
 
 	let { children } = $props();
 
+	// タイムゾーンをサーバーに送信
+	const sendTimezone = async () => {
+		try {
+			const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+			await fetch('/api/timezone', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ timezone }),
+			});
+		} catch (error) {
+			console.error('Failed to send timezone:', error);
+		}
+	};
+
 	// オンライン復帰時の自動同期を設定
 	onMount(() => {
+		// タイムゾーンを送信
+		sendTimezone();
+
 		const cleanup = setupAutoSync();
 		return cleanup;
 	});

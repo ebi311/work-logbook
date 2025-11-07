@@ -9,6 +9,7 @@ declare global {
 				githubId: string;
 				githubUsername: string;
 				isActive: boolean;
+				timezone: string;
 			};
 		}
 		// interface PageData {}

@@ -4,6 +4,7 @@ import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { getSecurityHeaders } from '$lib/server/security/headers';
+import { DEFAULT_TIMEZONE } from '$lib/utils/timezone';
 
 const SESSION_COOKIE = 'session_id';
 
@@ -46,7 +47,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 			// Set user in locals if found and active
 			if (user && user.isActive) {
-				locals.user = user;
+				// タイムゾーンを取得: セッション → Cookie → デフォルト
+				const timezone = sessionResult.timezone || cookies.get('timezone') || DEFAULT_TIMEZONE;
+
+				locals.user = {
+					...user,
+					timezone,
+				};
 			}
 		}
 	}

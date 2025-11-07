@@ -1,8 +1,5 @@
 import { error } from '@sveltejs/kit';
 import type { ServerLoad, Actions } from '@sveltejs/kit';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
 import {
 	getActiveWorkLog,
 	listWorkLogs,
@@ -11,10 +8,7 @@ import {
 	getUserTagSuggestions,
 } from '$lib/server/db/workLogs';
 import { normalizeWorkLogQuery } from '$lib/utils/queryNormalizer';
-
-// Day.jsのプラグインを有効化
-dayjs.extend(utc);
-dayjs.extend(timezone);
+import { getTodayStart } from '$lib/utils/timezone';
 import { handleStartAction } from './_actions/start';
 import { handleStopAction } from './_actions/stop';
 import { handleSwitchAction } from './_actions/switch';
@@ -51,6 +45,7 @@ const parseQueryParams = (url: URL) => {
  */
 const fetchListData = async (
 	userId: string,
+	timezone: string,
 	normalized: {
 		from: Date;
 		to: Date;
@@ -69,9 +64,8 @@ const fetchListData = async (
 
 	// 並列で取得
 	const monthForAggregate = normalized.month ?? new Date().toISOString().slice(0, 7);
-	// クライアントのタイムゾーン(デフォルトはAsia/Tokyo)で今日の開始時刻を取得
-	const defaultTimezone = 'Asia/Tokyo';
-	const todayStartISO = dayjs().tz(defaultTimezone).startOf('day').toISOString();
+	// ユーザーのタイムゾーンで今日の開始時刻を取得
+	const todayStartISO = getTodayStart(timezone);
 
 	const parallelStart = Date.now();
 	const [{ items: dbItems, hasNext }, monthlyTotalSec, dailyTotalSec] = await Promise.all([
@@ -221,7 +215,7 @@ export const load: ServerLoad = async ({ locals, url }) => {
 			elapsed: Date.now() - startTime,
 			timestamp: new Date().toISOString(),
 		});
-		const listData = fetchListData(userId, normalized).then((result) => {
+		const listData = fetchListData(userId, locals.user.timezone, normalized).then((result) => {
 			console.log('[PERF] fetchListData completed', {
 				elapsed: Date.now() - startTime,
 				duration: Date.now() - listDataStart,

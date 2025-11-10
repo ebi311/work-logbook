@@ -6,6 +6,7 @@
 	import SyncStatus from '$lib/components/SyncStatus/SyncStatus.svelte';
 	import { setupAutoSync } from '$lib/client/sync/trigger';
 	import { onMount } from 'svelte';
+	import { invalidateAll } from '$app/navigation';
 
 	const toastOptions: SvelteToastOptions = {
 		duration: 3000,
@@ -27,6 +28,20 @@
 		}
 	};
 
+	// ウィンドウがフォーカスされたときにデータを更新
+	const handleWindowFocus = async () => {
+		await invalidateAll();
+		console.log('[Focus] ウィンドウがフォーカスされました - データを更新');
+	};
+
+	// タブがアクティブになったときにデータを更新
+	const handleVisibilityChange = async () => {
+		if (document.visibilityState === 'visible') {
+			await invalidateAll();
+			console.log('[Visibility] タブがアクティブになりました - データを更新');
+		}
+	};
+
 	// オンライン復帰時の自動同期を設定
 	onMount(() => {
 		// タイムゾーンを送信
@@ -36,6 +51,9 @@
 		return cleanup;
 	});
 </script>
+
+<svelte:window onfocus={handleWindowFocus} />
+<svelte:document onvisibilitychange={handleVisibilityChange} />
 
 <svelte:head>
 	<link rel="icon" href={favicon} />

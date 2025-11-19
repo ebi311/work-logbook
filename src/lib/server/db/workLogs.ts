@@ -575,3 +575,76 @@ export const getWorkLogWithTags = async (id: string): Promise<WorkLog | null> =>
 		tags,
 	});
 };
+
+/**
+ * 進行中の作業記録を更新
+ * F-001.2: 進行中作業の編集機能のために追加
+ * @param userId - ユーザーID
+ * @param workLogId - 作業記録ID
+ * @param updates - 更新するフィールド
+ * @returns 更新後の作業記録、または null（進行中でない、または見つからない場合）
+ */
+export const updateActiveWorkLog = async (
+	userId: string,
+	workLogId: string,
+	updates: {
+		startedAt: Date;
+		description: string;
+		tags: string[];
+	},
+): Promise<WorkLog | null> => {
+	const now = new Date();
+
+	// トランザクションで work_logs 更新 + タグ削除・再挿入
+	return await db.transaction(async (tx) => {
+		// 進行中の作業のみ更新（ended_at IS NULL の条件）
+		const result = await tx
+			.update(workLogs)
+			.set({
+				startedAt: updates.startedAt,
+				description: updates.description,
+				updatedAt: now,
+			})
+			.where(and(eq(workLogs.id, workLogId), eq(workLogs.userId, userId), isNull(workLogs.endedAt)))
+			.returning();
+
+		// 条件に合わない場合（進行中でない、またはユーザー不一致）
+		if (result.length === 0) {
+			return null;
+		}
+
+		// タグを削除して再挿入
+		await tx.delete(workLogTags).where(eq(workLogTags.workLogId, workLogId));
+
+		if (updates.tags.length > 0) {
+			await tx.insert(workLogTags).values(
+				updates.tags.map((tag) => ({
+					workLogId,
+					tag,
+				})),
+			);
+		}
+
+		const dbWorkLog = result[0];
+		return WorkLog.from({
+			...dbWorkLog,
+			tags: updates.tags,
+		});
+	});
+};
+
+/**
+ * ユーザーの最新の完了した作業の終了時刻を取得
+ * F-001.2: 進行中作業の編集機能のために追加
+ * @param userId - ユーザーID
+ * @returns 最新の完了作業の終了時刻、または null（完了作業がない場合）
+ */
+export const getPreviousEndedAt = async (userId: string): Promise<Date | null> => {
+	const result = await db.query.workLogs.findFirst({
+		where: (workLogs, { eq, and, isNotNull }) =>
+			and(eq(workLogs.userId, userId), isNotNull(workLogs.endedAt)),
+		orderBy: (workLogs, { desc }) => [desc(workLogs.endedAt)],
+	});
+
+	return result?.endedAt ?? null;
+};

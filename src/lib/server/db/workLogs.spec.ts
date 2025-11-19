@@ -1,7 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { randomUUID } from 'crypto';
 import type { DbWorkLog } from './schema';
-import { toWorkLog, getActiveWorkLog, createWorkLog, stopWorkLog } from './workLogs';
+import {
+	toWorkLog,
+	getActiveWorkLog,
+	createWorkLog,
+	stopWorkLog,
+	updateActiveWorkLog,
+	getPreviousEndedAt,
+} from './workLogs';
 import { WorkLog } from '../../../models/workLog';
 
 /**
@@ -59,6 +66,7 @@ vi.mock('./index', () => ({
 		insert: vi.fn(),
 		update: vi.fn(),
 		delete: vi.fn(),
+		transaction: vi.fn(),
 	},
 }));
 
@@ -413,6 +421,179 @@ describe('WorkLogs DB Functions', () => {
 
 			// updated_at が更新されていることを確認
 			expect(updated?.updatedAt.getTime()).toBeGreaterThan(originalUpdatedAt.getTime());
+		});
+	});
+
+	describe('updateActiveWorkLog()', () => {
+		it('進行中の作業を更新できる', async () => {
+			const startedAt = new Date('2025-01-01T10:00:00Z');
+			const newStartedAt = new Date('2025-01-01T09:00:00Z');
+			const updatedAt = new Date('2025-01-01T10:30:00Z');
+
+			const updatedDbWorkLog: DbWorkLog = {
+				id: testWorkLogId,
+				userId: testUserId,
+				startedAt: newStartedAt,
+				endedAt: null,
+				description: '更新された説明',
+				createdAt: startedAt,
+				updatedAt,
+			};
+
+			// トランザクションのモック
+			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+				const txMock = {
+					update: vi.fn().mockReturnValue({
+						set: vi.fn().mockReturnValue({
+							where: vi.fn().mockReturnValue({
+								returning: vi.fn().mockResolvedValue([updatedDbWorkLog]),
+							}),
+						}),
+					}),
+					delete: vi.fn().mockReturnValue({
+						where: vi.fn().mockResolvedValue(undefined),
+					}),
+					insert: vi.fn().mockReturnValue({
+						values: vi.fn().mockResolvedValue(undefined),
+					}),
+				};
+				return callback(txMock);
+			});
+			vi.mocked(db.transaction).mockImplementation(mockTransaction as any);
+
+			const updated = await updateActiveWorkLog(testUserId, testWorkLogId, {
+				startedAt: newStartedAt,
+				description: '更新された説明',
+				tags: ['タグ1', 'タグ2'],
+			});
+
+			expect(updated).toBeInstanceOf(WorkLog);
+			expect(updated?.startedAt).toEqual(newStartedAt);
+			expect(updated?.description).toBe('更新された説明');
+			expect(updated?.tags).toEqual(['タグ1', 'タグ2']);
+			expect(db.transaction).toHaveBeenCalledOnce();
+		});
+
+		it('進行中でない作業は更新できず null を返す', async () => {
+			// トランザクションのモック（更新結果が空配列）
+			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+				const txMock = {
+					update: vi.fn().mockReturnValue({
+						set: vi.fn().mockReturnValue({
+							where: vi.fn().mockReturnValue({
+								returning: vi.fn().mockResolvedValue([]),
+							}),
+						}),
+					}),
+				};
+				return callback(txMock);
+			});
+			vi.mocked(db.transaction).mockImplementation(mockTransaction as any);
+
+			const result = await updateActiveWorkLog(testUserId, testWorkLogId, {
+				startedAt: new Date(),
+				description: '更新しようとした説明',
+				tags: [],
+			});
+
+			expect(result).toBeNull();
+		});
+
+		it('タグが空の場合でも更新できる', async () => {
+			const startedAt = new Date('2025-01-01T10:00:00Z');
+			const newStartedAt = new Date('2025-01-01T09:00:00Z');
+			const updatedAt = new Date('2025-01-01T10:30:00Z');
+
+			const updatedDbWorkLog: DbWorkLog = {
+				id: testWorkLogId,
+				userId: testUserId,
+				startedAt: newStartedAt,
+				endedAt: null,
+				description: '説明のみ更新',
+				createdAt: startedAt,
+				updatedAt,
+			};
+
+			// トランザクションのモック
+			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+				const txMock = {
+					update: vi.fn().mockReturnValue({
+						set: vi.fn().mockReturnValue({
+							where: vi.fn().mockReturnValue({
+								returning: vi.fn().mockResolvedValue([updatedDbWorkLog]),
+							}),
+						}),
+					}),
+					delete: vi.fn().mockReturnValue({
+						where: vi.fn().mockResolvedValue(undefined),
+					}),
+					insert: vi.fn(),
+				};
+				return callback(txMock);
+			});
+			vi.mocked(db.transaction).mockImplementation(mockTransaction as any);
+
+			const updated = await updateActiveWorkLog(testUserId, testWorkLogId, {
+				startedAt: newStartedAt,
+				description: '説明のみ更新',
+				tags: [],
+			});
+
+			expect(updated).toBeInstanceOf(WorkLog);
+			expect(updated?.tags).toEqual([]);
+			// タグが空の場合 insert が呼ばれない
+			expect(db.transaction).toHaveBeenCalledOnce();
+		});
+	});
+
+	describe('getPreviousEndedAt()', () => {
+		it('完了した作業がない場合、null を返す', async () => {
+			vi.mocked(db.query.workLogs.findFirst).mockResolvedValue(undefined);
+
+			const previousEndedAt = await getPreviousEndedAt(testUserId);
+
+			expect(previousEndedAt).toBeNull();
+			expect(db.query.workLogs.findFirst).toHaveBeenCalledOnce();
+		});
+
+		it('最新の完了作業の終了時刻を返す', async () => {
+			const endedAt = new Date('2025-01-01T09:00:00Z');
+			const mockDbWorkLog: DbWorkLog = {
+				id: randomUUID(),
+				userId: testUserId,
+				startedAt: new Date('2025-01-01T08:00:00Z'),
+				endedAt,
+				description: '完了した作業',
+				createdAt: new Date('2025-01-01T08:00:00Z'),
+				updatedAt: endedAt,
+			};
+
+			vi.mocked(db.query.workLogs.findFirst).mockResolvedValue(mockDbWorkLog);
+
+			const previousEndedAt = await getPreviousEndedAt(testUserId);
+
+			expect(previousEndedAt).toEqual(endedAt);
+		});
+
+		it('複数の完了作業がある場合、最新のものを返す', async () => {
+			const latestEndedAt = new Date('2025-01-01T15:00:00Z');
+			const mockDbWorkLog: DbWorkLog = {
+				id: randomUUID(),
+				userId: testUserId,
+				startedAt: new Date('2025-01-01T14:00:00Z'),
+				endedAt: latestEndedAt,
+				description: '最新の完了作業',
+				createdAt: new Date('2025-01-01T14:00:00Z'),
+				updatedAt: latestEndedAt,
+			};
+
+			// findFirst は orderBy desc で最新を取得する想定
+			vi.mocked(db.query.workLogs.findFirst).mockResolvedValue(mockDbWorkLog);
+
+			const previousEndedAt = await getPreviousEndedAt(testUserId);
+
+			expect(previousEndedAt).toEqual(latestEndedAt);
+			expect(db.query.workLogs.findFirst).toHaveBeenCalledOnce();
 		});
 	});
 });

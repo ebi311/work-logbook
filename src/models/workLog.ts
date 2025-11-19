@@ -184,6 +184,50 @@ export class WorkLog {
 	}
 
 	/**
+	 * 進行中作業の開始時刻調整のバリデーション
+	 * F-001.2: 進行中作業の編集機能のために追加
+	 * @param params - バリデーションパラメータ
+	 * @param params.previousEndedAt - 直前の完了した作業の終了時刻（オプション）
+	 * @param params.serverNow - サーバー現在時刻
+	 * @param params.newStartedAt - 新しい開始時刻
+	 * @param params.maxAdjustHours - 調整可能な最大時間（デフォルト24時間）
+	 * @returns バリデーション結果
+	 */
+	validateAdjustment(params: {
+		previousEndedAt?: Date;
+		serverNow: Date;
+		newStartedAt: Date;
+		maxAdjustHours?: number;
+	}): { valid: boolean; error?: string } {
+		const { previousEndedAt, serverNow, newStartedAt, maxAdjustHours = 24 } = params;
+
+		// 1. newStartedAt が serverNow より未来ではないことを確認
+		if (newStartedAt > serverNow) {
+			return { valid: false, error: '開始時刻を未来の時刻に設定することはできません' };
+		}
+
+		// 2. newStartedAt が maxAdjustHours 以内であることを確認
+		const maxAdjustMs = maxAdjustHours * 60 * 60 * 1000;
+		const diffMs = serverNow.getTime() - newStartedAt.getTime();
+		if (diffMs > maxAdjustMs) {
+			return {
+				valid: false,
+				error: `開始時刻は${maxAdjustHours}時間以内の時刻に設定してください`,
+			};
+		}
+
+		// 3. previousEndedAt が存在する場合、newStartedAt > previousEndedAt であることを確認
+		if (previousEndedAt !== undefined && newStartedAt <= previousEndedAt) {
+			return {
+				valid: false,
+				error: '開始時刻は前の作業の終了時刻より後に設定してください',
+			};
+		}
+
+		return { valid: true };
+	}
+
+	/**
 	 * プレーンオブジェクトに変換
 	 * @returns WorkLogのプレーンオブジェクト表現
 	 */

@@ -743,4 +743,162 @@ describe('WorkLog クラス - タグ機能', () => {
 			expect(obj.tags).toEqual([]);
 		});
 	});
+
+	describe('validateAdjustment()', () => {
+		const createTestWorkLog = () =>
+			WorkLog.from({
+				id: '123e4567-e89b-12d3-a456-426614174000',
+				userId: '123e4567-e89b-12d3-a456-426614174001',
+				startedAt: new Date('2025-11-19T10:00:00.000Z'),
+				endedAt: null,
+				description: 'テスト作業',
+				tags: [],
+				createdAt: new Date('2025-11-19T10:00:00.000Z'),
+				updatedAt: new Date('2025-11-19T10:00:00.000Z'),
+			});
+
+		it('正常系: 有効な調整（previousEndedAtなし）', () => {
+			const workLog = createTestWorkLog();
+			const serverNow = new Date('2025-11-19T12:00:00.000Z');
+			const newStartedAt = new Date('2025-11-19T11:00:00.000Z');
+
+			const result = workLog.validateAdjustment({
+				serverNow,
+				newStartedAt,
+			});
+
+			expect(result.valid).toBe(true);
+			expect(result.error).toBeUndefined();
+		});
+
+		it('正常系: 有効な調整（previousEndedAtあり、境界値）', () => {
+			const workLog = createTestWorkLog();
+			const previousEndedAt = new Date('2025-11-19T09:00:00.000Z');
+			const serverNow = new Date('2025-11-19T12:00:00.000Z');
+			const newStartedAt = new Date('2025-11-19T09:00:01.000Z'); // previousEndedAt + 1秒
+
+			const result = workLog.validateAdjustment({
+				previousEndedAt,
+				serverNow,
+				newStartedAt,
+			});
+
+			expect(result.valid).toBe(true);
+		});
+
+		it('正常系: serverNowと同じ時刻（境界値）', () => {
+			const workLog = createTestWorkLog();
+			const serverNow = new Date('2025-11-19T12:00:00.000Z');
+			const newStartedAt = new Date('2025-11-19T12:00:00.000Z');
+
+			const result = workLog.validateAdjustment({
+				serverNow,
+				newStartedAt,
+			});
+
+			expect(result.valid).toBe(true);
+		});
+
+		it('正常系: 24時間前ちょうど（境界値）', () => {
+			const workLog = createTestWorkLog();
+			const serverNow = new Date('2025-11-19T12:00:00.000Z');
+			const newStartedAt = new Date('2025-11-18T12:00:00.000Z'); // 24時間前
+
+			const result = workLog.validateAdjustment({
+				serverNow,
+				newStartedAt,
+			});
+
+			expect(result.valid).toBe(true);
+		});
+
+		it('異常系: newStartedAtがserverNowより未来', () => {
+			const workLog = createTestWorkLog();
+			const serverNow = new Date('2025-11-19T12:00:00.000Z');
+			const newStartedAt = new Date('2025-11-19T12:00:01.000Z'); // 1秒未来
+
+			const result = workLog.validateAdjustment({
+				serverNow,
+				newStartedAt,
+			});
+
+			expect(result.valid).toBe(false);
+			expect(result.error).toBe('開始時刻を未来の時刻に設定することはできません');
+		});
+
+		it('異常系: 24時間を超える過去の時刻', () => {
+			const workLog = createTestWorkLog();
+			const serverNow = new Date('2025-11-19T12:00:00.000Z');
+			const newStartedAt = new Date('2025-11-18T11:59:59.000Z'); // 24時間1秒前
+
+			const result = workLog.validateAdjustment({
+				serverNow,
+				newStartedAt,
+			});
+
+			expect(result.valid).toBe(false);
+			expect(result.error).toBe('開始時刻は24時間以内の時刻に設定してください');
+		});
+
+		it('異常系: previousEndedAtより前の時刻', () => {
+			const workLog = createTestWorkLog();
+			const previousEndedAt = new Date('2025-11-19T09:00:00.000Z');
+			const serverNow = new Date('2025-11-19T12:00:00.000Z');
+			const newStartedAt = new Date('2025-11-19T09:00:00.000Z'); // previousEndedAtと同じ
+
+			const result = workLog.validateAdjustment({
+				previousEndedAt,
+				serverNow,
+				newStartedAt,
+			});
+
+			expect(result.valid).toBe(false);
+			expect(result.error).toBe('開始時刻は前の作業の終了時刻より後に設定してください');
+		});
+
+		it('異常系: previousEndedAtと同じ時刻', () => {
+			const workLog = createTestWorkLog();
+			const previousEndedAt = new Date('2025-11-19T09:00:00.000Z');
+			const serverNow = new Date('2025-11-19T12:00:00.000Z');
+			const newStartedAt = new Date('2025-11-19T08:59:59.000Z'); // previousEndedAtより前
+
+			const result = workLog.validateAdjustment({
+				previousEndedAt,
+				serverNow,
+				newStartedAt,
+			});
+
+			expect(result.valid).toBe(false);
+			expect(result.error).toBe('開始時刻は前の作業の終了時刻より後に設定してください');
+		});
+
+		it('正常系: カスタム maxAdjustHours（48時間）', () => {
+			const workLog = createTestWorkLog();
+			const serverNow = new Date('2025-11-19T12:00:00.000Z');
+			const newStartedAt = new Date('2025-11-17T12:00:00.000Z'); // 48時間前
+
+			const result = workLog.validateAdjustment({
+				serverNow,
+				newStartedAt,
+				maxAdjustHours: 48,
+			});
+
+			expect(result.valid).toBe(true);
+		});
+
+		it('異常系: カスタム maxAdjustHours（1時間）を超える', () => {
+			const workLog = createTestWorkLog();
+			const serverNow = new Date('2025-11-19T12:00:00.000Z');
+			const newStartedAt = new Date('2025-11-19T10:59:59.000Z'); // 1時間1秒前
+
+			const result = workLog.validateAdjustment({
+				serverNow,
+				newStartedAt,
+				maxAdjustHours: 1,
+			});
+
+			expect(result.valid).toBe(false);
+			expect(result.error).toBe('開始時刻は1時間以内の時刻に設定してください');
+		});
+	});
 });

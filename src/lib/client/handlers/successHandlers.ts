@@ -196,9 +196,8 @@ export const createHandleAdjustActiveSuccess = (deps: SuccessHandlerDependencies
 
 		const workLog = form.workLog as ActiveWorkLog;
 
-		// 状態を更新
+		// 状態を更新（tags と startedAt は $effect で自動同期される）
 		deps.setCurrentActive(workLog);
-		deps.setTags(workLog.tags);
 
 		if ('serverNow' in form) {
 			deps.setCurrentServerNow(form.serverNow as string);

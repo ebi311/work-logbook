@@ -75,7 +75,9 @@ describe('Server Actions: adjustActive', () => {
 			formData.append('workLogId', testWorkLogId);
 			formData.append('startedAt', newStartedAt.toISOString());
 			formData.append('description', '更新された説明');
-			formData.append('tags', '新しいタグ1 新しいタグ2');
+			// WorkLogTagInputと同じく、複数のhidden inputとして送信
+			formData.append('tags', '新しいタグ1');
+			formData.append('tags', '新しいタグ2');
 			const request = new Request('http://localhost:5173/?/adjustActive', {
 				method: 'POST',
 				body: formData,

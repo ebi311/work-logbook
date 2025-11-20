@@ -72,7 +72,9 @@ const parseFormData = (formData: FormData) => {
 	const workLogId = formData.get('workLogId') as string;
 	const startedAtStr = formData.get('startedAt') as string;
 	const description = (formData.get('description') as string) || '';
-	const tagsStr = (formData.get('tags') as string) || '';
+
+	// タグを取得（複数のhidden inputから）
+	const tagsArray = formData.getAll('tags') as string[];
 
 	// 必須フィールドのバリデーション
 	if (!workLogId) {
@@ -81,12 +83,6 @@ const parseFormData = (formData: FormData) => {
 	if (!startedAtStr) {
 		throw new Error('startedAt is required');
 	}
-
-	// タグをパース（スペース区切り）
-	const tagsArray = tagsStr
-		.split(/\s+/)
-		.map((tag) => tag.trim())
-		.filter((tag) => tag.length > 0);
 
 	// タグの正規化
 	const normalizedTags = normalizeTags(tagsArray);

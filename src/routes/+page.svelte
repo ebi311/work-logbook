@@ -397,8 +397,10 @@
 					};
 				}}
 			>
-				<!-- F-001.2: 進行中の場合のみ開始時刻編集フィールドを表示 -->
+				<!-- F-001.2: 進行中の場合のみ開始時刻編集フィールドとhidden inputを表示 -->
 				{#if currentActive}
+					<input type="hidden" name="workLogId" value={currentActive.id} />
+					<input type="hidden" name="startedAt" value={startedAt} />
 					<ActiveWorkLogStartTimeInput
 						bind:value={startedAt}
 						min={data.previousEndedAt}

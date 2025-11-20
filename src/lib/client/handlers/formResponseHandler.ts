@@ -16,6 +16,8 @@ export interface FormResponseHandlerOptions {
 	onStopSuccess: (form: NonNullable<ActionData>) => void;
 	/** switch成功時のハンドラー */
 	onSwitchSuccess: (form: NonNullable<ActionData>) => void;
+	/** adjustActive成功時のハンドラー */
+	onAdjustActiveSuccess: (form: NonNullable<ActionData>) => void;
 	/** エラー時のハンドラーマップ */
 	errorHandlers: Record<string, (form: NonNullable<ActionData>) => void>;
 }
@@ -48,6 +50,18 @@ const isStartSuccess = (form: NonNullable<ActionData>): boolean => {
  */
 const isStopSuccess = (form: NonNullable<ActionData>): boolean => {
 	return 'durationSec' in form;
+};
+
+/**
+ * adjustActive成功レスポンスの型ガード
+ */
+const isAdjustActiveSuccess = (form: NonNullable<ActionData>): boolean => {
+	return (
+		'workLog' in form &&
+		form.workLog !== null &&
+		typeof form.workLog === 'object' &&
+		'updatedAt' in form.workLog
+	);
 };
 
 /**
@@ -86,6 +100,12 @@ const handleSuccessResponse = (
 	// stop 成功時の処理
 	if (isStopSuccess(form)) {
 		options.onStopSuccess(form);
+		return;
+	}
+
+	// adjustActive 成功時の処理
+	if (isAdjustActiveSuccess(form)) {
+		options.onAdjustActiveSuccess(form);
 		return;
 	}
 

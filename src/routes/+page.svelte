@@ -25,6 +25,7 @@
 		createHandleStartSuccess,
 		createHandleStopSuccess,
 		createHandleSwitchSuccess,
+		createHandleAdjustActiveSuccess,
 	} from '$lib/client/handlers/successHandlers';
 	import { createFormResponseHandler } from '$lib/client/handlers/formResponseHandler';
 	import {
@@ -147,6 +148,20 @@
 		listDataPromise: data.listData,
 	});
 
+	const handleAdjustActiveSuccess = createHandleAdjustActiveSuccess({
+		setCurrentActive: (active) => {
+			currentActive = active;
+		},
+		setTags: (newTags) => {
+			tags = newTags;
+		},
+		setCurrentServerNow: (serverNow) => {
+			currentServerNow = serverNow;
+		},
+		showSuccessToast: toastSuccess,
+		listDataPromise: data.listData,
+	});
+
 	// エラー処理ハンドラーマップ
 	const errorHandlers: Record<string, (form: NonNullable<ActionData>) => void> = {
 		ACTIVE_EXISTS: (form) => {
@@ -238,6 +253,7 @@
 			onStartSuccess: handleStartSuccess,
 			onStopSuccess: handleStopSuccess,
 			onSwitchSuccess: handleSwitchSuccess,
+			onAdjustActiveSuccess: handleAdjustActiveSuccess,
 			errorHandlers,
 		}),
 	);

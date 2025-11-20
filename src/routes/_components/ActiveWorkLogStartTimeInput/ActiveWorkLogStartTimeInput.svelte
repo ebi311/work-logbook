@@ -27,9 +27,16 @@
 	let minLocal = $derived(min ? toLocalDateTimeInputValue(min) : undefined);
 	let maxLocal = $derived(max ? toLocalDateTimeInputValue(max) : undefined);
 
-	// input 要素から直接値を取得して、隠しフィールドに設定するために使用
-	// datetime-local の値はローカルタイムゾーンで解釈されるため、
-	// サーバーに送信する際は fromLocalDateTimeInputValue で変換する必要がある
+	// input変更時にUTC ISO文字列に変換して親に通知
+	const handleInput = (event: Event) => {
+		const target = event.target as HTMLInputElement;
+		const localDateTime = target.value;
+		if (localDateTime) {
+			// ローカル datetime-local 文字列をUTC ISO文字列に変換
+			const localDate = new Date(localDateTime);
+			value = localDate.toISOString();
+		}
+	};
 </script>
 
 <div class="form-control flex w-full flex-col">
@@ -45,6 +52,7 @@
 		class="input-bordered input w-full"
 		class:input-error={!!error}
 		{disabled}
+		oninput={handleInput}
 	/>
 	{#if error}
 		<label for="started-at" class="label">

@@ -185,3 +185,32 @@ export const createHandleSwitchSuccess = (deps: SuccessHandlerDependencies) => {
 		deps.showSuccessToast(`作業を切り替えました(${duration}分)`);
 	};
 };
+
+/**
+ * adjustActive アクションの成功時処理を作成
+ * F-001.2: 進行中作業の調整機能
+ */
+export const createHandleAdjustActiveSuccess = (deps: SuccessHandlerDependencies) => {
+	return async (form: NonNullable<ActionData>) => {
+		if (!('workLog' in form) || !form.workLog) return;
+
+		const workLog = form.workLog as ActiveWorkLog;
+
+		// 状態を更新
+		deps.setCurrentActive(workLog);
+		deps.setTags(workLog.tags);
+
+		if ('serverNow' in form) {
+			deps.setCurrentServerNow(form.serverNow as string);
+		}
+
+		// サーバーからのデータをIndexedDBに保存
+		try {
+			await saveWorkLogFromServer(workLog, deps.listDataPromise);
+		} catch (error) {
+			console.error('Failed to save to IndexedDB:', error);
+		}
+
+		deps.showSuccessToast('作業内容を更新しました');
+	};
+};

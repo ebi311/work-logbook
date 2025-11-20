@@ -196,8 +196,9 @@ export const createHandleAdjustActiveSuccess = (deps: SuccessHandlerDependencies
 
 		const workLog = form.workLog as ActiveWorkLog;
 
-		// 状態を更新（tags と startedAt は $effect で自動同期される）
+		// 状態を更新
 		deps.setCurrentActive(workLog);
+		deps.setTags(workLog.tags);
 
 		if ('serverNow' in form) {
 			deps.setCurrentServerNow(form.serverNow as string);
@@ -205,11 +206,20 @@ export const createHandleAdjustActiveSuccess = (deps: SuccessHandlerDependencies
 
 		// サーバーからのデータをIndexedDBに保存
 		try {
-			await saveWorkLogFromServer(workLog, deps.listDataPromise);
+			await deps.listDataPromise; // データの読み込みを待つ
+			const userId = 'offline-user'; // TODO: 適切なuserIdを取得
+
+			await saveWorkLogFromServer({
+				id: workLog.id,
+				userId,
+				startedAt: workLog.startedAt,
+				endedAt: null,
+				description: workLog.description,
+				tags: workLog.tags,
+			});
 		} catch (error) {
 			console.error('Failed to save to IndexedDB:', error);
 		}
-
 		deps.showSuccessToast('作業内容を更新しました');
 	};
 };

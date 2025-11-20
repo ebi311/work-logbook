@@ -441,26 +441,24 @@ describe('WorkLogs DB Functions', () => {
 				updatedAt,
 			};
 
-			// トランザクションのモック
-			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
-				const txMock = {
-					update: vi.fn().mockReturnValue({
-						set: vi.fn().mockReturnValue({
-							where: vi.fn().mockReturnValue({
-								returning: vi.fn().mockResolvedValue([updatedDbWorkLog]),
-							}),
-						}),
+			// db.update のモック
+			vi.mocked(db.update).mockReturnValue({
+				set: vi.fn().mockReturnValue({
+					where: vi.fn().mockReturnValue({
+						returning: vi.fn().mockResolvedValue([updatedDbWorkLog]),
 					}),
-					delete: vi.fn().mockReturnValue({
-						where: vi.fn().mockResolvedValue(undefined),
-					}),
-					insert: vi.fn().mockReturnValue({
-						values: vi.fn().mockResolvedValue(undefined),
-					}),
-				};
-				return callback(txMock);
-			});
-			vi.mocked(db.transaction).mockImplementation(mockTransaction as any);
+				}),
+			} as any);
+
+			// db.delete のモック（タグ削除用）
+			vi.mocked(db.delete).mockReturnValue({
+				where: vi.fn().mockResolvedValue(undefined),
+			} as any);
+
+			// db.insert のモック（タグ挿入用）
+			vi.mocked(db.insert).mockReturnValue({
+				values: vi.fn().mockResolvedValue(undefined),
+			} as any);
 
 			const updated = await updateActiveWorkLog(testUserId, testWorkLogId, {
 				startedAt: newStartedAt,
@@ -472,24 +470,20 @@ describe('WorkLogs DB Functions', () => {
 			expect(updated?.startedAt).toEqual(newStartedAt);
 			expect(updated?.description).toBe('更新された説明');
 			expect(updated?.tags).toEqual(['タグ1', 'タグ2']);
-			expect(db.transaction).toHaveBeenCalledOnce();
+			expect(db.update).toHaveBeenCalled();
+			expect(db.delete).toHaveBeenCalled();
+			expect(db.insert).toHaveBeenCalled();
 		});
 
 		it('進行中でない作業は更新できず null を返す', async () => {
-			// トランザクションのモック（更新結果が空配列）
-			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
-				const txMock = {
-					update: vi.fn().mockReturnValue({
-						set: vi.fn().mockReturnValue({
-							where: vi.fn().mockReturnValue({
-								returning: vi.fn().mockResolvedValue([]),
-							}),
-						}),
+			// db.update のモック（更新結果が空配列）
+			vi.mocked(db.update).mockReturnValue({
+				set: vi.fn().mockReturnValue({
+					where: vi.fn().mockReturnValue({
+						returning: vi.fn().mockResolvedValue([]),
 					}),
-				};
-				return callback(txMock);
-			});
-			vi.mocked(db.transaction).mockImplementation(mockTransaction as any);
+				}),
+			} as any);
 
 			const result = await updateActiveWorkLog(testUserId, testWorkLogId, {
 				startedAt: new Date(),
@@ -498,6 +492,7 @@ describe('WorkLogs DB Functions', () => {
 			});
 
 			expect(result).toBeNull();
+			expect(db.update).toHaveBeenCalled();
 		});
 
 		it('タグが空の場合でも更新できる', async () => {
@@ -515,24 +510,19 @@ describe('WorkLogs DB Functions', () => {
 				updatedAt,
 			};
 
-			// トランザクションのモック
-			const mockTransaction = vi.fn().mockImplementation(async (callback) => {
-				const txMock = {
-					update: vi.fn().mockReturnValue({
-						set: vi.fn().mockReturnValue({
-							where: vi.fn().mockReturnValue({
-								returning: vi.fn().mockResolvedValue([updatedDbWorkLog]),
-							}),
-						}),
+			// db.update のモック
+			vi.mocked(db.update).mockReturnValue({
+				set: vi.fn().mockReturnValue({
+					where: vi.fn().mockReturnValue({
+						returning: vi.fn().mockResolvedValue([updatedDbWorkLog]),
 					}),
-					delete: vi.fn().mockReturnValue({
-						where: vi.fn().mockResolvedValue(undefined),
-					}),
-					insert: vi.fn(),
-				};
-				return callback(txMock);
-			});
-			vi.mocked(db.transaction).mockImplementation(mockTransaction as any);
+				}),
+			} as any);
+
+			// db.delete のモック
+			vi.mocked(db.delete).mockReturnValue({
+				where: vi.fn().mockResolvedValue(undefined),
+			} as any);
 
 			const updated = await updateActiveWorkLog(testUserId, testWorkLogId, {
 				startedAt: newStartedAt,
@@ -542,8 +532,9 @@ describe('WorkLogs DB Functions', () => {
 
 			expect(updated).toBeInstanceOf(WorkLog);
 			expect(updated?.tags).toEqual([]);
-			// タグが空の場合 insert が呼ばれない
-			expect(db.transaction).toHaveBeenCalledOnce();
+			expect(db.update).toHaveBeenCalled();
+			expect(db.delete).toHaveBeenCalled();
+			// タグが空の場合 insert は呼ばれない
 		});
 	});
 

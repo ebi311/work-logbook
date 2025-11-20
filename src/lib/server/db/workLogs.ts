@@ -595,41 +595,29 @@ export const updateActiveWorkLog = async (
 ): Promise<WorkLog | null> => {
 	const now = new Date();
 
-	// トランザクションで work_logs 更新 + タグ削除・再挿入
-	return await db.transaction(async (tx) => {
-		// 進行中の作業のみ更新（ended_at IS NULL の条件）
-		const result = await tx
-			.update(workLogs)
-			.set({
-				startedAt: updates.startedAt,
-				description: updates.description,
-				updatedAt: now,
-			})
-			.where(and(eq(workLogs.id, workLogId), eq(workLogs.userId, userId), isNull(workLogs.endedAt)))
-			.returning();
+	// 進行中の作業のみ更新（ended_at IS NULL の条件）
+	const result = await db
+		.update(workLogs)
+		.set({
+			startedAt: updates.startedAt,
+			description: updates.description,
+			updatedAt: now,
+		})
+		.where(and(eq(workLogs.id, workLogId), eq(workLogs.userId, userId), isNull(workLogs.endedAt)))
+		.returning();
 
-		// 条件に合わない場合（進行中でない、またはユーザー不一致）
-		if (result.length === 0) {
-			return null;
-		}
+	// 条件に合わない場合（進行中でない、またはユーザー不一致）
+	if (result.length === 0) {
+		return null;
+	}
 
-		// タグを削除して再挿入
-		await tx.delete(workLogTags).where(eq(workLogTags.workLogId, workLogId));
+	// タグを保存
+	await saveWorkLogTags(workLogId, updates.tags);
 
-		if (updates.tags.length > 0) {
-			await tx.insert(workLogTags).values(
-				updates.tags.map((tag) => ({
-					workLogId,
-					tag,
-				})),
-			);
-		}
-
-		const dbWorkLog = result[0];
-		return WorkLog.from({
-			...dbWorkLog,
-			tags: updates.tags,
-		});
+	const dbWorkLog = result[0];
+	return WorkLog.from({
+		...dbWorkLog,
+		tags: updates.tags,
 	});
 };
 

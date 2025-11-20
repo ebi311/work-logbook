@@ -74,6 +74,14 @@ const parseFormData = (formData: FormData) => {
 	const description = (formData.get('description') as string) || '';
 	const tagsStr = (formData.get('tags') as string) || '';
 
+	// 必須フィールドのバリデーション
+	if (!workLogId) {
+		throw new Error('workLogId is required');
+	}
+	if (!startedAtStr) {
+		throw new Error('startedAt is required');
+	}
+
 	// タグをパース（スペース区切り）
 	const tagsArray = tagsStr
 		.split(/\s+/)

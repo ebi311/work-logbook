@@ -6,6 +6,7 @@ import {
 	aggregateMonthlyWorkLogDuration,
 	aggregateDailyWorkLogDuration,
 	getUserTagSuggestions,
+	getPreviousEndedAt,
 } from '$lib/server/db/workLogs';
 import { normalizeWorkLogQuery } from '$lib/utils/queryNormalizer';
 import { getTodayStart } from '$lib/utils/timezone';
@@ -14,6 +15,7 @@ import { handleStopAction } from './_actions/stop';
 import { handleSwitchAction } from './_actions/switch';
 import { handleUpdateAction } from './_actions/update';
 import { handleDeleteAction } from './_actions/delete';
+import { handleAdjustActiveAction } from './_actions/adjustActive';
 
 /**
  * URLからクエリパラメータをパース
@@ -150,6 +152,7 @@ type WorkLogItem = {
 type LoadData = {
 	active?: ActiveWorkLog;
 	serverNow: string;
+	previousEndedAt?: string; // F-001.2: 最新の完了作業の終了時刻
 	// F-005/F-006: 一覧と月次合計(Promiseでストリーミング)
 	listData: Promise<{
 		items: WorkLogItem[];
@@ -199,6 +202,15 @@ export const load: ServerLoad = async ({ locals, url }) => {
 
 		const serverNow = new Date().toISOString();
 
+		// F-001.2: 最新の完了作業の終了時刻を取得
+		const previousEndedAtStart = Date.now();
+		const previousEndedAt = await getPreviousEndedAt(userId);
+		console.log('[PERF] getPreviousEndedAt completed', {
+			elapsed: Date.now() - startTime,
+			duration: Date.now() - previousEndedAtStart,
+			timestamp: new Date().toISOString(),
+		});
+
 		// F-003: タグ候補を取得(最大20件)
 		const tagSuggestionsStart = Date.now();
 		const tagSuggestions = await getUserTagSuggestions(userId, '', 20);
@@ -231,6 +243,11 @@ export const load: ServerLoad = async ({ locals, url }) => {
 			listData,
 			tagSuggestions, // F-003: タグ候補を追加
 		};
+
+		// F-001.2: previousEndedAt を追加
+		if (previousEndedAt) {
+			response.previousEndedAt = previousEndedAt.toISOString();
+		}
 
 		if (activeWorkLog) {
 			response.active = {
@@ -282,6 +299,15 @@ export const actions: Actions = {
 			return await handleSwitchAction(event);
 		} catch (err) {
 			console.error('Failed to switch work log:', err);
+			throw error(500, 'Internal Server Error');
+		}
+	},
+
+	adjustActive: async (event) => {
+		try {
+			return await handleAdjustActiveAction(event);
+		} catch (err) {
+			console.error('Failed to adjust active work log:', err);
 			throw error(500, 'Internal Server Error');
 		}
 	},

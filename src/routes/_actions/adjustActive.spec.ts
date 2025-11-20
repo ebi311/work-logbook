@@ -28,9 +28,11 @@ describe('Server Actions: adjustActive', () => {
 
 	describe('TC1: 進行中作業の調整成功', () => {
 		it('ok: true と更新された workLog を返却する', async () => {
-			const originalStartedAt = new Date('2025-11-19T10:00:00Z');
-			const newStartedAt = new Date('2025-11-19T09:00:00Z');
-			const updatedAt = new Date('2025-11-19T11:00:00Z');
+			// 現在時刻を基準に設定
+			const serverNow = new Date();
+			const originalStartedAt = new Date(serverNow.getTime() - 2 * 60 * 60 * 1000); // 2時間前
+			const newStartedAt = new Date(serverNow.getTime() - 3 * 60 * 60 * 1000); // 3時間前
+			const updatedAt = new Date();
 
 			// モック: 進行中の作業あり
 			const mockActiveWorkLog = WorkLog.from({
@@ -300,8 +302,10 @@ describe('Server Actions: adjustActive', () => {
 
 	describe('TC6: DB更新失敗（進行中でなくなった）', () => {
 		it('409エラーで CONFLICT_STOPPED を返却する', async () => {
-			const originalStartedAt = new Date('2025-11-19T10:00:00Z');
-			const newStartedAt = new Date('2025-11-19T09:00:00Z');
+			// 現在時刻を基準に設定
+			const serverNow = new Date();
+			const originalStartedAt = new Date(serverNow.getTime() - 2 * 60 * 60 * 1000); // 2時間前
+			const newStartedAt = new Date(serverNow.getTime() - 3 * 60 * 60 * 1000); // 3時間前
 
 			// モック: 進行中の作業あり
 			const mockActiveWorkLog = WorkLog.from({
@@ -353,9 +357,11 @@ describe('Server Actions: adjustActive', () => {
 
 	describe('TC7: タグのバリデーションエラー', () => {
 		it('空白のみのタグは正規化後に空配列になり、正常に処理される', async () => {
-			const originalStartedAt = new Date('2025-11-19T10:00:00Z');
-			const newStartedAt = new Date('2025-11-19T09:00:00Z');
-			const updatedAt = new Date('2025-11-19T11:00:00Z');
+			// 現在時刻を基準に設定
+			const serverNow = new Date();
+			const originalStartedAt = new Date(serverNow.getTime() - 2 * 60 * 60 * 1000); // 2時間前
+			const newStartedAt = new Date(serverNow.getTime() - 3 * 60 * 60 * 1000); // 3時間前
+			const updatedAt = new Date();
 
 			// モック: 進行中の作業あり
 			const mockActiveWorkLog = WorkLog.from({

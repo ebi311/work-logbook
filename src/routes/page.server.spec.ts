@@ -18,6 +18,7 @@ vi.mock('$lib/server/db/workLogs', () => ({
 	aggregateMonthlyWorkLogDuration: vi.fn(),
 	aggregateDailyWorkLogDuration: vi.fn(),
 	getUserTagSuggestions: vi.fn(),
+	getPreviousEndedAt: vi.fn(),
 }));
 
 import { load } from './+page.server';
@@ -27,6 +28,7 @@ import {
 	aggregateMonthlyWorkLogDuration,
 	aggregateDailyWorkLogDuration,
 	getUserTagSuggestions,
+	getPreviousEndedAt,
 } from '$lib/server/db/workLogs';
 import type { ServerLoadEvent } from '@sveltejs/kit';
 
@@ -59,8 +61,8 @@ describe('Server Actions: load', () => {
 			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
-
-			// モック: locals と URL
+			vi.mocked(getPreviousEndedAt).mockResolvedValue(null);
+			vi.mocked(getPreviousEndedAt).mockResolvedValue(null); // モック: locals と URL
 			const locals = {
 				user: {
 					id: testUserId,
@@ -106,6 +108,7 @@ describe('Server Actions: load', () => {
 			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
+			vi.mocked(getPreviousEndedAt).mockResolvedValue(null);
 
 			// モック: locals と URL
 			const locals = {
@@ -257,7 +260,9 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(3600); // 1時間
 			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
+			vi.mocked(getPreviousEndedAt).mockResolvedValue(null);
 
+			// モック: locals
 			// モック: locals
 			const locals = {
 				user: {
@@ -300,6 +305,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
+			vi.mocked(getPreviousEndedAt).mockResolvedValue(null);
 
 			// モック: locals
 			const locals = {
@@ -355,6 +361,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
+			vi.mocked(getPreviousEndedAt).mockResolvedValue(null);
 
 			// モック: locals
 			const locals = {
@@ -389,6 +396,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
+			vi.mocked(getPreviousEndedAt).mockResolvedValue(null);
 
 			// モック: locals
 			const locals = {
@@ -423,6 +431,7 @@ describe('Server Load: F-005/F-006 一覧取得と月次合計', () => {
 			vi.mocked(aggregateMonthlyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(aggregateDailyWorkLogDuration).mockResolvedValue(0);
 			vi.mocked(getUserTagSuggestions).mockResolvedValue([]);
+			vi.mocked(getPreviousEndedAt).mockResolvedValue(null);
 
 			// モック: locals
 			const locals = {

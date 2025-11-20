@@ -2,6 +2,8 @@
 	import type { PageData, ActionData } from './$types';
 	import WorkLogStatus from './_components/WorkLogStatus/WorkLogStatus.svelte';
 	import WorkLogToggleButton from './_components/WorkLogToggleButton/WorkLogToggleButton.svelte';
+	import ActiveWorkLogStartTimeInput from './_components/ActiveWorkLogStartTimeInput/ActiveWorkLogStartTimeInput.svelte';
+	import ActiveWorkLogActions from './_components/ActiveWorkLogActions/ActiveWorkLogActions.svelte';
 	import KeyboardShortcutHelp from './_components/KeyboardShortcutHelp/KeyboardShortcutHelp.svelte';
 	import WorkLogHistory from './_components/WorkLogHistory/WorkLogHistory.svelte';
 	import DescriptionInput from './_components/DescriptionInput/DescriptionInput.svelte';
@@ -55,16 +57,20 @@
 	// オフライン操作中フラグ（同期が完了するまでサーバーデータを無視）
 	let hasOfflineChanges = $state(false);
 
-	// フォームとボタンへの参照
+	// フォームへの参照
 	let formElement: HTMLFormElement | null = $state(null);
+
+	// トグルボタンへの参照（キーボードショートカット用）
 	let toggleButtonElement: HTMLButtonElement | null = $state(null);
 
 	// 作業内容の入力値（currentActiveが変更されたら同期）
 	let description = $state('');
 	let tags = $state<string[]>([]);
+	let startedAt = $state(''); // F-001.2: 開始時刻の編集用ローカルステート
 	$effect(() => {
 		description = currentActive?.description || '';
 		tags = currentActive?.tags || [];
+		startedAt = currentActive?.startedAt || ''; // F-001.2: 開始時刻も同期
 	});
 
 	// F-006: フィルタ用のタグ（URLから取得）
@@ -145,10 +151,22 @@
 	const errorHandlers: Record<string, (form: NonNullable<ActionData>) => void> = {
 		ACTIVE_EXISTS: (form) => {
 			// 409エラー: 既に進行中の作業がある
-			if ('active' in form && 'serverNow' in form && form.active) {
+			if (
+				'active' in form &&
+				'serverNow' in form &&
+				form.active &&
+				typeof form.active === 'object' &&
+				'id' in form.active &&
+				'startedAt' in form.active &&
+				'description' in form.active &&
+				typeof form.serverNow === 'string'
+			) {
 				currentActive = {
-					...form.active,
-					tags: form.active.tags || [],
+					id: form.active.id as string,
+					startedAt: form.active.startedAt as string,
+					endedAt: null,
+					description: form.active.description as string,
+					tags: ('tags' in form.active ? form.active.tags : []) as string[],
 				};
 				currentServerNow = form.serverNow;
 			}
@@ -157,7 +175,7 @@
 		NO_ACTIVE: (form) => {
 			// 404エラー: 進行中の作業がない
 			currentActive = undefined;
-			if ('serverNow' in form) {
+			if ('serverNow' in form && typeof form.serverNow === 'string') {
 				currentServerNow = form.serverNow;
 			}
 			toastError('進行中の作業がありません');
@@ -229,12 +247,15 @@
 	});
 
 	// キーボードショートカットのハンドラー
-	// キーボードショートカットハンドラー
 	const keyboardHandler = $derived(
 		createKeyboardShortcutHandler({
 			toggleButton: toggleButtonElement,
 			isSubmitting,
-			onToggleClick: () => toggleButtonElement?.click(),
+			onToggleClick: () => {
+				if (toggleButtonElement) {
+					toggleButtonElement.click();
+				}
+			},
 		}),
 	);
 
@@ -355,7 +376,17 @@
 					if (!$isOnline) {
 						cancel();
 						// action.search は "?/start" のような形式
-						const actionName = action.search.substring(2) as 'start' | 'stop' | 'switch'; // "?/" を取り除く
+						const actionName = action.search.substring(2) as
+							| 'start'
+							| 'stop'
+							| 'switch'
+							| 'adjustActive';
+						if (actionName === 'adjustActive') {
+							// F-001.2: adjust-active はオフライン未対応
+							toastError('オフラインでは開始時刻の変更はできません');
+							isSubmitting = false;
+							return;
+						}
 						handleOfflineAction(actionName);
 						isSubmitting = false;
 						return;
@@ -366,17 +397,24 @@
 					};
 				}}
 			>
+				<!-- F-001.2: 進行中の場合のみ開始時刻編集フィールドを表示 -->
+				{#if currentActive}
+					<ActiveWorkLogStartTimeInput
+						bind:value={startedAt}
+						min={data.previousEndedAt}
+						max={currentServerNow}
+						disabled={isSubmitting}
+					/>
+				{/if}
+
 				<!-- 作業内容入力フィールド -->
 				<DescriptionInput bind:value={description} disabled={isSubmitting} />
 
 				<!-- タグ入力フィールド -->
 				<WorkLogTagInput bind:tags suggestions={data.tagSuggestions} />
 
-				<WorkLogToggleButton
-					bind:buttonElement={toggleButtonElement}
-					isActive={!!currentActive}
-					{isSubmitting}
-				/>
+				<!-- F-001.2: 新しいアクションボタン群（作業中変更ボタンを含む） -->
+				<ActiveWorkLogActions isActive={!!currentActive} {isSubmitting} bind:toggleButtonElement />
 			</form>
 		</div>
 	</div>

@@ -5,7 +5,8 @@
 	import ActiveWorkLogStartTimeInput from './_components/ActiveWorkLogStartTimeInput/ActiveWorkLogStartTimeInput.svelte';
 	import ActiveWorkLogActions from './_components/ActiveWorkLogActions/ActiveWorkLogActions.svelte';
 	import KeyboardShortcutHelp from './_components/KeyboardShortcutHelp/KeyboardShortcutHelp.svelte';
-	import WorkLogHistory from './_components/WorkLogHistory/WorkLogHistory.svelte';
+	import WorkLogListView from './_components/WorkLogListView/WorkLogListView.svelte';
+	import DailySummaryView from './_components/DailySummaryView/DailySummaryView.svelte';
 	import DescriptionInput from './_components/DescriptionInput/DescriptionInput.svelte';
 	import WorkLogTagInput from './_components/WorkLogTagInput/WorkLogTagInput.svelte';
 	import { enhance } from '$app/forms';
@@ -78,11 +79,16 @@
 	let filterTags = $state<string[]>([]);
 	let currentMonth = $state<string | undefined>(undefined);
 	let currentDate = $state<string | undefined>(undefined);
+	// F-009: ビュー切り替え
+	let currentView = $state<'list' | 'daily'>('list');
 	$effect(() => {
 		const filters = readFiltersFromUrl(page.url);
 		filterTags = filters.tags;
 		currentMonth = filters.month;
 		currentDate = filters.date;
+		// URLからviewパラメータを取得
+		const viewParam = page.url.searchParams.get('view');
+		currentView = viewParam === 'daily' ? 'daily' : 'list';
 	});
 
 	// F-006: フィルタタグ変更ハンドラー
@@ -105,6 +111,26 @@
 		}
 	};
 
+	// F-009: ビュー切り替えハンドラー
+	const handleViewChange = (view: 'list' | 'daily') => {
+		const url = new URL(page.url);
+		if (view === 'daily') {
+			url.searchParams.set('view', 'daily');
+		} else {
+			url.searchParams.delete('view');
+		}
+		goto(url.toString(), { replaceState: false, noScroll: true, keepFocus: true });
+	};
+
+	// F-009: 日付クリック時のドリルダウンハンドラー
+	const handleDateClick = (date: string) => {
+		// 一覧ビューに切り替えて、日付フィルタを適用
+		const url = new URL(page.url);
+		url.searchParams.delete('view'); // list view
+		url.searchParams.set('date', date);
+		goto(url.toString(), { replaceState: false, noScroll: true, keepFocus: true });
+	};
+
 	// 成功ハンドラーを作成
 	const handleStartSuccess = createHandleStartSuccess({
 		setCurrentActive: (active) => {
@@ -117,7 +143,8 @@
 			currentServerNow = serverNow;
 		},
 		showSuccessToast: toastSuccess,
-		listDataPromise: data.listData,
+		listDataPromise:
+			data.view === 'list' && data.listData ? data.listData : Promise.resolve({ items: [] }),
 	});
 
 	const handleStopSuccess = createHandleStopSuccess({
@@ -131,7 +158,8 @@
 			currentServerNow = serverNow;
 		},
 		showSuccessToast: toastSuccess,
-		listDataPromise: data.listData,
+		listDataPromise:
+			data.view === 'list' && data.listData ? data.listData : Promise.resolve({ items: [] }),
 	});
 
 	const handleSwitchSuccess = createHandleSwitchSuccess({
@@ -145,7 +173,8 @@
 			currentServerNow = serverNow;
 		},
 		showSuccessToast: toastSuccess,
-		listDataPromise: data.listData,
+		listDataPromise:
+			data.view === 'list' && data.listData ? data.listData : Promise.resolve({ items: [] }),
 	});
 
 	const handleAdjustActiveSuccess = createHandleAdjustActiveSuccess({
@@ -159,7 +188,8 @@
 			currentServerNow = serverNow;
 		},
 		showSuccessToast: toastSuccess,
-		listDataPromise: data.listData,
+		listDataPromise:
+			data.view === 'list' && data.listData ? data.listData : Promise.resolve({ items: [] }),
 	});
 
 	// エラー処理ハンドラーマップ
@@ -314,7 +344,40 @@
 		dailyTotalSec: number;
 	};
 
-	let listDataPromise = $derived<Promise<ListData>>(data.listData as Promise<ListData>);
+	let listDataPromise = $derived<Promise<ListData>>(
+		data.view === 'list'
+			? (data.listData as Promise<ListData>)
+			: Promise.resolve({
+					items: [],
+					page: 1,
+					size: 30,
+					hasNext: false,
+					monthlyTotalSec: 0,
+					dailyTotalSec: 0,
+				}),
+	);
+
+	// F-009: 日別集計データのPromise
+	type DailySummaryItem = {
+		date: string;
+		dayOfWeek: string;
+		totalSec: number;
+		count: number;
+	};
+	type DailySummaryData = {
+		items: DailySummaryItem[];
+		monthlyTotalSec: number;
+		month: string;
+	};
+	let dailySummaryDataPromise = $derived<Promise<DailySummaryData>>(
+		data.view === 'daily'
+			? (data.dailySummaryData as Promise<DailySummaryData>)
+			: Promise.resolve({
+					items: [],
+					monthlyTotalSec: 0,
+					month: '',
+				}),
+	);
 
 	// ===== 編集モーダルの状態 =====
 	const editModalManager = createEditModalManager();
@@ -437,20 +500,46 @@
 		</div>
 	</div>
 
-	<!-- 作業一覧セクション -->
-	<WorkLogHistory
-		{listDataPromise}
-		{filterTags}
-		{currentMonth}
-		{currentDate}
-		tagSuggestions={data.tagSuggestions}
-		serverNow={currentServerNow}
-		onFilterTagsChange={handleFilterTagsChange}
-		onDateFilterChange={handleDateFilterChange}
-		onTagClick={handleTagClick}
-		onEdit={openEditModal}
-		onDelete={handleDeleteClick}
-	/>
+	<!-- F-009: ビュー切り替えタブ -->
+	<div role="tablist" class="tabs-boxed mb-4 tabs">
+		<button
+			role="tab"
+			class="tab"
+			class:tab-active={currentView === 'list'}
+			onclick={() => handleViewChange('list')}
+		>
+			一覧
+		</button>
+		<button
+			role="tab"
+			class="tab"
+			class:tab-active={currentView === 'daily'}
+			onclick={() => handleViewChange('daily')}
+		>
+			日別
+		</button>
+	</div>
+
+	<!-- ビュー別表示 -->
+	{#if currentView === 'list'}
+		<!-- 作業一覧ビュー -->
+		<WorkLogListView
+			{listDataPromise}
+			{filterTags}
+			{currentMonth}
+			{currentDate}
+			tagSuggestions={data.tagSuggestions}
+			serverNow={currentServerNow}
+			onFilterTagsChange={handleFilterTagsChange}
+			onDateFilterChange={handleDateFilterChange}
+			onTagClick={handleTagClick}
+			onEdit={openEditModal}
+			onDelete={handleDeleteClick}
+		/>
+	{:else}
+		<!-- 日別集計ビュー -->
+		<DailySummaryView dailySummaryData={dailySummaryDataPromise} onDateClick={handleDateClick} />
+	{/if}
 
 	<!-- キーボードショートカットヘルプ -->
 	<KeyboardShortcutHelp />

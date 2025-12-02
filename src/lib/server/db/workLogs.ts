@@ -672,8 +672,9 @@ export const getDailySummary = async (
 
 	// タグフィルタ（OR条件）
 	if (tags && tags.length > 0) {
-		const tagConditions = tags.map((tag) =>
-			sql`EXISTS (
+		const tagConditions = tags.map(
+			(tag) =>
+				sql`EXISTS (
 				SELECT 1 FROM ${workLogTags}
 				WHERE ${workLogTags.workLogId} = ${workLogs.id}
 				AND ${workLogTags.tag} = ${tag}

@@ -1,5 +1,8 @@
 import { error } from '@sveltejs/kit';
 import type { ServerLoad, Actions } from '@sveltejs/kit';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import {
 	getActiveWorkLog,
 	listWorkLogs,
@@ -7,7 +10,9 @@ import {
 	aggregateDailyWorkLogDuration,
 	getUserTagSuggestions,
 	getPreviousEndedAt,
+	getDailySummary,
 } from '$lib/server/db/workLogs';
+import type { DailySummaryData } from '$lib/server/entities/DailySummary';
 import { normalizeWorkLogQuery } from '$lib/utils/queryNormalizer';
 import { getTodayStart } from '$lib/utils/timezone';
 import { handleStartAction } from './_actions/start';
@@ -16,6 +21,9 @@ import { handleSwitchAction } from './_actions/switch';
 import { handleUpdateAction } from './_actions/update';
 import { handleDeleteAction } from './_actions/delete';
 import { handleAdjustActiveAction } from './_actions/adjustActive';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 /**
  * URLからクエリパラメータをパース
@@ -32,6 +40,7 @@ const parseQueryParams = (url: URL) => {
 		: undefined;
 
 	return {
+		view: url.searchParams.get('view') ?? undefined,
 		month: url.searchParams.get('month') ?? undefined,
 		date: url.searchParams.get('date') ?? undefined,
 		from: url.searchParams.get('from') ?? undefined,
@@ -126,6 +135,46 @@ const fetchListData = async (
 };
 
 /**
+ * 日別集計データを取得
+ * F-009: 日別合計時間表示機能
+ */
+const fetchDailySummaryData = async (
+	userId: string,
+	month: string,
+	tags?: string[],
+): Promise<DailySummaryData> => {
+	const fetchStart = Date.now();
+	console.log('[PERF] fetchDailySummaryData - starting', {
+		timestamp: new Date().toISOString(),
+		params: { month, tags },
+	});
+
+	const { items, monthlyTotalSec } = await getDailySummary(userId, month, tags);
+
+	// 曜日を追加
+	const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
+	const itemsWithDayOfWeek = items.map((item) => {
+		const date = new Date(item.date + 'T00:00:00Z');
+		return {
+			...item,
+			dayOfWeek: daysOfWeek[date.getUTCDay()],
+		};
+	});
+
+	console.log('[PERF] fetchDailySummaryData - completed', {
+		duration: Date.now() - fetchStart,
+		timestamp: new Date().toISOString(),
+		itemCount: items.length,
+	});
+
+	return {
+		items: itemsWithDayOfWeek,
+		monthlyTotalSec,
+		month,
+	};
+};
+
+/**
  * F-001: 初期状態取得
  * F-005/F-006: 作業一覧と月次合計
  *
@@ -149,10 +198,15 @@ type WorkLogItem = {
 	tags: string[];
 };
 
-type LoadData = {
+type LoadDataBase = {
 	active?: ActiveWorkLog;
 	serverNow: string;
 	previousEndedAt?: string; // F-001.2: 最新の完了作業の終了時刻
+	tagSuggestions: { tag: string; count: number }[]; // F-003: タグ候補
+};
+
+type LoadDataList = LoadDataBase & {
+	view: 'list';
 	// F-005/F-006: 一覧と月次合計(Promiseでストリーミング)
 	listData: Promise<{
 		items: WorkLogItem[];
@@ -162,9 +216,15 @@ type LoadData = {
 		monthlyTotalSec: number;
 		dailyTotalSec: number;
 	}>;
-	// F-003: タグ候補
-	tagSuggestions: { tag: string; count: number }[];
 };
+
+type LoadDataDaily = LoadDataBase & {
+	view: 'daily';
+	// F-009: 日別集計データ(Promiseでストリーミング)
+	dailySummaryData: Promise<DailySummaryData>;
+};
+
+type LoadData = LoadDataList | LoadDataDaily;
 
 export const load: ServerLoad = async ({ locals, url }) => {
 	const startTime = Date.now();
@@ -221,28 +281,61 @@ export const load: ServerLoad = async ({ locals, url }) => {
 			count: tagSuggestions.length,
 		});
 
-		// 重いデータ: 一覧と月次合計(Promiseのまま返してストリーミング)
-		const listDataStart = Date.now();
-		console.log('[PERF] fetchListData started (streaming)', {
-			elapsed: Date.now() - startTime,
-			timestamp: new Date().toISOString(),
-		});
-		const listData = fetchListData(userId, locals.user.timezone, normalized).then((result) => {
-			console.log('[PERF] fetchListData completed', {
-				elapsed: Date.now() - startTime,
-				duration: Date.now() - listDataStart,
-				timestamp: new Date().toISOString(),
-				itemCount: result.items.length,
-			});
-			return result;
-		});
+		// F-009: viewパラメータで日別集計と一覧を切り替え
+		const view = queryParams.view === 'daily' ? 'daily' : 'list';
 
-		// レスポンス構築(軽量データ + Promise)
-		const response: LoadData = {
-			serverNow,
-			listData,
-			tagSuggestions, // F-003: タグ候補を追加
-		};
+		let response: LoadData;
+		if (view === 'daily') {
+			// F-009: 日別集計データを取得
+			const dailySummaryDataStart = Date.now();
+			console.log('[PERF] fetchDailySummaryData started (streaming)', {
+				elapsed: Date.now() - startTime,
+				timestamp: new Date().toISOString(),
+			});
+			const dailySummaryData = fetchDailySummaryData(
+				userId,
+				normalized.month ?? dayjs().tz(locals.user.timezone).format('YYYY-MM'),
+				normalized.tags,
+			).then((result) => {
+				console.log('[PERF] fetchDailySummaryData completed', {
+					elapsed: Date.now() - startTime,
+					duration: Date.now() - dailySummaryDataStart,
+					timestamp: new Date().toISOString(),
+					itemCount: result.items.length,
+				});
+				return result;
+			});
+
+			response = {
+				view: 'daily',
+				serverNow,
+				tagSuggestions,
+				dailySummaryData,
+			};
+		} else {
+			// F-005/F-006: 一覧と月次合計を取得
+			const listDataStart = Date.now();
+			console.log('[PERF] fetchListData started (streaming)', {
+				elapsed: Date.now() - startTime,
+				timestamp: new Date().toISOString(),
+			});
+			const listData = fetchListData(userId, locals.user.timezone, normalized).then((result) => {
+				console.log('[PERF] fetchListData completed', {
+					elapsed: Date.now() - startTime,
+					duration: Date.now() - listDataStart,
+					timestamp: new Date().toISOString(),
+					itemCount: result.items.length,
+				});
+				return result;
+			});
+
+			response = {
+				view: 'list',
+				serverNow,
+				tagSuggestions,
+				listData,
+			};
+		}
 
 		// F-001.2: previousEndedAt を追加
 		if (previousEndedAt) {

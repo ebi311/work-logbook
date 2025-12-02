@@ -636,3 +636,72 @@ export const getPreviousEndedAt = async (userId: string): Promise<Date | null> =
 
 	return result?.endedAt ?? null;
 };
+
+/**
+ * 指定月の日別集計を取得
+ * F-009: 日別合計時間表示機能
+ * @param userId - ユーザーID
+ * @param month - 対象月（YYYY-MM）
+ * @param tags - タグフィルタ（OR条件、任意）
+ * @returns 日別集計データ
+ */
+export const getDailySummary = async (
+	userId: string,
+	month: string,
+	tags?: string[],
+): Promise<{
+	items: Array<{
+		date: string;
+		totalSec: number;
+		count: number;
+	}>;
+	monthlyTotalSec: number;
+}> => {
+	// 月の範囲を計算（UTC基準）
+	const startOfMonth = new Date(`${month}-01T00:00:00Z`);
+	const endOfMonth = new Date(startOfMonth);
+	endOfMonth.setUTCMonth(endOfMonth.getUTCMonth() + 1);
+
+	// 日別集計クエリ
+	const conditions = [
+		eq(workLogs.userId, userId),
+		gte(workLogs.startedAt, startOfMonth),
+		lte(workLogs.startedAt, endOfMonth),
+		isNotNull(workLogs.endedAt),
+	];
+
+	// タグフィルタ（OR条件）
+	if (tags && tags.length > 0) {
+		const tagConditions = tags.map((tag) =>
+			sql`EXISTS (
+				SELECT 1 FROM ${workLogTags}
+				WHERE ${workLogTags.workLogId} = ${workLogs.id}
+				AND ${workLogTags.tag} = ${tag}
+			)`,
+		);
+		conditions.push(sql`(${sql.join(tagConditions, sql` OR `)})`);
+	}
+
+	const results = await db
+		.select({
+			date: sql<string>`DATE(${workLogs.startedAt} AT TIME ZONE 'UTC')`,
+			totalSec: sql<number>`SUM(EXTRACT(EPOCH FROM (${workLogs.endedAt} - ${workLogs.startedAt})))`,
+			count: sql<number>`COUNT(*)`,
+		})
+		.from(workLogs)
+		.where(and(...conditions))
+		.groupBy(sql`DATE(${workLogs.startedAt} AT TIME ZONE 'UTC')`)
+		.orderBy(desc(sql`DATE(${workLogs.startedAt} AT TIME ZONE 'UTC')`));
+
+	// 月次合計を計算
+	const monthlyTotalSec = results.reduce((sum, row) => sum + Number(row.totalSec || 0), 0);
+
+	return {
+		items: results.map((row) => ({
+			date: row.date,
+			totalSec: Math.floor(Number(row.totalSec || 0)),
+			count: Number(row.count || 0),
+		})),
+		monthlyTotalSec: Math.floor(monthlyTotalSec),
+	};
+};

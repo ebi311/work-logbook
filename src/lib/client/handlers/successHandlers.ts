@@ -126,6 +126,34 @@ export const createHandleStopSuccess = (deps: SuccessHandlerDependencies) => {
 };
 
 /**
+ * 終了した作業をIndexedDBに保存
+ */
+const saveStoppedWorkLog = async (stopped: CompletedWorkLog, userId: string) => {
+	await saveWorkLogFromServer({
+		id: stopped.id,
+		userId,
+		startedAt: stopped.startedAt,
+		endedAt: stopped.endedAt,
+		description: stopped.description || '',
+		tags: stopped.tags || [],
+	});
+};
+
+/**
+ * 開始した作業をIndexedDBに保存
+ */
+const saveStartedWorkLog = async (started: ActiveWorkLog, userId: string) => {
+	await saveWorkLogFromServer({
+		id: started.id,
+		userId,
+		startedAt: started.startedAt,
+		endedAt: null,
+		description: started.description || '',
+		tags: started.tags || [],
+	});
+};
+
+/**
  * 作業切り替え成功時のIndexedDB保存処理
  */
 const saveSwitchWorkLogsToIndexedDB = async (
@@ -139,29 +167,28 @@ const saveSwitchWorkLogsToIndexedDB = async (
 
 	// 終了した作業を保存
 	if (form.stopped && typeof form.stopped === 'object') {
-		const stopped = form.stopped as CompletedWorkLog;
-		await saveWorkLogFromServer({
-			id: stopped.id,
-			userId,
-			startedAt: stopped.startedAt,
-			endedAt: stopped.endedAt,
-			description: stopped.description || '',
-			tags: stopped.tags || [],
-		});
+		await saveStoppedWorkLog(form.stopped as CompletedWorkLog, userId);
 	}
 
 	// 開始した作業を保存
 	if (form.started && typeof form.started === 'object') {
-		const started = form.started as ActiveWorkLog;
-		await saveWorkLogFromServer({
-			id: started.id,
-			userId,
-			startedAt: started.startedAt,
-			endedAt: null,
-			description: started.description || '',
-			tags: started.tags || [],
-		});
+		await saveStartedWorkLog(form.started as ActiveWorkLog, userId);
 	}
+};
+
+/**
+ * 作業切り替えのフォームデータを検証
+ */
+const validateSwitchFormData = (
+	form: NonNullable<ActionData>,
+): { started: ActiveWorkLog; stopped: CompletedWorkLog } | null => {
+	if (!('started' in form) || !form.started || typeof form.started !== 'object') return null;
+	if (!('stopped' in form) || !form.stopped || typeof form.stopped !== 'object') return null;
+
+	return {
+		started: form.started as ActiveWorkLog,
+		stopped: form.stopped as CompletedWorkLog,
+	};
 };
 
 /**
@@ -169,16 +196,18 @@ const saveSwitchWorkLogsToIndexedDB = async (
  */
 export const createHandleSwitchSuccess = (deps: SuccessHandlerDependencies) => {
 	return async (form: NonNullable<ActionData>) => {
-		if (!('started' in form) || !form.started || typeof form.started !== 'object') return;
-		if (!('stopped' in form) || !form.stopped || typeof form.stopped !== 'object') return;
+		const validated = validateSwitchFormData(form);
+		if (!validated) return;
+
+		const { started, stopped } = validated;
 
 		// 状態を更新（タグはクリアしない - 新しい作業のタグを保持）
-		deps.setCurrentActive(form.started as ActiveWorkLog);
+		deps.setCurrentActive(started);
 
-		const stopped = form.stopped as CompletedWorkLog & { durationSec?: number };
+		const stoppedWithDuration = stopped as CompletedWorkLog & { durationSec?: number };
 		const duration =
-			'durationSec' in stopped && typeof stopped.durationSec === 'number'
-				? Math.floor(stopped.durationSec / 60)
+			'durationSec' in stoppedWithDuration && typeof stoppedWithDuration.durationSec === 'number'
+				? Math.floor(stoppedWithDuration.durationSec / 60)
 				: 0;
 
 		if ('serverNow' in form) {
@@ -194,6 +223,26 @@ export const createHandleSwitchSuccess = (deps: SuccessHandlerDependencies) => {
 
 		deps.showSuccessToast(`作業を切り替えました(${duration}分)`);
 	};
+};
+
+/**
+ * adjustActive作業のIndexedDB保存処理
+ */
+const saveAdjustActiveToIndexedDB = async (
+	workLog: ActiveWorkLog,
+	listDataPromise: Promise<{ items: Array<{ id: string }> }>,
+) => {
+	await listDataPromise; // データの読み込みを待つ
+	const userId = 'offline-user'; // TODO: 適切なuserIdを取得
+
+	await saveWorkLogFromServer({
+		id: workLog.id,
+		userId,
+		startedAt: workLog.startedAt,
+		endedAt: null,
+		description: workLog.description,
+		tags: workLog.tags,
+	});
 };
 
 /**
@@ -216,17 +265,7 @@ export const createHandleAdjustActiveSuccess = (deps: SuccessHandlerDependencies
 
 		// サーバーからのデータをIndexedDBに保存
 		try {
-			await deps.listDataPromise; // データの読み込みを待つ
-			const userId = 'offline-user'; // TODO: 適切なuserIdを取得
-
-			await saveWorkLogFromServer({
-				id: workLog.id,
-				userId,
-				startedAt: workLog.startedAt,
-				endedAt: null,
-				description: workLog.description,
-				tags: workLog.tags,
-			});
+			await saveAdjustActiveToIndexedDB(workLog, deps.listDataPromise);
 		} catch (error) {
 			console.error('Failed to save to IndexedDB:', error);
 		}

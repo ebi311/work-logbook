@@ -76,6 +76,7 @@ describe('/+page.svelte', () => {
 	const createDefaultData = (overrides?: any) => ({
 		active: undefined,
 		serverNow,
+		view: 'list' as const,
 		listData: createDefaultListData(),
 		tagSuggestions: [],
 		...overrides,
@@ -737,9 +738,7 @@ describe('/+page.svelte', () => {
 	describe('編集ボタンと編集フロー', () => {
 		beforeEach(() => {
 			// dialog のメソッドをモック（JSDOMでは未実装のため）
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(HTMLDialogElement.prototype as any).showModal = vi.fn();
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(HTMLDialogElement.prototype as any).close = vi.fn();
 		});
 

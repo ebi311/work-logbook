@@ -16,6 +16,7 @@ describe('formResponseHandler', () => {
 					onStartSuccess,
 					onStopSuccess,
 					onSwitchSuccess,
+					onAdjustActiveSuccess: vi.fn(),
 					errorHandlers,
 				});
 
@@ -37,6 +38,7 @@ describe('formResponseHandler', () => {
 					onStartSuccess,
 					onStopSuccess,
 					onSwitchSuccess,
+					onAdjustActiveSuccess: vi.fn(),
 					errorHandlers: {},
 				});
 
@@ -70,6 +72,7 @@ describe('formResponseHandler', () => {
 					onStartSuccess,
 					onStopSuccess,
 					onSwitchSuccess,
+					onAdjustActiveSuccess: vi.fn(),
 					errorHandlers: {},
 				});
 
@@ -104,6 +107,7 @@ describe('formResponseHandler', () => {
 					onStartSuccess,
 					onStopSuccess,
 					onSwitchSuccess,
+					onAdjustActiveSuccess: vi.fn(),
 					errorHandlers: {},
 				});
 
@@ -144,6 +148,7 @@ describe('formResponseHandler', () => {
 					onStartSuccess,
 					onStopSuccess,
 					onSwitchSuccess,
+					onAdjustActiveSuccess: vi.fn(),
 					errorHandlers: {},
 				});
 
@@ -178,6 +183,7 @@ describe('formResponseHandler', () => {
 					onStartSuccess,
 					onStopSuccess,
 					onSwitchSuccess,
+					onAdjustActiveSuccess: vi.fn(),
 					errorHandlers: {},
 				});
 
@@ -202,11 +208,11 @@ describe('formResponseHandler', () => {
 					onStartSuccess: vi.fn(),
 					onStopSuccess: vi.fn(),
 					onSwitchSuccess: vi.fn(),
+					onAdjustActiveSuccess: vi.fn(),
 					errorHandlers: {
 						ACTIVE_EXISTS: errorHandler,
 					},
 				});
-
 				const form = {
 					reason: 'ACTIVE_EXISTS',
 					active: {
@@ -231,11 +237,11 @@ describe('formResponseHandler', () => {
 					onStartSuccess: vi.fn(),
 					onStopSuccess: vi.fn(),
 					onSwitchSuccess: vi.fn(),
+					onAdjustActiveSuccess: vi.fn(),
 					errorHandlers: {
 						NO_ACTIVE: errorHandler,
 					},
 				});
-
 				const form = {
 					reason: 'NO_ACTIVE',
 					serverNow: new Date().toISOString(),
@@ -251,9 +257,9 @@ describe('formResponseHandler', () => {
 					onStartSuccess: vi.fn(),
 					onStopSuccess: vi.fn(),
 					onSwitchSuccess: vi.fn(),
+					onAdjustActiveSuccess: vi.fn(),
 					errorHandlers: {},
 				});
-
 				const form = {
 					reason: 'UNKNOWN_ERROR',
 					serverNow: new Date().toISOString(),
@@ -274,6 +280,7 @@ describe('formResponseHandler', () => {
 					onStartSuccess,
 					onStopSuccess,
 					onSwitchSuccess,
+					onAdjustActiveSuccess: vi.fn(),
 					errorHandlers: {},
 				});
 

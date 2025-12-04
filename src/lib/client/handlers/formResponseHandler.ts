@@ -42,7 +42,13 @@ const isSwitchSuccess = (form: NonNullable<ActionData>): boolean => {
  * start成功レスポンスの型ガード
  */
 const isStartSuccess = (form: NonNullable<ActionData>): boolean => {
-	return 'workLog' in form && form.workLog?.endedAt === null;
+	return (
+		'workLog' in form &&
+		form.workLog !== null &&
+		typeof form.workLog === 'object' &&
+		'endedAt' in form.workLog &&
+		form.workLog.endedAt === null
+	);
 };
 
 /**

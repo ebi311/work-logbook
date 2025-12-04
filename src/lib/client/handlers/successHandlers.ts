@@ -47,7 +47,12 @@ export type CompletedWorkLog = {
 export const createHandleStartSuccess = (deps: SuccessHandlerDependencies) => {
 	return async (form: NonNullable<ActionData>) => {
 		if (!('workLog' in form) || !form.workLog) return;
-		if (form.workLog.endedAt !== null) return; // 型ガード
+		if (
+			typeof form.workLog !== 'object' ||
+			!('endedAt' in form.workLog) ||
+			form.workLog.endedAt !== null
+		)
+			return;
 
 		// 状態を更新
 		deps.setCurrentActive(form.workLog as ActiveWorkLog);
@@ -60,14 +65,15 @@ export const createHandleStartSuccess = (deps: SuccessHandlerDependencies) => {
 		try {
 			await deps.listDataPromise; // データの読み込みを待つ
 			const userId = 'offline-user'; // TODO: 適切なuserIdを取得
+			const workLog = form.workLog as ActiveWorkLog;
 
 			await saveWorkLogFromServer({
-				id: form.workLog.id,
+				id: workLog.id,
 				userId,
-				startedAt: form.workLog.startedAt,
+				startedAt: workLog.startedAt,
 				endedAt: null,
-				description: form.workLog.description || '',
-				tags: form.workLog.tags || [],
+				description: workLog.description || '',
+				tags: workLog.tags || [],
 			});
 		} catch (error) {
 			console.error('Failed to save to IndexedDB:', error);
@@ -82,7 +88,7 @@ export const createHandleStartSuccess = (deps: SuccessHandlerDependencies) => {
  */
 export const createHandleStopSuccess = (deps: SuccessHandlerDependencies) => {
 	return async (form: NonNullable<ActionData>) => {
-		if (!('workLog' in form) || !form.workLog) return;
+		if (!('workLog' in form) || !form.workLog || typeof form.workLog !== 'object') return;
 
 		// 状態を更新
 		deps.setCurrentActive(undefined);
@@ -101,14 +107,15 @@ export const createHandleStopSuccess = (deps: SuccessHandlerDependencies) => {
 		try {
 			await deps.listDataPromise; // データの読み込みを待つ
 			const userId = 'offline-user'; // TODO: 適切なuserIdを取得
+			const workLog = form.workLog as CompletedWorkLog;
 
 			await saveWorkLogFromServer({
-				id: form.workLog.id,
+				id: workLog.id,
 				userId,
-				startedAt: form.workLog.startedAt,
-				endedAt: form.workLog.endedAt,
-				description: form.workLog.description || '',
-				tags: form.workLog.tags || [],
+				startedAt: workLog.startedAt,
+				endedAt: workLog.endedAt,
+				description: workLog.description || '',
+				tags: workLog.tags || [],
 			});
 		} catch (error) {
 			console.error('Failed to save to IndexedDB:', error);
@@ -131,26 +138,28 @@ const saveSwitchWorkLogsToIndexedDB = async (
 	const userId = 'offline-user'; // TODO: 適切なuserIdを取得
 
 	// 終了した作業を保存
-	if (form.stopped) {
+	if (form.stopped && typeof form.stopped === 'object') {
+		const stopped = form.stopped as CompletedWorkLog;
 		await saveWorkLogFromServer({
-			id: form.stopped.id,
+			id: stopped.id,
 			userId,
-			startedAt: form.stopped.startedAt,
-			endedAt: form.stopped.endedAt,
-			description: form.stopped.description || '',
-			tags: form.stopped.tags || [],
+			startedAt: stopped.startedAt,
+			endedAt: stopped.endedAt,
+			description: stopped.description || '',
+			tags: stopped.tags || [],
 		});
 	}
 
 	// 開始した作業を保存
-	if (form.started) {
+	if (form.started && typeof form.started === 'object') {
+		const started = form.started as ActiveWorkLog;
 		await saveWorkLogFromServer({
-			id: form.started.id,
+			id: started.id,
 			userId,
-			startedAt: form.started.startedAt,
+			startedAt: started.startedAt,
 			endedAt: null,
-			description: form.started.description || '',
-			tags: form.started.tags || [],
+			description: started.description || '',
+			tags: started.tags || [],
 		});
 	}
 };
@@ -160,15 +169,16 @@ const saveSwitchWorkLogsToIndexedDB = async (
  */
 export const createHandleSwitchSuccess = (deps: SuccessHandlerDependencies) => {
 	return async (form: NonNullable<ActionData>) => {
-		if (!('started' in form) || !form.started) return;
-		if (!('stopped' in form) || !form.stopped) return;
+		if (!('started' in form) || !form.started || typeof form.started !== 'object') return;
+		if (!('stopped' in form) || !form.stopped || typeof form.stopped !== 'object') return;
 
 		// 状態を更新（タグはクリアしない - 新しい作業のタグを保持）
 		deps.setCurrentActive(form.started as ActiveWorkLog);
 
+		const stopped = form.stopped as CompletedWorkLog & { durationSec?: number };
 		const duration =
-			'stopped' in form && form.stopped && 'durationSec' in form.stopped
-				? Math.floor((form.stopped.durationSec as number) / 60)
+			'durationSec' in stopped && typeof stopped.durationSec === 'number'
+				? Math.floor(stopped.durationSec / 60)
 				: 0;
 
 		if ('serverNow' in form) {
@@ -192,7 +202,7 @@ export const createHandleSwitchSuccess = (deps: SuccessHandlerDependencies) => {
  */
 export const createHandleAdjustActiveSuccess = (deps: SuccessHandlerDependencies) => {
 	return async (form: NonNullable<ActionData>) => {
-		if (!('workLog' in form) || !form.workLog) return;
+		if (!('workLog' in form) || !form.workLog || typeof form.workLog !== 'object') return;
 
 		const workLog = form.workLog as ActiveWorkLog;
 

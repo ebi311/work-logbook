@@ -141,7 +141,6 @@ const fetchListData = async (
 const fetchDailySummaryData = async (
 	userId: string,
 	month: string,
-	timezone: string,
 	tags?: string[],
 ): Promise<DailySummaryData> => {
 	const fetchStart = Date.now();
@@ -150,7 +149,7 @@ const fetchDailySummaryData = async (
 		params: { month, tags },
 	});
 
-	const { items, monthlyTotalSec } = await getDailySummary(userId, month, timezone, tags);
+	const { items, monthlyTotalSec } = await getDailySummary(userId, month, tags);
 
 	// 曜日を追加
 	const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
@@ -296,7 +295,6 @@ export const load: ServerLoad = async ({ locals, url }) => {
 			const dailySummaryData = fetchDailySummaryData(
 				userId,
 				normalized.month ?? dayjs().tz(locals.user.timezone).format('YYYY-MM'),
-				locals.user.timezone,
 				normalized.tags,
 			).then((result) => {
 				console.log('[PERF] fetchDailySummaryData completed', {

@@ -642,14 +642,12 @@ export const getPreviousEndedAt = async (userId: string): Promise<Date | null> =
  * F-009: 日別合計時間表示機能
  * @param userId - ユーザーID
  * @param month - 対象月（YYYY-MM）
- * @param timezone - ユーザーのタイムゾーン
  * @param tags - タグフィルタ（OR条件、任意）
  * @returns 日別集計データ
  */
 export const getDailySummary = async (
 	userId: string,
 	month: string,
-	timezone: string,
 	tags?: string[],
 ): Promise<{
 	items: Array<{
@@ -687,14 +685,14 @@ export const getDailySummary = async (
 
 	const results = await db
 		.select({
-			date: sql<string>`(${workLogs.startedAt} AT TIME ZONE ${timezone})::date`,
+			date: sql<string>`DATE(${workLogs.startedAt} AT TIME ZONE 'UTC')`,
 			totalSec: sql<number>`SUM(EXTRACT(EPOCH FROM (${workLogs.endedAt} - ${workLogs.startedAt})))`,
 			count: sql<number>`COUNT(*)`,
 		})
 		.from(workLogs)
 		.where(and(...conditions))
-		.groupBy(sql`(${workLogs.startedAt} AT TIME ZONE ${timezone})::date`)
-		.orderBy(desc(sql`(${workLogs.startedAt} AT TIME ZONE ${timezone})::date`));
+		.groupBy(sql`DATE(${workLogs.startedAt} AT TIME ZONE 'UTC')`)
+		.orderBy(desc(sql`DATE(${workLogs.startedAt} AT TIME ZONE 'UTC')`));
 
 	// 月次合計を計算
 	const monthlyTotalSec = results.reduce((sum, row) => sum + Number(row.totalSec || 0), 0);

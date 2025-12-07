@@ -3,7 +3,7 @@ import { updateSessionTimezone } from '$lib/server/auth/session';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
-	const sessionId = cookies.get('sessionId');
+	const sessionId = cookies.get('session_id');
 	if (!sessionId) {
 		return json({ success: false, error: 'No session' }, { status: 401 });
 	}

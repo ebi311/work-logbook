@@ -359,7 +359,7 @@
 
 	// F-009: 日別集計データのPromise
 	type DailySummaryItem = {
-		date: string;
+		date: Date;
 		dayOfWeek: string;
 		totalSec: number;
 		count: number;

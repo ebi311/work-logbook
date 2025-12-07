@@ -10,6 +10,10 @@ dayjs.extend(timezone);
  */
 export const DEFAULT_TIMEZONE = 'Asia/Tokyo';
 
+export const dayjsLocal = (date?: string | Date) => {
+	return date ? dayjs(date).tz(DEFAULT_TIMEZONE) : dayjs().tz(DEFAULT_TIMEZONE);
+};
+
 /**
  * 指定されたタイムゾーンで「今日の開始時刻」を取得
  * @param tz - タイムゾーン (例: 'Asia/Tokyo', 'America/New_York')

@@ -7,7 +7,9 @@
  */
 
 import dayjs from 'dayjs';
+import 'dayjs/locale/ja';
 
+dayjs.locale('ja');
 /**
  * UTC ISO文字列または Date オブジェクトを datetime-local input 用の文字列に変換
  * @param value - UTC ISO文字列または Date オブジェクト

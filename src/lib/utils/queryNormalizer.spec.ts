@@ -27,9 +27,9 @@ describe('normalizeWorkLogQuery', () => {
 				to: '2025-08-31',
 			});
 
-			// 2025-09-01 00:00:00Z 〜 2025-10-01 00:00:00Z
-			expect(result.from).toEqual(new Date('2025-09-01T00:00:00Z'));
-			expect(result.to).toEqual(new Date('2025-09-30T23:59:59.999Z'));
+			// 2025-09-01 00:00:00+09:00 〜 2025-09-30 23:59:59.999+09:00
+			expect(result.from).toEqual(new Date('2025-09-01T00:00:00+09:00'));
+			expect(result.to).toEqual(new Date('2025-09-30T23:59:59.999+09:00'));
 			expect(result.month).toBe('2025-09');
 		});
 
@@ -172,8 +172,8 @@ describe('normalizeWorkLogQuery', () => {
 			const result = normalizeWorkLogQuery({ month: '2024-02' });
 
 			// 2024-02-01 00:00:00Z 〜 2024-02-29 23:59:59.999Z
-			expect(result.from).toEqual(new Date('2024-02-01T00:00:00Z'));
-			expect(result.to).toEqual(new Date('2024-02-29T23:59:59.999Z'));
+			expect(result.from).toEqual(new Date('2024-02-01T00:00:00+09:00'));
+			expect(result.to).toEqual(new Date('2024-02-29T23:59:59.999+09:00'));
 			expect(result.month).toBe('2024-02');
 		});
 	});
@@ -183,8 +183,8 @@ describe('normalizeWorkLogQuery', () => {
 			const result = normalizeWorkLogQuery({ month: '2025-12' });
 
 			// 2025-12-01 00:00:00Z 〜 2025-12-31 23:59:59.999Z
-			expect(result.from).toEqual(new Date('2025-12-01T00:00:00Z'));
-			expect(result.to).toEqual(new Date('2025-12-31T23:59:59.999Z'));
+			expect(result.from).toEqual(new Date('2025-12-01T00:00:00+09:00'));
+			expect(result.to).toEqual(new Date('2025-12-31T23:59:59.999+09:00'));
 			expect(result.month).toBe('2025-12');
 		});
 	});
@@ -193,8 +193,8 @@ describe('normalizeWorkLogQuery', () => {
 		it('未来の月を許容', () => {
 			const result = normalizeWorkLogQuery({ month: '2026-06' });
 
-			expect(result.from).toEqual(new Date('2026-06-01T00:00:00Z'));
-			expect(result.to).toEqual(new Date('2026-06-30T23:59:59.999Z'));
+			expect(result.from).toEqual(new Date('2026-06-01T00:00:00+09:00'));
+			expect(result.to).toEqual(new Date('2026-06-30T23:59:59.999+09:00'));
 			expect(result.month).toBe('2026-06');
 		});
 	});

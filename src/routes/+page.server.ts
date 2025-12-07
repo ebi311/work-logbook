@@ -154,7 +154,7 @@ const fetchDailySummaryData = async (
 	// 曜日を追加
 	const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
 	const itemsWithDayOfWeek = items.map((item) => {
-		const date = new Date(item.date + 'T00:00:00Z');
+		const date = item.date;
 		return {
 			...item,
 			dayOfWeek: daysOfWeek[date.getUTCDay()],

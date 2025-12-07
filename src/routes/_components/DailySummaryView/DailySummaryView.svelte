@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { formatDuration } from '$lib/utils/timeFormat';
+	import { dayjsLocal } from '$lib/utils/timezone';
 	import MonthlyTotal from '../MonthlyTotal/MonthlyTotal.svelte';
 
 	type DailySummaryItem = {
-		date: string; // YYYY-MM-DD
-		dayOfWeek: string; // '日' | '月' | '火' | '水' | '木' | '金' | '土'
+		date: Date; // YYYY-MM-DD
 		totalSec: number;
 		count: number;
 	};
@@ -25,14 +25,15 @@
 	let { dailySummaryData, onDateClick }: Props = $props();
 
 	// 日付のフォーマット: YYYY-MM-DD → M/D
-	const formatDate = (date: string): string => {
-		const [, month, day] = date.split('-');
-		return `${parseInt(month, 10)}/${parseInt(day, 10)}`;
+	const formatDate = (date: Date): string => {
+		const day = dayjsLocal(date);
+		return day.format('M/D');
 	};
 
 	// 行クリックハンドラー
-	const handleRowClick = (date: string) => {
-		onDateClick(date);
+	const handleRowClick = (date: Date) => {
+		const dateStr = dayjsLocal(date).format('YYYY-MM-DD');
+		onDateClick(dateStr);
 	};
 </script>
 
@@ -82,10 +83,10 @@
 								<td>{formatDate(item.date)}</td>
 								<td>
 									<span
-										class:text-error={item.dayOfWeek === '日'}
-										class:text-info={item.dayOfWeek === '土'}
+										class:text-error={dayjsLocal(item.date).day() === 0}
+										class:text-info={dayjsLocal(item.date).day() === 6}
 									>
-										{item.dayOfWeek}
+										{dayjsLocal(item.date).format('dd')}
 									</span>
 								</td>
 								<td class="text-right font-mono">{formatDuration(item.totalSec)}</td>

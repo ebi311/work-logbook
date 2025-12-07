@@ -1,3 +1,5 @@
+import { dayjsLocal } from './timezone';
+
 /**
  * YYYY-MM 形式の月文字列から、その月の範囲（UTC）を取得する
  * @param month - YYYY-MM 形式の月文字列（例: '2025-10'）
@@ -20,10 +22,18 @@ export const getMonthRange = (month: string): { from: Date; toExclusive: Date } 
 	}
 
 	// 月初（UTC）
-	const from = new Date(Date.UTC(year, monthNum - 1, 1, 0, 0, 0, 0));
-
+	const from = dayjsLocal()
+		.year(year)
+		.month(monthNum - 1)
+		.startOf('month')
+		.toDate();
 	// 翌月初（UTC）
-	const toExclusive = new Date(Date.UTC(year, monthNum, 1, 0, 0, 0, 0));
+	const toExclusive = dayjsLocal()
+		.year(year)
+		.month(monthNum - 1)
+		.add(1, 'month')
+		.startOf('month')
+		.toDate();
 
 	return { from, toExclusive };
 };

@@ -2,7 +2,7 @@ import { db } from './index';
 import { workLogs, workLogTags, type DbWorkLog } from './schema';
 import { eq, and, isNull, sql, isNotNull, gte, lte, desc, like, inArray } from 'drizzle-orm';
 import { WorkLog } from '../../../models/workLog';
-import { getMonthRange } from '../../utils/timezone';
+import { dayjsLocal, getMonthRange } from '../../utils/timezone';
 import { z } from 'zod';
 import dayjs from 'dayjs';
 
@@ -651,16 +651,16 @@ export const getDailySummary = async (
 	tags?: string[],
 ): Promise<{
 	items: Array<{
-		date: string;
+		date: Date;
 		totalSec: number;
 		count: number;
 	}>;
 	monthlyTotalSec: number;
 }> => {
 	// 月の範囲を計算（UTC基準）
-	const startOfMonth = new Date(`${month}-01T00:00:00Z`);
-	const endOfMonth = new Date(startOfMonth);
-	endOfMonth.setUTCMonth(endOfMonth.getUTCMonth() + 1);
+	const date = dayjsLocal(`${month}-01`);
+	const startOfMonth = date.startOf('month').toDate();
+	const endOfMonth = date.endOf('month').toDate();
 
 	// 日別集計クエリ
 	const conditions = [
@@ -683,20 +683,25 @@ export const getDailySummary = async (
 		conditions.push(sql`(${sql.join(tagConditions, sql` OR `)})`);
 	}
 
+	await db.execute("SET TIME ZONE 'Asia/Tokyo'"); // クエリ実行前にタイムゾーンをUTCに設定
+
 	const results = await db
 		.select({
-			date: sql<string>`DATE(${workLogs.startedAt} AT TIME ZONE 'UTC')`,
+			date: workLogs.startedAt,
 			totalSec: sql<number>`SUM(EXTRACT(EPOCH FROM (${workLogs.endedAt} - ${workLogs.startedAt})))`,
 			count: sql<number>`COUNT(*)`,
 		})
 		.from(workLogs)
 		.where(and(...conditions))
-		.groupBy(sql`DATE(${workLogs.startedAt} AT TIME ZONE 'UTC')`)
-		.orderBy(desc(sql`DATE(${workLogs.startedAt} AT TIME ZONE 'UTC')`));
+		.groupBy(workLogs.startedAt)
+		.orderBy(desc(workLogs.startedAt));
 
 	// 月次合計を計算
 	const monthlyTotalSec = results.reduce((sum, row) => sum + Number(row.totalSec || 0), 0);
 
+	console.log('[PERF] getDailySummary - query completed', {
+		resultCount: results[0],
+	});
 	return {
 		items: results.map((row) => ({
 			date: row.date,

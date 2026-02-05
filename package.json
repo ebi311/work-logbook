@@ -22,7 +22,8 @@
 		"db:start": "docker compose up",
 		"db:push": "drizzle-kit push",
 		"db:generate": "drizzle-kit generate",
-		"db:migrate": "drizzle-kit migrate",
+		"db:migrate": "node scripts/drizzle-migrate.mjs",
+		"db:migrate:drizzle-kit": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
 		"storybook": "storybook dev -p 6006",
 		"build-storybook": "storybook build"
@@ -67,7 +68,7 @@
 		"storybook": "^9.1.13",
 		"svelte": "^5.39.5",
 		"svelte-check": "^4.3.2",
-		"tailwindcss": "^4.1.13",
+		"tailwindcss": "^4.1.18",
 		"typescript": "^5.9.2",
 		"typescript-eslint": "^8.44.1",
 		"vite": "^7.1.7",

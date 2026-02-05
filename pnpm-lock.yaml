@@ -91,7 +91,7 @@ importers:
         version: 6.2.1(svelte@5.43.2)(vite@7.1.12(@types/node@22.18.13)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.46.0))
       '@tailwindcss/typography':
         specifier: ^0.5.18
-        version: 0.5.19(tailwindcss@4.1.16)
+        version: 0.5.19(tailwindcss@4.1.18)
       '@tailwindcss/vite':
         specifier: ^4.1.13
         version: 4.1.16(vite@7.1.12(@types/node@22.18.13)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.46.0))
@@ -171,8 +171,8 @@ importers:
         specifier: ^4.3.2
         version: 4.3.3(picomatch@4.0.3)(svelte@5.43.2)(typescript@5.9.3)
       tailwindcss:
-        specifier: ^4.1.13
-        version: 4.1.16
+        specifier: ^4.1.18
+        version: 4.1.18
       typescript:
         specifier: ^5.9.2
         version: 5.9.3
@@ -3584,6 +3584,9 @@ packages:
   tailwindcss@4.1.16:
     resolution: {integrity: sha512-pONL5awpaQX4LN5eiv7moSiSPd/DLDzKVRJz8Q9PgzmAdd1R4307GQS2ZpfiN7ZmekdQrfhZZiSE5jkLR4WNaA==}
 
+  tailwindcss@4.1.18:
+    resolution: {integrity: sha512-4+Z+0yiYyEtUVCScyfHCxOYP06L5Ne+JiHhY2IjR2KWMIWhJOYZKLSGZaP5HkZ8+bY0cxfzwDE5uOmzFXyIwxw==}
+
   tapable@2.3.0:
     resolution: {integrity: sha512-g9ljZiwki/LfxmQADO3dEY1CbpmXT5Hm2fJ+QaGKwSXUylMybePR7/67YW7jOrrvjEgL1Fmz5kzyAjWVWLlucg==}
     engines: {node: '>=6'}
@@ -5381,10 +5384,10 @@ snapshots:
       '@tailwindcss/oxide-win32-arm64-msvc': 4.1.16
       '@tailwindcss/oxide-win32-x64-msvc': 4.1.16
 
-  '@tailwindcss/typography@0.5.19(tailwindcss@4.1.16)':
+  '@tailwindcss/typography@0.5.19(tailwindcss@4.1.18)':
     dependencies:
       postcss-selector-parser: 6.0.10
-      tailwindcss: 4.1.16
+      tailwindcss: 4.1.18
 
   '@tailwindcss/vite@4.1.16(vite@7.1.12(@types/node@22.18.13)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.46.0))':
     dependencies:
@@ -7496,6 +7499,8 @@ snapshots:
   symbol-tree@3.2.4: {}
 
   tailwindcss@4.1.16: {}
+
+  tailwindcss@4.1.18: {}
 
   tapable@2.3.0: {}
 

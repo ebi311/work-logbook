@@ -1,6 +1,6 @@
-onlyBuiltDependencies:
-  - esbuild
-  - '@tailwindcss/oxide'
+allowBuilds:
+  esbuild: true
+  '@tailwindcss/oxide': true
 
 overrides:
   cookie@<0.7.0: '>=0.7.0'

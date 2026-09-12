@@ -1630,13 +1630,17 @@ describe('/+page.svelte', () => {
 				expect(screen.getByText('作業履歴')).toBeInTheDocument();
 			});
 
-			// When: 月選択ドロップダウンから "2025-01" を選択
+			// When: 月選択ドロップダウンから選択可能な月を選ぶ
 			const monthSelect = screen.getByRole('combobox', { name: /月を選択/i });
-			await fireEvent.change(monthSelect, { target: { value: '2025-01' } });
+			const month = [...monthSelect.querySelectorAll('option')]
+				.map((option) => option.value)
+				.find((value) => value !== '');
+			expect(month).toBeDefined();
+			await fireEvent.change(monthSelect, { target: { value: month } });
 
 			// Then: gotoが呼ばれ、month パラメータが設定される
 			expect(mockGoto).toHaveBeenCalledWith(
-				expect.stringContaining('month=2025-01'),
+				expect.stringContaining(`month=${month}`),
 				expect.objectContaining({
 					replaceState: false,
 					noScroll: true,

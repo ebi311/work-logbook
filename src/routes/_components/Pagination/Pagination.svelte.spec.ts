@@ -77,7 +77,7 @@ describe('Pagination', () => {
 		});
 
 		const prevButton = screen.getByLabelText('前のページ');
-		expect(prevButton).toHaveAttribute('href', '?page=2&size=20');
+		expect(prevButton).toHaveAttribute('href', '/?page=2&size=20');
 	});
 
 	it('次へボタンに正しいリンクが設定される', () => {
@@ -90,7 +90,7 @@ describe('Pagination', () => {
 		});
 
 		const nextButton = screen.getByLabelText('次のページ');
-		expect(nextButton).toHaveAttribute('href', '?page=3&size=15');
+		expect(nextButton).toHaveAttribute('href', '/?page=3&size=15');
 	});
 
 	it('キーボード操作が可能', () => {

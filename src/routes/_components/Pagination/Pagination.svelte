@@ -14,8 +14,8 @@
 	const isPrevDisabled = $derived(currentPage === 1);
 	const isNextDisabled = $derived(!hasNext);
 
-	const prevHref = $derived(`?page=${prevPage}&size=${size}`);
-	const nextHref = $derived(`?page=${nextPage}&size=${size}`);
+	const prevHref = $derived(`/?page=${prevPage}&size=${size}`);
+	const nextHref = $derived(`/?page=${nextPage}&size=${size}`);
 </script>
 
 <div class="join" role="navigation" aria-label="ページネーション">

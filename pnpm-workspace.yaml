@@ -3,7 +3,8 @@ allowBuilds:
   '@tailwindcss/oxide': true
 
 overrides:
-  cookie@<0.7.0: '>=0.7.0'
+  cookie: 1.0.2
   esbuild@<=0.24.2: '>=0.25.0'
+  glob@<13: '>=13.0.6'
   vite@>=7.1.0 <=7.1.10: '>=7.1.11'
   lodash@4: 4.18.1

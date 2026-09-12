@@ -2,7 +2,7 @@ import { db } from './index';
 import { workLogs, workLogTags, type DbWorkLog } from './schema';
 import { eq, and, isNull, sql, isNotNull, gte, lte, desc, like, inArray } from 'drizzle-orm';
 import { WorkLog } from '../../../models/workLog';
-import { dayjsLocal, getMonthRange } from '../../utils/timezone';
+import { dayjsLocal, getMonthRange, DEFAULT_TIMEZONE } from '../../utils/timezone';
 import { z } from 'zod';
 import dayjs from 'dayjs';
 
@@ -683,18 +683,21 @@ export const getDailySummary = async (
 		conditions.push(sql`(${sql.join(tagConditions, sql` OR `)})`);
 	}
 
-	await db.execute("SET TIME ZONE 'Asia/Tokyo'"); // クエリ実行前にタイムゾーンをUTCに設定
+	const workDate =
+		sql<string>`to_char((${workLogs.startedAt} AT TIME ZONE ${sql.raw(`'${DEFAULT_TIMEZONE}'`)}), 'YYYY-MM-DD')`.as(
+			'work_date',
+		);
 
 	const results = await db
 		.select({
-			date: workLogs.startedAt,
+			date: workDate,
 			totalSec: sql<number>`SUM(EXTRACT(EPOCH FROM (${workLogs.endedAt} - ${workLogs.startedAt})))`,
 			count: sql<number>`COUNT(*)`,
 		})
 		.from(workLogs)
 		.where(and(...conditions))
-		.groupBy(workLogs.startedAt)
-		.orderBy(desc(workLogs.startedAt));
+		.groupBy(sql`work_date`)
+		.orderBy(sql`work_date DESC`);
 
 	// 月次合計を計算
 	const monthlyTotalSec = results.reduce((sum, row) => sum + Number(row.totalSec || 0), 0);
@@ -704,7 +707,7 @@ export const getDailySummary = async (
 	});
 	return {
 		items: results.map((row) => ({
-			date: row.date,
+			date: new Date(`${row.date}T00:00:00.000Z`),
 			totalSec: Math.floor(Number(row.totalSec || 0)),
 			count: Number(row.count || 0),
 		})),

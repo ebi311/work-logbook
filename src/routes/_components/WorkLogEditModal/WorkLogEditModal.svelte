@@ -12,6 +12,7 @@
 	import { updateWorkLogOffline, saveWorkLogFromServer } from '$lib/client/db/workLogs';
 	import { requestSync } from '$lib/client/sync/trigger';
 	import { toastSuccess, toastError } from '$lib/utils/toast';
+	import type { ActionResult } from '@sveltejs/kit';
 
 	// 親からは最小限のフィールドのみ受け取れるようにする（構造的部分型）
 	type EditableWorkLog = {
@@ -204,11 +205,60 @@
 		}
 	};
 
+	const applyIsoTimestamps = (formData: FormData) => {
+		const startedAtLocal = formData.get('startedAt') as string;
+		const endedAtLocal = formData.get('endedAt') as string;
+
+		if (startedAtLocal) {
+			formData.set('startedAt', new Date(startedAtLocal).toISOString());
+		}
+		if (endedAtLocal) {
+			formData.set('endedAt', new Date(endedAtLocal).toISOString());
+		}
+	};
+
+	const persistUpdatedWorkLog = async (updated: WorkLog) => {
+		try {
+			await saveWorkLogFromServer({
+				id: updated.id,
+				userId: 'offline-user', // TODO: 適切なuserIdを取得
+				startedAt: updated.startedAt,
+				endedAt: updated.endedAt,
+				description: updated.description,
+				tags: updated.tags || [],
+			});
+		} catch (saveError) {
+			console.error('Failed to save to IndexedDB:', saveError);
+		}
+
+		open = false;
+		onupdated?.(updated);
+		onclose?.();
+	};
+
+	const handleUpdateResult = async ({ result }: { result: ActionResult }) => {
+		isSubmitting = false;
+
+		if (result.type === 'success') {
+			const data = result.data as { ok?: boolean; workLog?: WorkLog } | undefined;
+			if (data?.ok && data.workLog) {
+				await persistUpdatedWorkLog(data.workLog);
+			}
+			return;
+		}
+
+		if (result.type === 'failure') {
+			const data = result.data as { errors?: Record<string, string> } | undefined;
+			if (data?.errors) {
+				errors = data.errors;
+			}
+		}
+	};
+
 	// フォーム送信ハンドラー
 	const handleFormSubmit = ({ formData, cancel }: { formData: FormData; cancel: () => void }) => {
 		isSubmitting = true;
 
-		// オフライン時の処理
 		if (!$isOnline) {
 			cancel();
 			handleOfflineUpdate();
@@ -216,53 +266,8 @@
 			return;
 		}
 
-		// オンライン時: datetime-local の値をローカルタイムゾーン付きISO文字列に変換
-		const startedAtLocal = formData.get('startedAt') as string;
-		const endedAtLocal = formData.get('endedAt') as string;
-
-		if (startedAtLocal) {
-			const startDate = new Date(startedAtLocal);
-			formData.set('startedAt', startDate.toISOString());
-		}
-
-		if (endedAtLocal) {
-			const endDate = new Date(endedAtLocal);
-			formData.set('endedAt', endDate.toISOString());
-		}
-
-		return async ({ result }: { result: any }) => {
-			isSubmitting = false;
-
-			if (result.type === 'success' && result.data) {
-				const data = result.data as { ok?: boolean; workLog?: WorkLog };
-				if (data.ok && data.workLog) {
-					// IndexedDBにも保存（オンライン操作の結果を保存）
-					try {
-						await saveWorkLogFromServer({
-							id: data.workLog.id,
-							userId: 'offline-user', // TODO: 適切なuserIdを取得
-							startedAt: data.workLog.startedAt,
-							endedAt: data.workLog.endedAt,
-							description: data.workLog.description,
-							tags: data.workLog.tags || [],
-						});
-					} catch (error) {
-						console.error('Failed to save to IndexedDB:', error);
-					}
-
-					// 成功時
-					open = false;
-					onupdated?.(data.workLog);
-					onclose?.();
-				}
-			} else if (result.type === 'failure' && result.data) {
-				// サーバーサイドエラー
-				const data = result.data as { errors?: Record<string, string> };
-				if (data.errors) {
-					errors = data.errors;
-				}
-			}
-		};
+		applyIsoTimestamps(formData);
+		return handleUpdateResult;
 	};
 
 	// フォーム送信
@@ -277,7 +282,7 @@
 <dialog bind:this={dialog} class="modal" onclose={handleDialogClose}>
 	<div class="modal-box flex max-h-[80vh] w-11/12 max-w-3xl flex-col">
 		<!-- ヘッダー -->
-		<div class="mb-4 flex flex-shrink-0 items-start justify-between">
+		<div class="mb-4 flex shrink-0 items-start justify-between">
 			<h3 class="text-lg font-bold">作業記録の編集</h3>
 			<button class="btn btn-circle btn-ghost btn-sm" onclick={handleCancel} aria-label="閉じる">
 				✕

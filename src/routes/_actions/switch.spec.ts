@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { handleSwitchAction } from './switch';
 import {
@@ -6,7 +7,7 @@ import {
 	createWorkLog,
 	saveWorkLogTags,
 } from '$lib/server/db/workLogs';
-import { error, fail } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 
 vi.mock('$lib/server/db/workLogs');
 vi.mock('@sveltejs/kit', async () => {
@@ -265,7 +266,7 @@ describe('switch action', () => {
 			} as any;
 
 			// Act
-			const result = await handleSwitchAction(event);
+			await handleSwitchAction(event);
 
 			// Assert
 			expect(fail).toHaveBeenCalledWith(400, {

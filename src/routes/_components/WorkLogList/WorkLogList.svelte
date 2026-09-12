@@ -144,7 +144,7 @@
 							<!-- タグ -->
 							{#if item.tags && item.tags.length > 0}
 								<div class="flex flex-wrap gap-1">
-									{#each item.tags as tag}
+									{#each item.tags as tag (tag)}
 										<span
 											role="button"
 											tabindex="0"

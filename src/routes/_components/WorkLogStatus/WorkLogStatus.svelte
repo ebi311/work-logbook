@@ -46,7 +46,6 @@
 	$effect(() => {
 		// activeとserverNowの変更を監視するための参照
 		const currentActive = active;
-		const currentServerNow = serverNow;
 
 		updateElapsedTime();
 

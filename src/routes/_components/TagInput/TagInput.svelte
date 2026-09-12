@@ -81,44 +81,62 @@
 	};
 
 	/**
+	 * Enterでタグを確定
+	 */
+	const submitInputAsTags = () => {
+		if (selectedIndex >= 0 && filteredSuggestions[selectedIndex]) {
+			addTag(filteredSuggestions[selectedIndex].tag);
+			return;
+		}
+		if (inputValue.includes(' ')) {
+			inputValue
+				.split(/\s+/)
+				.filter((t) => t.trim())
+				.forEach((tag) => addTag(tag));
+			return;
+		}
+		addTag(inputValue);
+	};
+
+	/**
 	 * キーボードイベント
 	 */
 	const handleKeydown = (e: KeyboardEvent) => {
-		// IME変換中は処理しない
 		if (isComposing) return;
 
-		if (e.key === 'Enter') {
-			e.preventDefault();
-			if (selectedIndex >= 0 && filteredSuggestions[selectedIndex]) {
-				addTag(filteredSuggestions[selectedIndex].tag);
-			} else if (inputValue.includes(' ')) {
-				// スペースが含まれている場合、分割して追加
-				const newTags = inputValue.split(/\s+/).filter((t) => t.trim());
-				newTags.forEach((tag) => addTag(tag));
-			} else {
+		const actions: Record<string, () => void> = {
+			Enter: () => {
+				e.preventDefault();
+				submitInputAsTags();
+			},
+			ArrowDown: () => {
+				e.preventDefault();
+				if (showSuggestions && filteredSuggestions.length > 0) {
+					selectedIndex = Math.min(selectedIndex + 1, filteredSuggestions.length - 1);
+				}
+			},
+			ArrowUp: () => {
+				e.preventDefault();
+				if (showSuggestions) {
+					selectedIndex = Math.max(selectedIndex - 1, -1);
+				}
+			},
+			Escape: () => {
+				showSuggestions = false;
+				selectedIndex = -1;
+			},
+			' ': () => {
+				if (!inputValue.trim()) return;
+				e.preventDefault();
 				addTag(inputValue);
-			}
-		} else if (e.key === 'ArrowDown') {
-			e.preventDefault();
-			if (showSuggestions && filteredSuggestions.length > 0) {
-				selectedIndex = Math.min(selectedIndex + 1, filteredSuggestions.length - 1);
-			}
-		} else if (e.key === 'ArrowUp') {
-			e.preventDefault();
-			if (showSuggestions) {
-				selectedIndex = Math.max(selectedIndex - 1, -1);
-			}
-		} else if (e.key === 'Escape') {
-			showSuggestions = false;
-			selectedIndex = -1;
-		} else if (e.key === ' ' && inputValue.trim()) {
-			// スペースでタグを確定
-			e.preventDefault();
-			addTag(inputValue);
-		} else if (e.key === 'Backspace' && !inputValue && tags.length > 0) {
-			// 入力が空でBackspaceを押すと最後のタグを削除
-			removeTag(tags.length - 1);
-		}
+			},
+			Backspace: () => {
+				if (inputValue || tags.length === 0) return;
+				removeTag(tags.length - 1);
+			},
+		};
+
+		actions[e.key]?.();
 	};
 
 	/**
@@ -155,7 +173,7 @@
 	<!-- タグバッジ表示 -->
 	{#if tags.length > 0}
 		<div class="mb-2 flex flex-wrap gap-1">
-			{#each tags as tag, i}
+			{#each tags as tag, i (tag)}
 				<TagBadge {tag} onRemove={() => removeTag(i)} />
 			{/each}
 		</div>
@@ -184,7 +202,7 @@
 		<!-- サジェスト -->
 		{#if showSuggestions && filteredSuggestions.length > 0}
 			<ul class="menu absolute z-10 mt-1 w-full rounded-box bg-base-200 shadow-lg">
-				{#each filteredSuggestions as suggestion, i}
+				{#each filteredSuggestions as suggestion, i (suggestion.tag)}
 					<li>
 						<button
 							type="button"

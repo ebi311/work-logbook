@@ -52,7 +52,7 @@
 		listDataPromise,
 		filterTags,
 		currentMonth,
-		currentDate,
+		currentDate: _currentDate,
 		tagSuggestions,
 		serverNow,
 		onFilterTagsChange,
@@ -115,7 +115,7 @@
 					aria-label="月を選択"
 				>
 					<option value="">すべての月</option>
-					{#each monthOptions as month}
+					{#each monthOptions as month (month)}
 						<option value={month}>{month}</option>
 					{/each}
 				</select>
@@ -168,7 +168,7 @@
 				ontagclick={onTagClick}
 			/>
 			<!-- フッター: 月次合計とページネーション -->
-		{:catch error}
+		{:catch _error}
 			<!-- エラー表示 -->
 			<div class="alert alert-error">
 				<span>データの読み込みに失敗しました</span>

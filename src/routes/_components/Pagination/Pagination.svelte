@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
+
 	type Props = {
 		currentPage: number;
 		hasNext: boolean;
@@ -22,7 +24,7 @@
 			<span aria-hidden="true">«</span>
 		</button>
 	{:else}
-		<a href={prevHref} class="btn join-item btn-sm" aria-label="前のページ">
+		<a href={resolve(prevHref)} class="btn join-item btn-sm" aria-label="前のページ">
 			<span aria-hidden="true">«</span>
 		</a>
 	{/if}
@@ -36,7 +38,7 @@
 			<span aria-hidden="true">»</span>
 		</button>
 	{:else}
-		<a href={nextHref} class="btn join-item btn-sm" aria-label="次のページ">
+		<a href={resolve(nextHref)} class="btn join-item btn-sm" aria-label="次のページ">
 			<span aria-hidden="true">»</span>
 		</a>
 	{/if}

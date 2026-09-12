@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { PageData, ActionData } from './$types';
 	import WorkLogStatus from './_components/WorkLogStatus/WorkLogStatus.svelte';
-	import WorkLogToggleButton from './_components/WorkLogToggleButton/WorkLogToggleButton.svelte';
 	import ActiveWorkLogStartTimeInput from './_components/ActiveWorkLogStartTimeInput/ActiveWorkLogStartTimeInput.svelte';
 	import ActiveWorkLogActions from './_components/ActiveWorkLogActions/ActiveWorkLogActions.svelte';
 	import KeyboardShortcutHelp from './_components/KeyboardShortcutHelp/KeyboardShortcutHelp.svelte';
@@ -11,15 +10,15 @@
 	import WorkLogTagInput from './_components/WorkLogTagInput/WorkLogTagInput.svelte';
 	import { enhance } from '$app/forms';
 	import WorkLogEditModal from './_components/WorkLogEditModal/WorkLogEditModal.svelte';
-	import { invalidate, invalidateAll, refreshAll, goto } from '$app/navigation';
+	import { refreshAll, goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { toastSuccess, toastError } from '$lib/utils/toast';
 	import { isOnline } from '$lib/client/network/status';
-	import { saveWorkLogFromServer, deleteWorkLogOffline } from '$lib/client/db/workLogs';
+	import { deleteWorkLogOffline } from '$lib/client/db/workLogs';
 	import { setSyncSuccessCallback, requestSync } from '$lib/client/sync/trigger';
 	import {
 		executeOfflineAction,
-		type ActiveWorkLog,
 		type OfflineActionContext,
 	} from '$lib/client/offline/workLogActions';
 	import {
@@ -91,23 +90,27 @@
 		currentView = viewParam === 'daily' ? 'daily' : 'list';
 	});
 
+	const navigate = (url: string | URL) => {
+		const parsed = typeof url === 'string' ? new URL(url, page.url) : url;
+		const path = `${parsed.pathname}${parsed.search}` as '/';
+		return goto(resolve(path), { replaceState: false, noScroll: true, keepFocus: true });
+	};
+
 	// F-006: フィルタタグ変更ハンドラー
 	const handleFilterTagsChange = (newTags: string[]) => {
-		const url = buildTagFilterUrl(newTags, page.url);
-		goto(url, { replaceState: false, noScroll: true, keepFocus: true });
+		navigate(buildTagFilterUrl(newTags, page.url));
 	};
 
 	// F-006: 日付フィルタ変更ハンドラー
 	const handleDateFilterChange = (filter: { month?: string; date?: string }) => {
-		const url = buildDateFilterUrl(filter, page.url);
-		goto(url, { replaceState: false, noScroll: true, keepFocus: true });
+		navigate(buildDateFilterUrl(filter, page.url));
 	};
 
 	// F-006 UC-003: タグバッジクリックハンドラー
 	const handleTagClick = (tag: string) => {
 		const url = buildAddTagToFilterUrl(tag, filterTags, page.url);
 		if (url) {
-			goto(url, { replaceState: false, noScroll: true, keepFocus: true });
+			navigate(url);
 		}
 	};
 
@@ -119,7 +122,7 @@
 		} else {
 			url.searchParams.delete('view');
 		}
-		goto(url.toString(), { replaceState: false, noScroll: true, keepFocus: true });
+		navigate(url);
 	};
 
 	// F-009: 日付クリック時のドリルダウンハンドラー
@@ -128,7 +131,7 @@
 		const url = new URL(page.url);
 		url.searchParams.delete('view'); // list view
 		url.searchParams.set('date', date);
-		goto(url.toString(), { replaceState: false, noScroll: true, keepFocus: true });
+		navigate(url);
 	};
 
 	// 成功ハンドラーを作成
@@ -448,7 +451,7 @@
 				bind:this={formElement}
 				method="POST"
 				class="card-actions flex-col gap-4"
-				use:enhance={({ action, formData, cancel }) => {
+				use:enhance={({ action, cancel }) => {
 					isSubmitting = true;
 
 					// オフライン時の処理
@@ -470,7 +473,7 @@
 						isSubmitting = false;
 						return;
 					} // オンライン時は通常の処理
-					return async ({ result, update }) => {
+					return async ({ update }) => {
 						isSubmitting = false;
 						await update();
 					};

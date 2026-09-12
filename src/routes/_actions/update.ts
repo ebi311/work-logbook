@@ -29,6 +29,55 @@ export type UpdateActionFailure = {
 	serverNow: string;
 };
 
+const parseTags = (tagsStr: string): string[] =>
+	tagsStr
+		.split(/\s+/)
+		.map((tag) => tag.trim())
+		.filter((tag) => tag.length > 0);
+
+const collectUpdateErrors = (
+	startedAt: Date,
+	endedAt: Date,
+	description: string,
+	tags: string[],
+): Record<string, string> => {
+	const errors: Record<string, string> = {};
+
+	const timeRangeResult = validateTimeRange(startedAt, endedAt);
+	if (!timeRangeResult.valid) {
+		errors.time = timeRangeResult.error!;
+	}
+
+	const descriptionResult = validateDescription(description);
+	if (!descriptionResult.valid) {
+		errors.description = descriptionResult.error!;
+	}
+
+	if (tags.length > 20) {
+		errors.tags = 'タグは最大20個までです';
+	}
+
+	for (const tag of tags) {
+		if (tag.length > 100) {
+			errors.tags = 'タグ名は100文字以内にしてください';
+			break;
+		}
+	}
+
+	return errors;
+};
+
+const failUpdate = (
+	status: number,
+	payload: Omit<UpdateActionFailure, 'ok' | 'serverNow'>,
+	serverNow: Date,
+) =>
+	fail(status, {
+		ok: false,
+		...payload,
+		serverNow: serverNow.toISOString(),
+	} satisfies UpdateActionFailure);
+
 /**
  * 作業記録更新アクションの実装
  */
@@ -41,99 +90,50 @@ export const handleUpdateAction = async ({ locals, request }: RequestEvent) => {
 	const serverNow = new Date();
 
 	try {
-		// FormDataから取得
 		const formData = await request.formData();
 		const id = formData.get('id') as string;
-		const startedAtStr = formData.get('startedAt') as string;
-		const endedAtStr = formData.get('endedAt') as string;
 		const description = (formData.get('description') as string) || '';
-		const tagsStr = (formData.get('tags') as string) || '';
+		const tags = parseTags((formData.get('tags') as string) || '');
+		const startedAt = new Date(formData.get('startedAt') as string);
+		const endedAt = new Date(formData.get('endedAt') as string);
 
-		// タグをパース（スペース区切り）
-		const tags = tagsStr
-			.split(/\s+/)
-			.map((tag) => tag.trim())
-			.filter((tag) => tag.length > 0);
-
-		// 作業記録を取得
 		const workLog = await getWorkLogById(id);
-
 		if (!workLog) {
-			return fail(404, {
-				ok: false,
-				reason: 'NOT_FOUND',
-				message: '作業記録が見つかりません',
-				serverNow: serverNow.toISOString(),
-			} satisfies UpdateActionFailure);
+			return failUpdate(
+				404,
+				{ reason: 'NOT_FOUND', message: '作業記録が見つかりません' },
+				serverNow,
+			);
 		}
-
-		// 権限チェック
 		if (workLog.userId !== userId) {
-			return fail(403, {
-				ok: false,
-				reason: 'FORBIDDEN',
-				message: 'この操作を実行する権限がありません',
-				serverNow: serverNow.toISOString(),
-			} satisfies UpdateActionFailure);
+			return failUpdate(
+				403,
+				{ reason: 'FORBIDDEN', message: 'この操作を実行する権限がありません' },
+				serverNow,
+			);
 		}
 
-		// 日時パース
-		const startedAt = new Date(startedAtStr);
-		const endedAt = new Date(endedAtStr);
-
-		// バリデーション
-		const errors: Record<string, string> = {};
-
-		// 時刻の整合性チェック
-		const timeRangeResult = validateTimeRange(startedAt, endedAt);
-		if (!timeRangeResult.valid) {
-			errors.time = timeRangeResult.error!;
-		}
-
-		// 作業内容の文字数チェック
-		const descriptionResult = validateDescription(description);
-		if (!descriptionResult.valid) {
-			errors.description = descriptionResult.error!;
-		}
-
-		// タグのバリデーション
-		if (tags.length > 20) {
-			errors.tags = 'タグは最大20個までです';
-		}
-
-		for (const tag of tags) {
-			if (tag.length > 100) {
-				errors.tags = 'タグ名は100文字以内にしてください';
-				break;
-			}
-		}
-
-		// バリデーションエラーがある場合
+		const errors = collectUpdateErrors(startedAt, endedAt, description, tags);
 		if (Object.keys(errors).length > 0) {
-			return fail(400, {
-				ok: false,
-				reason: 'VALIDATION_ERROR',
-				message: 'バリデーションエラー',
-				errors,
-				serverNow: serverNow.toISOString(),
-			} satisfies UpdateActionFailure);
+			return failUpdate(
+				400,
+				{ reason: 'VALIDATION_ERROR', message: 'バリデーションエラー', errors },
+				serverNow,
+			);
 		}
 
-		// データベース更新
 		const updatedWorkLog = await updateWorkLog(id, {
 			startedAt,
 			endedAt,
 			description,
 			tags,
 		});
-
 		if (!updatedWorkLog) {
-			return fail(404, {
-				ok: false,
-				reason: 'NOT_FOUND',
-				message: '作業記録が見つかりません',
-				serverNow: serverNow.toISOString(),
-			} satisfies UpdateActionFailure);
+			return failUpdate(
+				404,
+				{ reason: 'NOT_FOUND', message: '作業記録が見つかりません' },
+				serverNow,
+			);
 		}
 
 		return {

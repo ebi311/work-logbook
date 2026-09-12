@@ -21,7 +21,7 @@
 <div class="form-control flex w-full flex-col">
 	<TagInput bind:tags {suggestions} {placeholder} />
 	<!-- 隠しフィールドでタグを送信 -->
-	{#each tags as tag}
+	{#each tags as tag (tag)}
 		<input type="hidden" name="tags" value={tag} />
 	{/each}
 </div>

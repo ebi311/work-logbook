@@ -42,7 +42,7 @@
 			キーボードショートカット
 		</h2>
 		<ul class="list">
-			{#each shortcuts as shortcut}
+			{#each shortcuts as shortcut (shortcut.key)}
 				<li class="list-row items-center justify-between gap-4 py-2">
 					<span class="flex items-center gap-2 font-semibold text-base-content">
 						<kbd class="kbd">{shortcut.modifier}</kbd>

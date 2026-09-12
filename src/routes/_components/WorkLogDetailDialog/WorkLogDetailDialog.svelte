@@ -84,6 +84,7 @@
 		<div class="mb-4 min-h-0 flex-1 overflow-y-auto">
 			{#if item.description}
 				<div class="prose prose-sm max-w-none">
+					<!-- eslint-disable-next-line svelte/no-at-html-tags -- HTML is sanitized by DOMPurify in renderMarkdown -->
 					{@html renderedHtml}
 				</div>
 			{:else}
@@ -96,7 +97,7 @@
 			<div class="mb-4 flex-shrink-0">
 				<h4 class="mb-2 text-sm font-semibold text-base-content/60">タグ:</h4>
 				<div class="flex flex-wrap gap-2">
-					{#each item.tags as tag}
+					{#each item.tags as tag (tag)}
 						<TagBadge {tag} />
 					{/each}
 				</div>
